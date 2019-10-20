@@ -1,4 +1,4 @@
-= hermit-abi
+# hermit-abi
 
 This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
 It is used to build the target `x86_64-unknown-hermit`.
