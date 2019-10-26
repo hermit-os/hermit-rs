@@ -1,5 +1,4 @@
-#![no_std]
-
+#![cfg_attr(feature = "rustc-dep-of-std", no_std)]
 extern crate libc;
 
 use libc::c_void;

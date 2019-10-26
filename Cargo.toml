@@ -16,12 +16,12 @@ exclude = ["/.travis.yml", "/.gitlab-ci.yml", ".gitignore", ".rustfmt.toml"]
 [dependencies]
 core = { version = "1.0.0", optional = true, package = "rustc-std-workspace-core" }
 compiler_builtins = { version = "0.1.0", optional = true }
-libc = { version = "0.2.51", default-features = false, features = ['rustc-dep-of-std'] }
+libc = { version = "0.2.51", default-features = false }
 
 [features]
 default = []
 docs = []
-rustc-dep-of-std = ["core", "compiler_builtins/rustc-dep-of-std"]
+rustc-dep-of-std = ["core", "compiler_builtins/rustc-dep-of-std", "libc/rustc-dep-of-std"]
 
 [package.metadata.docs.rs]
 features = ["docs"]
