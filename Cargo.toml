@@ -4,7 +4,7 @@ members = [
     "hermit-sys",
     "demo",
 ]
-exclude = ["hermit-sys/libhermit-rs"]
+exclude = ["target"]
 
 [profile.release]
 opt-level = 3
