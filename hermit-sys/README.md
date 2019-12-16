@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/hermit-sys.svg)](https://crates.io/crates/hermit-sys)
 [![License](https://img.shields.io/crates/l/hermit-sys.svg)](https://img.shields.io/crates/l/hermit-sys.svg)
 
-This is a container for the library operating system [HermitCore](https://github.com/hermitcore/libhermit-rs).
+This is a container for the library operating system [RustyCore](https://github.com/hermitcore/libhermit-rs).
 
 ## License
 
