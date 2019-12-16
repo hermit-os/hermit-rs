@@ -1,3 +1,0 @@
-[submodule "hermit-sys/libhermit-rs"]
-	path = hermit-sys/libhermit-rs
-	url = https://github.com/hermitcore/libhermit-rs.git
