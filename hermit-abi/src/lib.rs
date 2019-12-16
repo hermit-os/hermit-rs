@@ -1,5 +1,4 @@
 #![feature(const_raw_ptr_to_usize_cast)]
-
 #![cfg_attr(feature = "rustc-dep-of-std", no_std)]
 extern crate libc;
 
