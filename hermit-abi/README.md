@@ -5,6 +5,8 @@
 
 This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
 
+Please read the README of [RustyHermit](https://github.com/hermitcore/libhermit-rs) for more information.
+
 ## License
 
 Licensed under either of
