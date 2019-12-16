@@ -1,9 +1,12 @@
+#![feature(const_raw_ptr_to_usize_cast)]
+
 #![cfg_attr(feature = "rustc-dep-of-std", no_std)]
 extern crate libc;
 
 use libc::c_void;
 
 extern "C" {
+	fn _start();
 	fn sys_get_processor_count() -> usize;
 	fn sys_malloc(size: usize, align: usize) -> *mut u8;
 	fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8;
@@ -53,6 +56,10 @@ pub const CLOCK_MONOTONIC: u64 = 4;
 pub struct timespec {
 	pub tv_sec: i64,
 	pub tv_nsec: i64,
+}
+
+pub unsafe fn call_start() {
+	_start();
 }
 
 #[inline(always)]

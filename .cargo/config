@@ -1,0 +1,8 @@
+[alias]
+xbuild = "build -Z build-std=std,core,alloc"
+
+[build]
+target = "x86_64-unknown-hermit"
+
+[target.x86_64-unknown-hermit]
+runner = "uhyve -v"
