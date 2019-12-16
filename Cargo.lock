@@ -14,14 +14,13 @@ name = "hermit-abi"
 version = "0.1.4"
 dependencies = [
  "compiler_builtins",
- "hermit-sys",
  "libc",
  "rustc-std-workspace-core",
 ]
 
 [[package]]
 name = "hermit-sys"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "libc"

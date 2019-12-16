@@ -1,10 +1,10 @@
 [package]
 name = "hermit-sys"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Stefan Lankes"]
 license = "MIT/Apache-2.0"
 description = "FFI bindings to HermitCore"
-repository = "https://github.com/hermitcore/rusty-hermit/hermit-sys"
+repository = "https://github.com/hermitcore/rusty-hermit"
 readme = "README.md"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
