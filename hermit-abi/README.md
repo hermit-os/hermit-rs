@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/hermit-abi.svg)](https://crates.io/crates/hermit-abi)
 [![License](https://img.shields.io/crates/l/hermit-abi.svg)](https://img.shields.io/crates/l/hermit-abi.svg)
 
-This is small interface to call functions from the unikernel [HermitCore](https://github.com/hermitcore/libhermit-rs).
+This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
 
 ## License
 
