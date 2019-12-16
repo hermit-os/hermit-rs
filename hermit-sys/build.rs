@@ -4,38 +4,43 @@ use std::process::Command;
 #[cfg(not(feature = "rustc-dep-of-std"))]
 fn build() {
 	let out_dir = env::var("OUT_DIR").unwrap();
-	let target_dir = out_dir.clone() + "/target";
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
+
+	let _output = Command::new("cargo")
+		.current_dir(out_dir.clone())
+		.arg("download")
+		.arg("--output")
+		.arg(out_dir.clone()+"/rusty-hermit")
+		.arg("--extract")
+		.arg("rusty-hermit")
+		.output()
+		.expect("Unable to download rusty-hermit. Please install `cargo-download`.");
 
 	if profile == "release" {
 		let _output = Command::new("cargo")
-			.current_dir("libhermit-rs")
+			.current_dir(out_dir.clone()+"/rusty-hermit")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
 			.arg("x86_64-unknown-hermit-kernel")
-			.arg("--target-dir")
-			.arg(target_dir)
 			.arg("--release")
 			.output()
 			.expect("Unable to build kernel");
 	} else {
 		let _output = Command::new("cargo")
-			.current_dir("libhermit-rs")
+			.current_dir(out_dir.clone()+"/rusty-hermit")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
 			.arg("x86_64-unknown-hermit-kernel")
-			.arg("--target-dir")
-			.arg(target_dir)
 			.output()
 			.expect("Unable to build kernel");
 	}
 
 	println!(
-		"cargo:rustc-link-search=native={}/target/x86_64-unknown-hermit-kernel/{}",
+		"cargo:rustc-link-search=native={}/rusty-hermit/target/x86_64-unknown-hermit-kernel/{}",
 		out_dir.clone(),
 		profile
 	);
