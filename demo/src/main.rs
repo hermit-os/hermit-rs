@@ -10,8 +10,8 @@
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
-/*extern crate http;
-extern crate rayon;*/
+/*extern crate http;*/
+extern crate rayon;
 
 mod tests;
 
@@ -26,7 +26,7 @@ fn test_result<T>(result: Result<(), T>) -> &'static str {
 
 fn main() {
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
-	/*println!(
+	println!(
 		"Test {} ... {}",
 		stringify!(print_argv),
 		test_result(print_argv())
@@ -70,12 +70,12 @@ fn main() {
 		"Test {} ... {}",
 		stringify!(test_matmul_strassen),
 		test_result(test_matmul_strassen())
-	);
+	);*/
 	println!(
 		"Test {} ... {}",
 		stringify!(thread_creation),
 		test_result(thread_creation())
-	);*/
+	);
 	println!(
 		"Test {} ... {}",
 		stringify!(bench_sched_one_thread),
@@ -86,7 +86,7 @@ fn main() {
 		stringify!(bench_sched_two_threads),
 		test_result(bench_sched_two_threads())
 	);
-	println!(
+	/*println!(
 		"Test {} ... {}",
 		stringify!(test_http_request),
 		test_result(test_http_request())
