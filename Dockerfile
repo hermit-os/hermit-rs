@@ -16,7 +16,7 @@ RUN /root/.cargo/bin/cargo install uhyve
 RUN /root/.cargo/bin/rustup component add rust-src
 RUN /root/.cargo/bin/rustup component add llvm-tools-preview
 
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV PATH="/root/.cargo/bin:/root/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/:${PATH}"
 ENV EDITOR=vim
 
 # Switch back to dialog for any ad-hoc use of apt-get
