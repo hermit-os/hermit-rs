@@ -1,7 +1,6 @@
 # rusty-hermit
 
 [![Build Status](https://git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/badges/master/pipeline.svg)](https://git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/pipelines)
-[![License](https://img.shields.io/crates/l/rusty-hermit.svg)](https://img.shields.io/crates/l/rusty-hermit.svg)
 [![Slack Status](https://radiant-ridge-95061.herokuapp.com/badge.svg)](https://radiant-ridge-95061.herokuapp.com)
 
 These are helper crates to build applications for the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
