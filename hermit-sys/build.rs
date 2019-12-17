@@ -9,7 +9,7 @@ fn build() {
 
 	if profile == "release" {
 		let _output = Command::new("cargo")
-			.current_dir("libhermit-rs")
+			.current_dir("../libhermit-rs")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
@@ -22,7 +22,7 @@ fn build() {
 			.expect("Unable to build kernel");
 	} else {
 		let _output = Command::new("cargo")
-			.current_dir("libhermit-rs")
+			.current_dir("../libhermit-rs")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
