@@ -5,8 +5,8 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2018"
 publish = false
 
-#[dependencies]
-#rayon = "1.2.0"
+[dependencies]
+rayon = "1.2.0"
 #http = "0.1.18"    
 
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
