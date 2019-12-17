@@ -1,0 +1,57 @@
+variables:
+  IMAGE: ubuntu:with-rust
+  GIT_SUBMODULE_STRATEGY: normal
+
+stages:
+  - prepare
+  - build
+  #- test
+
+# Stage: prepare
+##############################################################################
+
+docker:
+  stage: prepare
+  script:
+    - docker build -t ${IMAGE} .
+  tags:
+    - shell
+    - linux
+
+# Stage build
+##############################################################################
+build:
+  stage: build
+  script:
+    - cargo build -Z build-std=std,core,alloc --target x86_64-unknown-hermit
+    - cargo build -Z build-std=std,core,alloc --target x86_64-unknown-hermit --release
+  image: ${IMAGE}
+  cache:
+    paths:
+      - target/x86_64-unknown-hermit
+    key: build
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit
+  tags:
+    - docker
+
+# Stage: test
+
+##############################################################################
+#test:tarpaulin:
+#  stage: test
+#  script:
+#    - rm -rf tests loader
+#    - cargo tarpaulin -v --exclude-files src/arch/aarch64
+#  image: ${IMAGE}
+#  tags:
+#    - docker
+
+#test:cargo:
+#  stage: test
+#  script: 
+#    - cargo test --target x86_64-unknown-linux-gnu
+#  image: ${IMAGE}
+#  tags:
+#    - docker
