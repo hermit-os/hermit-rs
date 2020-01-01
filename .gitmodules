@@ -1,3 +1,6 @@
+[submodule "loader"]
+	path = loader
+	url = https://github.com/hermitcore/rusty-loader.git
 [submodule "libhermit-rs"]
 	path = libhermit-rs
 	url = https://github.com/hermitcore/libhermit-rs.git
