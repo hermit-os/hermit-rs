@@ -49,6 +49,14 @@ pub type Tid = u32;
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
+pub const STDIN_FILENO: libc::c_int = 0;
+pub const STDOUT_FILENO: libc::c_int = 1;
+pub const STDERR_FILENO: libc::c_int = 2;
+
+/// returns true if this is a tty
+pub fn isatty(_fd: libc::c_int) -> bool {
+	false
+}
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
