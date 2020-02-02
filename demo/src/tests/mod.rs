@@ -1,11 +1,11 @@
 use core::arch::x86_64 as arch;
-//use http::{Request, Response};
 use std::env;
 use std::f64::consts::PI;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
-use std::net::TcpStream;
+use std::net::{TcpListener, TcpStream};
+use std::str;
 use std::thread;
 use std::time::Instant;
 use std::vec;
@@ -292,14 +292,30 @@ pub fn matrix_setup(size_x: usize, size_y: usize) -> (vec::Vec<vec::Vec<f64>>) {
 	}
 
 	matrix
-}
+}*/
 
-pub fn test_http_request() -> Result<(), std::io::Error> {
-	let mut stream = TcpStream::connect("185.199.108.153:80")?;
-	stream.write_all(b"GET / HTTP/1.1\r\nHost: 185.199.108.158\r\nConnection: close\r\n\r\n")?;
+fn send_http_rquest() -> Result<Vec<u8>, std::io::Error> {
+	let mut stream = TcpStream::connect("134.130.122.36:80")?;
+	let buf = b"GET /index.html HTTP/1.1\r\nHost: 134.130.122.36\r\nConnection: close\r\n\r\n";
+	stream.write_all(buf)?;
 
 	let mut buf = Vec::new();
 	stream.read_to_end(&mut buf)?;
 
+	Ok(buf)
+}
+
+pub fn test_http_request() -> Result<(), std::io::Error> {
+	let buf = send_http_rquest()?;
+	let result = str::from_utf8(&buf)
+		.unwrap()
+		.to_owned()
+		.starts_with("HTTP/1.1 301 Moved Permanently");
+
+	match result {
+		true => println!("Ckeck http response... ok"),
+		_ => println!("Ckeck http response... failed!"),
+	};
+
 	Ok(())
-}*/
+}
