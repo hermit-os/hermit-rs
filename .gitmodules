@@ -4,6 +4,3 @@
 [submodule "loader"]
 	path = loader
 	url = https://github.com/hermitcore/rusty-loader.git
-[submodule "usnet_sockets"]
-	path = usnet_sockets
-	url = https://github.com/hermitcore/usnet_sockets.git
