@@ -13,7 +13,6 @@ use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
 use x86::io::outl;
 
 const SHAREDQUEUE_START: usize = 0x80000;
-//const UHYVE_MAX_MSG_SIZE: usize = 1792;
 const UHYVE_NET_MTU: usize = 1500;
 const UHYVE_QUEUE_SIZE: usize = 8;
 const UHYVE_PORT_NETWRITE: u16 = 0x640;
@@ -126,7 +125,7 @@ pub fn network_init() {
 	let mut tid: Tid = 0;
 	let ret = unsafe { sys_spawn(&mut tid, uhyve_thread, 0, 3, 0) };
 	if ret >= 0 {
-		info!("Spawn network thread with id {}", tid);
+		debug!("Spawn network thread with id {}", tid);
 	}
 }
 
