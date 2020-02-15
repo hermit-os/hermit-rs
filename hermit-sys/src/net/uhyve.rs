@@ -3,6 +3,7 @@ use std::convert::TryInto;
 use std::mem;
 use std::ptr::{read_volatile, write_volatile};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex;
 
 use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
 use smoltcp::phy::{self, Device, DeviceCapabilities};
@@ -10,6 +11,7 @@ use smoltcp::socket::SocketSet;
 use smoltcp::time::Instant;
 use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
 
+use lazy_static::lazy_static;
 use x86::io::outl;
 
 const SHAREDQUEUE_START: usize = 0x80000;
@@ -18,6 +20,12 @@ const UHYVE_QUEUE_SIZE: usize = 8;
 const UHYVE_PORT_NETWRITE: u16 = 0x640;
 
 pub type Tid = u32;
+
+lazy_static! {
+	static ref SOCKETS: Mutex<SocketSet<'static, 'static, 'static>> =  {
+		Mutex::new(SocketSet::new(vec![]))
+	};
+}
 
 extern "Rust" {
 	fn uhyve_get_ip() -> [u8; 4];
@@ -89,13 +97,12 @@ extern "C" fn uhyve_thread(_: usize) {
 		.routes(routes)
 		.finalize();
 
-	let mut sockets = SocketSet::new(vec![]);
 	let mut counter: usize = 0;
 	loop {
 		let timestamp = Instant::now();
 
 		iface
-			.poll(&mut sockets, timestamp)
+			.poll(&mut SOCKETS.lock().unwrap(), timestamp)
 			.map(|_| {
 				trace!("receive message {}", counter);
 				counter += 1;
@@ -103,7 +110,7 @@ extern "C" fn uhyve_thread(_: usize) {
 			.unwrap_or_else(|e| debug!("Poll: {:?}", e));
 
 		if unsafe { !uhyve_is_polling() } {
-			let delay = match iface.poll_delay(&sockets, timestamp) {
+			let delay = match iface.poll_delay(&SOCKETS.lock().unwrap(), timestamp) {
 				Some(duration) => {
 					if duration.millis() > 0 {
 						Some(duration.millis())
@@ -121,24 +128,28 @@ extern "C" fn uhyve_thread(_: usize) {
 	}
 }
 
-pub fn network_init() {
+pub fn network_init() -> i32 {
 	let mut tid: Tid = 0;
 	let ret = unsafe { sys_spawn(&mut tid, uhyve_thread, 0, 3, 0) };
 	if ret >= 0 {
 		debug!("Spawn network thread with id {}", tid);
 	}
+
+	ret
 }
 
 #[repr(C)]
 pub struct QueueInner {
 	pub len: u16,
-	pub data: [u8; UHYVE_NET_MTU],
+	pub data: [u8; UHYVE_NET_MTU + 34],
 }
 
 #[repr(C)]
 pub struct SharedQueue {
 	pub read: AtomicUsize,
+	pad0: [u8; 64 - 8],
 	pub written: AtomicUsize,
+	pad1: [u8; 64 - 8],
 	pub inner: [QueueInner; UHYVE_QUEUE_SIZE],
 }
 

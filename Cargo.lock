@@ -118,6 +118,7 @@ dependencies = [
 name = "hermit-sys"
 version = "0.1.6"
 dependencies = [
+ "lazy_static",
  "log",
  "smoltcp",
  "x86",

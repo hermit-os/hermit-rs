@@ -42,7 +42,7 @@ extern "C" {
 	fn sys_clock_gettime(clock_id: u64, tp: *mut timespec) -> i32;
 	fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32;
 	fn sys_unlink(name: *const i8) -> i32;
-	fn sys_network_init();
+	fn sys_network_init() -> i32;
 }
 
 pub type Tid = u32;
@@ -60,9 +60,9 @@ pub fn isatty(_fd: libc::c_int) -> bool {
 }
 
 /// intialize the network stack
-pub fn network_init() {
+pub fn network_init() -> i32 {
 	unsafe {
-		sys_network_init();
+		sys_network_init()
 	}
 }
 
