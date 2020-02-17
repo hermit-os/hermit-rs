@@ -42,6 +42,7 @@ extern "C" {
 	fn sys_clock_gettime(clock_id: u64, tp: *mut timespec) -> i32;
 	fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32;
 	fn sys_unlink(name: *const i8) -> i32;
+	fn sys_network_init() -> i32;
 }
 
 pub type Tid = u32;
@@ -49,6 +50,21 @@ pub type Tid = u32;
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
+pub const STDIN_FILENO: libc::c_int = 0;
+pub const STDOUT_FILENO: libc::c_int = 1;
+pub const STDERR_FILENO: libc::c_int = 2;
+
+/// returns true if this is a tty
+pub fn isatty(_fd: libc::c_int) -> bool {
+	false
+}
+
+/// intialize the network stack
+pub fn network_init() -> i32 {
+	unsafe {
+		sys_network_init()
+	}
+}
 
 #[derive(Copy, Clone, Debug)]
 #[repr(C)]
