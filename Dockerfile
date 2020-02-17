@@ -2,11 +2,8 @@ FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update Software repository
-RUN apt-get clean 
-
-# Install required packets from ubuntu repository
-RUN apt-get -qq update && apt-get install -y apt-transport-https curl wget vim nano git binutils autoconf automake make cmake qemu-kvm qemu-system-x86 nasm gcc g++ build-essential libtool bsdmainutils pkg-config libssl-dev lld-8
+# Update and install required packets from ubuntu repository
+RUN apt-get clean && apt-get -qq update && apt-get install -y apt-transport-https curl wget vim nano git binutils autoconf automake make cmake qemu-kvm qemu-system-x86 nasm gcc g++ build-essential libtool bsdmainutils pkg-config libssl-dev lld-8
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
