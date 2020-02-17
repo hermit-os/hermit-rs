@@ -85,11 +85,7 @@ fn main() {
 		stringify!(bench_sched_two_threads),
 		test_result(bench_sched_two_threads())
 	);*/
-<<<<<<< HEAD
-	/*println!(
-=======
 	println!(
->>>>>>> devel
 		"Test {} ... {}",
 		stringify!(test_http_request),
 		test_result(test_http_request())

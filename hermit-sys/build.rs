@@ -30,7 +30,6 @@ fn build() {
 	} else {
 		let _output = Command::new("cargo")
 			.current_dir(out_dir.clone()+"/rusty-hermit")
-			.current_dir("../libhermit-rs")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
