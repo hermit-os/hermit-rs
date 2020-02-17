@@ -86,9 +86,9 @@ extern "C" fn uhyve_thread(_: usize) {
 	let mut routes = Routes::new(&mut routes_storage[..]);
 	routes.add_default_ipv4_route(default_v4_gw).unwrap();
 
-	info!("MAC address {}", ethernet_addr);
+	/*info!("MAC address {}", ethernet_addr);
 	info!("Configure network interface with address {}", ip_addrs[0]);
-	info!("Configure gatway with address {}", default_v4_gw);
+	info!("Configure gatway with address {}", default_v4_gw);*/
 
 	let mut iface = EthernetInterfaceBuilder::new(device)
 		.ethernet_addr(ethernet_addr)
