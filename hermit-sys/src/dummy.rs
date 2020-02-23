@@ -25,6 +25,11 @@ pub fn sys_tcp_stream_close(_handle: Handle) -> Result<(), ()> {
 }
 
 #[no_mangle]
+pub fn sys_tcp_stream_shutdown(_handle: Handle, _how: i32) -> Result<(), ()> {
+	Err(())
+}
+
+#[no_mangle]
 pub fn sys_tcp_stream_set_read_timeout(_handle: Handle, _timeout: Option<u64>) -> Result<(), ()> {
 	Err(())
 }
