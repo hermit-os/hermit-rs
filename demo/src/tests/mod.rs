@@ -313,8 +313,8 @@ pub fn test_http_request() -> Result<(), std::io::Error> {
 		.starts_with("HTTP/1.1 200 OK");
 
 	match result {
-		true => println!("Ckeck http response... ok"),
-		_ => println!("Ckeck http response... failed!"),
+		true => println!("Check http response... ok"),
+		_ => println!("Check http response... failed!"),
 	};
 
 	Ok(())
