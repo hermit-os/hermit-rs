@@ -2,8 +2,6 @@ use std::collections::BTreeMap;
 use std::convert::TryInto;
 use std::mem;
 use std::ptr::{read_volatile, write_volatile};
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Mutex;
 
 use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
 use smoltcp::phy::{self, Device, DeviceCapabilities};
@@ -11,7 +9,7 @@ use smoltcp::socket::SocketSet;
 use smoltcp::time::Instant;
 use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
 
-use lazy_static::lazy_static;
+use crate::net::NetworkInterface;
 use x86::io::outl;
 
 const SHAREDQUEUE_START: usize = 0x80000;
@@ -19,123 +17,70 @@ const UHYVE_NET_MTU: usize = 1500;
 const UHYVE_QUEUE_SIZE: usize = 8;
 const UHYVE_PORT_NETWRITE: u16 = 0x640;
 
-pub type Tid = u32;
-
-lazy_static! {
-	static ref SOCKETS: Mutex<SocketSet<'static, 'static, 'static>> =  {
-		Mutex::new(SocketSet::new(vec![]))
-	};
-}
-
 extern "Rust" {
 	fn uhyve_get_ip() -> [u8; 4];
 	fn uhyve_get_gateway() -> [u8; 4];
 	fn uhyve_get_mask() -> [u8; 4];
 	fn uhyve_get_mac_address() -> [u8; 6];
-	fn uhyve_is_polling() -> bool;
-	fn uhyve_netwait(millis: Option<u64>);
-	fn uhyve_set_polling(mode: bool);
 }
 
-extern "C" {
-	fn sys_spawn(
-		id: *mut Tid,
-		func: extern "C" fn(usize),
-		arg: usize,
-		prio: u8,
-		selector: isize,
-	) -> i32;
-}
+impl NetworkInterface<UhyveNet> {
+	pub fn new() -> Self {
+		debug!("Initialize uhyve network interface!");
 
-#[no_mangle]
-extern "C" fn uhyve_thread(_: usize) {
-	debug!("Initialize uhyve network interface!");
+		let myip = unsafe { uhyve_get_ip() };
+		if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
+			panic!("Unable to determine IP address");
+		}
 
-	let myip = unsafe { uhyve_get_ip() };
-	if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
-		panic!("Unable to determine IP address");
-	}
+		let mygw = unsafe { uhyve_get_gateway() };
+		let mymask = unsafe { uhyve_get_mask() };
+		let mac = unsafe { uhyve_get_mac_address() };
 
-	let mygw = unsafe { uhyve_get_gateway() };
-	let mymask = unsafe { uhyve_get_mask() };
-	let mac = unsafe { uhyve_get_mac_address() };
+		// calculate the netmask length
+		// => count the number of contiguous 1 bits,
+		// starting at the most significant bit in the first octet
+		let mut prefix_len = (!mymask[0]).trailing_zeros();
+		if prefix_len == 8 {
+			prefix_len += (!mymask[1]).trailing_zeros();
+		}
+		if prefix_len == 16 {
+			prefix_len += (!mymask[2]).trailing_zeros();
+		}
+		if prefix_len == 24 {
+			prefix_len += (!mymask[3]).trailing_zeros();
+		}
 
-	// calculate the netmask length
-	// => count the number of contiguous 1 bits,
-	// starting at the most significant bit in the first octet
-	let mut prefix_len = (!mymask[0]).trailing_zeros();
-	if prefix_len == 8 {
-		prefix_len += (!mymask[1]).trailing_zeros();
-	}
-	if prefix_len == 16 {
-		prefix_len += (!mymask[2]).trailing_zeros();
-	}
-	if prefix_len == 24 {
-		prefix_len += (!mymask[3]).trailing_zeros();
-	}
+		let device = UhyveNet {};
+		let neighbor_cache = NeighborCache::new(BTreeMap::new());
+		let ethernet_addr = EthernetAddress([mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]]);
+		let ip_addrs = [IpCidr::new(
+			IpAddress::v4(myip[0], myip[1], myip[2], myip[3]),
+			prefix_len.try_into().unwrap(),
+		)];
+		let default_v4_gw = Ipv4Address::new(mygw[0], mygw[1], mygw[2], mygw[3]);
+		let mut routes = Routes::new(BTreeMap::new());
+		routes.add_default_ipv4_route(default_v4_gw).unwrap();
 
-	let device = UhyveNet {};
-	let neighbor_cache = NeighborCache::new(BTreeMap::new());
-	let ethernet_addr = EthernetAddress([mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]]);
-	let ip_addrs = [IpCidr::new(
-		IpAddress::v4(myip[0], myip[1], myip[2], myip[3]),
-		prefix_len.try_into().unwrap(),
-	)];
-	let default_v4_gw = Ipv4Address::new(mygw[0], mygw[1], mygw[2], mygw[3]);
-	let mut routes_storage = [None; 1];
-	let mut routes = Routes::new(&mut routes_storage[..]);
-	routes.add_default_ipv4_route(default_v4_gw).unwrap();
+		/*info!("MAC address {}", ethernet_addr);
+		info!("Configure network interface with address {}", ip_addrs[0]);
+		info!("Configure gatway with address {}", default_v4_gw);*/
 
-	info!("MAC address {}", ethernet_addr);
-	info!("Configure network interface with address {}", ip_addrs[0]);
-	info!("Configure gatway with address {}", default_v4_gw);
+		let iface = EthernetInterfaceBuilder::new(device)
+			.ethernet_addr(ethernet_addr)
+			.neighbor_cache(neighbor_cache)
+			.ip_addrs(ip_addrs)
+			.routes(routes)
+			.finalize();
 
-	let mut iface = EthernetInterfaceBuilder::new(device)
-		.ethernet_addr(ethernet_addr)
-		.neighbor_cache(neighbor_cache)
-		.ip_addrs(ip_addrs)
-		.routes(routes)
-		.finalize();
-
-	let mut counter: usize = 0;
-	loop {
-		let timestamp = Instant::now();
-
-		iface
-			.poll(&mut SOCKETS.lock().unwrap(), timestamp)
-			.map(|_| {
-				trace!("receive message {}", counter);
-				counter += 1;
-			})
-			.unwrap_or_else(|e| debug!("Poll: {:?}", e));
-
-		if unsafe { !uhyve_is_polling() } {
-			let delay = match iface.poll_delay(&SOCKETS.lock().unwrap(), timestamp) {
-				Some(duration) => {
-					if duration.millis() > 0 {
-						Some(duration.millis())
-					} else {
-						Some(1)
-					}
-				}
-				None => None,
-			};
-
-			unsafe {
-				uhyve_netwait(delay);
-			}
+		Self {
+			iface: iface,
+			sockets: SocketSet::new(vec![]),
+			channels: BTreeMap::new(),
+			counter: 0,
+			timestamp: Instant::now(),
 		}
 	}
-}
-
-pub fn network_init() -> i32 {
-	let mut tid: Tid = 0;
-	let ret = unsafe { sys_spawn(&mut tid, uhyve_thread, 0, 3, 0) };
-	if ret >= 0 {
-		debug!("Spawn network thread with id {}", tid);
-	}
-
-	ret
 }
 
 #[repr(C)]
@@ -146,9 +91,9 @@ pub struct QueueInner {
 
 #[repr(C)]
 pub struct SharedQueue {
-	pub read: AtomicUsize,
+	pub read: usize,
 	pad0: [u8; 64 - 8],
-	pub written: AtomicUsize,
+	pub written: usize,
 	pad1: [u8; 64 - 8],
 	pub inner: [QueueInner; UHYVE_QUEUE_SIZE],
 }
@@ -156,7 +101,7 @@ pub struct SharedQueue {
 /// Data type to determine the mac address
 #[derive(Debug, Default)]
 #[repr(C)]
-struct UhyveNet;
+pub struct UhyveNet;
 
 impl<'a> Device<'a> for UhyveNet {
 	type RxToken = RxToken;
@@ -170,8 +115,9 @@ impl<'a> Device<'a> for UhyveNet {
 
 	fn receive(&'a mut self) -> Option<(Self::RxToken, Self::TxToken)> {
 		let rx_queue = unsafe { &mut *(SHAREDQUEUE_START as *mut u8 as *mut SharedQueue) };
-		let written = rx_queue.written.load(Ordering::SeqCst);
-		let read = rx_queue.read.load(Ordering::SeqCst);
+
+		let written = unsafe { read_volatile(&rx_queue.written) };
+		let read = unsafe { read_volatile(&rx_queue.read) };
 		let distance = written - read;
 
 		if distance > 0 {
@@ -181,16 +127,11 @@ impl<'a> Device<'a> for UhyveNet {
 			let mut rx = RxToken::new(len);
 
 			rx.buffer[0..len as usize].copy_from_slice(&rx_queue.inner[idx].data[0..len as usize]);
-			rx_queue.read.fetch_add(1, Ordering::SeqCst);
+
+			unsafe { write_volatile(&mut rx_queue.read, read + 1) };
 
 			Some((rx, tx))
 		} else {
-			trace!("Disable polling mode");
-
-			unsafe {
-				uhyve_set_polling(false);
-			}
-
 			None
 		}
 	}
@@ -202,7 +143,7 @@ impl<'a> Device<'a> for UhyveNet {
 }
 
 #[doc(hidden)]
-struct RxToken {
+pub struct RxToken {
 	buffer: [u8; UHYVE_NET_MTU],
 	len: u16,
 }
@@ -227,7 +168,7 @@ impl phy::RxToken for RxToken {
 }
 
 #[doc(hidden)]
-struct TxToken;
+pub struct TxToken;
 
 impl TxToken {
 	pub const fn new() -> Self {
@@ -244,8 +185,9 @@ impl phy::TxToken for TxToken {
 			&mut *((SHAREDQUEUE_START + mem::size_of::<SharedQueue>()) as *mut u8
 				as *mut SharedQueue)
 		};
-		let written = tx_queue.written.load(Ordering::SeqCst);
-		let read = tx_queue.read.load(Ordering::SeqCst);
+
+		let written = unsafe { read_volatile(&tx_queue.written) };
+		let read = unsafe { read_volatile(&tx_queue.read) };
 		let distance = written - read;
 
 		if distance < UHYVE_QUEUE_SIZE {
@@ -255,18 +197,16 @@ impl phy::TxToken for TxToken {
 			if result.is_ok() == true {
 				unsafe {
 					write_volatile(&mut tx_queue.inner[idx].len, len.try_into().unwrap());
+					write_volatile(&mut tx_queue.written, written + 1);
+					outl(UHYVE_PORT_NETWRITE, 0);
 				}
-				tx_queue.written.fetch_add(1, Ordering::SeqCst);
-
-				if distance == 0 {
-					unsafe {
-						outl(UHYVE_PORT_NETWRITE, 0);
-					}
-				}
+			} else {
+				info!("Unable to consume packet");
 			}
 
 			result
 		} else {
+			info!("Drop packet!");
 			Err(smoltcp::Error::Dropped)
 		}
 	}

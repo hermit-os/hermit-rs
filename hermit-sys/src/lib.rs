@@ -1,3 +1,5 @@
+#![feature(asm)]
+
 #[macro_use]
 extern crate log;
 #[cfg(feature = "smoltcp")]
@@ -6,6 +8,8 @@ extern crate x86;
 #[macro_use]
 extern crate lazy_static;
 
+#[cfg(not(feature = "smoltcp"))]
+mod dummy;
 #[cfg(feature = "smoltcp")]
 mod net;
 
@@ -31,12 +35,12 @@ impl log::Log for SysLogger {
 }
 
 #[no_mangle]
-pub extern "C" fn sys_network_init() -> i32{
+pub extern "C" fn sys_network_init() -> i32 {
 	set_logger(&SysLogger).expect("Can't initialize logger");
 	set_max_level(LevelFilter::Info);
 
 	#[cfg(feature = "smoltcp")]
-	let ret = net::uhyve::network_init();
+	let ret = net::network_init();
 	#[cfg(not(feature = "smoltcp"))]
 	let ret = -1;
 
