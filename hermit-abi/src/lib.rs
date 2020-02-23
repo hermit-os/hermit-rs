@@ -2,6 +2,8 @@
 #![cfg_attr(feature = "rustc-dep-of-std", no_std)]
 extern crate libc;
 
+pub mod tcpstream;
+
 use libc::c_void;
 
 extern "C" {
@@ -47,6 +49,10 @@ extern "C" {
 
 pub type Tid = u32;
 
+/// A handle, identifying a socket
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+pub struct Handle(usize);
+
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
@@ -61,9 +67,7 @@ pub fn isatty(_fd: libc::c_int) -> bool {
 
 /// intialize the network stack
 pub fn network_init() -> i32 {
-	unsafe {
-		sys_network_init()
-	}
+	unsafe { sys_network_init() }
 }
 
 #[derive(Copy, Clone, Debug)]
