@@ -296,7 +296,8 @@ pub fn matrix_setup(size_x: usize, size_y: usize) -> (vec::Vec<vec::Vec<f64>>) {
 
 fn send_http_rquest() -> Result<Vec<u8>, std::io::Error> {
 	let mut stream = TcpStream::connect("10.0.5.1:7878")?;
-	let buf = b"GET / HTTP/1.1\r\nHost: 10.0.5.1\r\nUser-Agent: hermit/0.3.16\r\nAccept: */*\r\n\r\n";
+	let buf =
+		b"GET / HTTP/1.1\r\nHost: 10.0.5.1\r\nUser-Agent: hermit/0.3.16\r\nAccept: */*\r\n\r\n";
 	stream.write_all(buf)?;
 
 	let mut buf = Vec::new();
@@ -307,12 +308,11 @@ fn send_http_rquest() -> Result<Vec<u8>, std::io::Error> {
 
 pub fn test_http_request() -> Result<(), std::io::Error> {
 	let buf = send_http_rquest()?;
-	let result = str::from_utf8(&buf)
-		.unwrap()
-		.to_owned()
-		.starts_with("HTTP/1.1 200 OK");
+	let data = str::from_utf8(&buf).unwrap().to_owned();
 
-	match result {
+	//println!("Receive {}", data);
+
+	match data.starts_with("HTTP/1.1 200 OK") {
 		true => println!("Check http response... ok"),
 		_ => println!("Check http response... failed!"),
 	};
