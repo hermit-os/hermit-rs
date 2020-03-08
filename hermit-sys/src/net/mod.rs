@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc::{Receiver, SyncSender};
 use std::sync::Mutex;
 use std::u16;
 
@@ -28,6 +28,7 @@ extern "Rust" {
 }
 
 extern "C" {
+	fn sys_yield();
 	fn sys_spawn(
 		id: *mut Tid,
 		func: extern "C" fn(usize),
@@ -42,13 +43,27 @@ pub type Tid = u32;
 
 static LOCAL_ENDPOINT: AtomicU16 = AtomicU16::new(0);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
+pub enum WriteFailed {
+	CanSendFailed,
+	InternalError,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum ReadFailed {
+	CanRecvFailed,
+	InternalError,
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum WaitFor {
 	Establish,
 	Read,
+	Write,
+	Close,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum WaitForResult {
 	Ok,
 	Failed,
@@ -56,7 +71,7 @@ pub enum WaitForResult {
 pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
-	pub channels: BTreeMap<Handle, (WaitFor, Sender<WaitForResult>, bool)>,
+	pub channels: BTreeMap<Handle, (WaitFor, SyncSender<WaitForResult>, bool)>,
 	pub counter: usize,
 	pub timestamp: Instant,
 }
@@ -83,8 +98,9 @@ where
 					// a thread is trying to establish a connection
 					WaitFor::Establish => match socket.state() {
 						TcpState::Established => {
-							let _ = tx.send(WaitForResult::Ok);
-							*complete = true;
+							if tx.try_send(WaitForResult::Ok).is_ok() {
+								*complete = true;
+							}
 						}
 						TcpState::FinWait1
 						| TcpState::FinWait2
@@ -92,33 +108,53 @@ where
 						| TcpState::TimeWait
 						| TcpState::LastAck
 						| TcpState::Closed => {
-							let _ = tx.send(WaitForResult::Failed);
-							*complete = true;
+							if tx.try_send(WaitForResult::Failed).is_ok() {
+								*complete = true;
+							}
 						}
 						_ => {}
 					},
 					// a thread wants to read data
 					WaitFor::Read => {
 						if socket.can_recv() {
-							let _ = tx.send(WaitForResult::Ok);
-							*complete = true;
+							if tx.try_send(WaitForResult::Ok).is_ok() {
+								*complete = true;
+							}
 						} else if !socket.may_recv() {
-							let _ = tx.send(WaitForResult::Failed);
-							*complete = true;
+							if tx.try_send(WaitForResult::Failed).is_ok() {
+								*complete = true;
+							}
 						}
 					}
+					// a thread wants to write data
+					WaitFor::Write => {
+						if socket.can_send() {
+							if tx.try_send(WaitForResult::Ok).is_ok() {
+								*complete = true;
+							}
+						}
+					}
+					// a thread is waiting for acknowledge
+					WaitFor::Close => match socket.state() {
+						TcpState::Closed | TcpState::TimeWait => {
+							if tx.try_send(WaitForResult::Ok).is_ok() {
+								*complete = true;
+							}
+						}
+						_ => {}
+					},
 				}
 			}
 		}
 
 		self.iface
 			.poll_delay(&self.sockets, self.timestamp)
-			.map(|s| s.millis())
+			.map(|s| if s.millis() == 0 { 1 } else { s.millis() })
 	}
 
 	pub fn connect(&mut self, ip: &[u8], port: u16) -> Result<Handle, ()> {
-		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 64]);
-		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 128]);
+		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
+		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
 		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
 		let tcp_handle = self.sockets.add(tcp_socket);
 		let address =
@@ -143,10 +179,12 @@ where
 		Ok(())
 	}
 
-	pub fn read(&mut self, handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
+	pub fn read(&mut self, handle: Handle, buffer: &mut [u8]) -> Result<usize, ReadFailed> {
 		let mut socket = self.sockets.get::<TcpSocket>(handle);
 		if socket.can_recv() {
-			let len = socket.recv_slice(buffer).map_err(|_| ())?;
+			let len = socket
+				.recv_slice(buffer)
+				.map_err(|_| ReadFailed::InternalError)?;
 			trace!(
 				"receive {} bytes, {}",
 				len,
@@ -154,26 +192,25 @@ where
 			);
 			Ok(len)
 		} else {
-			Err(())
+			Err(ReadFailed::CanRecvFailed)
 		}
 	}
 
-	pub fn write(&mut self, handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
-		{
-			let mut socket = self.sockets.get::<TcpSocket>(handle);
-			if !socket.may_recv() {
-				return Ok(0);
-			} else if socket.can_send() {
-				socket.send_slice(buffer).map_err(|_| ())?;
-				trace!(
-					"sending {} bytes, {}",
-					buffer.len(),
-					std::str::from_utf8(&buffer).unwrap().to_owned()
-				);
-			} else {
-				trace!("Unable to send packet!");
-				return Err(());
-			}
+	pub fn write(&mut self, handle: Handle, buffer: &[u8]) -> Result<usize, WriteFailed> {
+		let mut socket = self.sockets.get::<TcpSocket>(handle);
+		if !socket.may_recv() {
+			return Ok(0);
+		} else if socket.can_send() {
+			socket
+				.send_slice(buffer)
+				.map_err(|_| WriteFailed::InternalError)?;
+			trace!(
+				"sending {} bytes, {}",
+				buffer.len(),
+				std::str::from_utf8(&buffer).unwrap().to_owned()
+			);
+		} else {
+			return Err(WriteFailed::CanSendFailed);
 		}
 
 		trace!("send {}", std::str::from_utf8(&buffer).unwrap().to_owned());
@@ -211,7 +248,7 @@ pub fn network_init() -> i32 {
 
 #[no_mangle]
 pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Result<Handle, ()> {
-	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = mpsc::channel();
+	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
 	let limit = match timeout {
 		Some(t) => t,
 		_ => 5000,
@@ -238,60 +275,156 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 	}
 }
 
+fn tcp_stream_try_read(
+	handle: Handle,
+	buffer: &mut [u8],
+	tx: SyncSender<WaitForResult>,
+) -> Result<usize, ReadFailed> {
+	let mut nic = NIC.lock().map_err(|_| ReadFailed::InternalError)?;
+
+	nic.read(handle, buffer).map_err(|err| {
+		match err {
+			ReadFailed::CanRecvFailed => {
+				*nic.channels
+					.get_mut(&handle)
+					.expect("Unable to find handle") = (WaitFor::Read, tx, false);
+			}
+			_ => {}
+		}
+
+		err
+	})
+}
+
 #[no_mangle]
 pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
-	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = mpsc::channel();
-	{
-		let mut nic = NIC.lock().map_err(|_| ())?;
-		*nic.channels
-			.get_mut(&handle)
-			.expect("Unable to find handle") = (WaitFor::Read, tx.clone(), false);
-	}
+	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
 
-	unsafe {
-		uhyve_netwakeup();
-	}
+	loop {
+		let result = tcp_stream_try_read(handle, buffer, tx.clone());
 
-	let wait_result = rx.recv().map_err(|_| ())?;
-	match wait_result {
-		WaitForResult::Ok => {
-			let mut nic = NIC.lock().map_err(|_| ())?;
-			nic.read(handle, buffer)
+		unsafe {
+			uhyve_netwakeup();
+			// switch to IP thread
+			sys_yield();
 		}
-		_ => Ok(0),
+
+		match result {
+			Ok(len) => {
+				return Ok(len);
+			}
+			Err(err) => {
+				match err {
+					ReadFailed::CanRecvFailed => {
+						// wait for tx buffers and try the send operation
+						if rx.recv().map_err(|_| ())? != WaitForResult::Ok {
+							return Ok(0);
+						}
+					}
+					_ => {
+						return Err(());
+					}
+				}
+			}
+		}
 	}
+}
+
+fn tcp_stream_try_write(
+	handle: Handle,
+	buffer: &[u8],
+	tx: SyncSender<WaitForResult>,
+) -> Result<usize, WriteFailed> {
+	let mut nic = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
+
+	nic.write(handle, buffer).map_err(|err| {
+		match err {
+			WriteFailed::CanSendFailed => {
+				*nic.channels
+					.get_mut(&handle)
+					.expect("Unable to find handle") = (WaitFor::Write, tx, false);
+			}
+			_ => {}
+		}
+
+		err
+	})
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
-	let len = {
-		let mut nic = NIC.lock().map_err(|_| ())?;
-		nic.write(handle, buffer)?
-	};
+	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
 
-	unsafe {
-		uhyve_netwakeup();
+	loop {
+		let result = tcp_stream_try_write(handle, buffer, tx.clone());
+
+		unsafe {
+			uhyve_netwakeup();
+			// switch to IP thread
+			sys_yield();
+		}
+
+		match result {
+			Ok(len) => {
+				return Ok(len);
+			}
+			Err(err) => {
+				match err {
+					WriteFailed::CanSendFailed => {
+						// wait for tx buffers and try the send operation
+						if rx.recv().map_err(|_| ())? != WaitForResult::Ok {
+							return Err(());
+						}
+					}
+					_ => {
+						return Err(());
+					}
+				}
+			}
+		}
 	}
-
-	Ok(len)
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
-	// close connection
-	let mut nic = NIC.lock().map_err(|_| ())?;
-	nic.close(handle)?;
+	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
+	{
+		// close connection
+		let mut nic = NIC.lock().map_err(|_| ())?;
+		nic.close(handle)?;
+		*nic.channels
+			.get_mut(&handle)
+			.expect("Unable to find handle") = (WaitFor::Close, tx.clone(), false);
+	}
 
 	unsafe {
 		uhyve_netwakeup();
+		// switch to IP thread
+		sys_yield();
 	}
+
+	rx.recv().map_err(|_| ())?;
 
 	Ok(())
 }
 
 #[no_mangle]
-pub fn sys_tcp_stream_shutdown(_handle: Handle, _how: i32) -> Result<(), ()> {
-	Err(())
+pub fn sys_tcp_stream_shutdown(handle: Handle, how: i32) -> Result<(), ()> {
+	match how {
+		0 /* Read */ => {
+			debug!("Shutdown::Read is not implemented");
+			Ok(())
+		},
+		1 /* Write */ => {
+			sys_tcp_stream_close(handle)
+		},
+		2 /* Both */ => {
+			sys_tcp_stream_close(handle)
+		},
+		_ => {
+			panic!("Invalid shutdown argument {}", how);
+		},
+	}
 }
 
 #[no_mangle]
