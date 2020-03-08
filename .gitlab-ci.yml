@@ -13,7 +13,7 @@ stages:
 docker:
   stage: prepare
   script:
-    - docker build -t ${IMAGE} .
+    - docker build --no-cache -t ${IMAGE} .
   tags:
     - shell
     - linux
