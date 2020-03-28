@@ -3,6 +3,9 @@ use std::process::Command;
 
 #[cfg(not(feature = "rustc-dep-of-std"))]
 fn build() {
+	#[cfg(windows)]
+	let out_dir = env::temp_dir().to_str().unwrap().to_owned();
+	#[cfg(not(windows))]
 	let out_dir = env::var("OUT_DIR").unwrap();
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 
