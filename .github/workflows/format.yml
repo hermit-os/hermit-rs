@@ -18,17 +18,9 @@ jobs:
         os: [ubuntu-latest]
         rust: [nightly]
         include:
-          - os: macOS-latest
-            rust: 'nightly'
-            components: 'rustfmt, clippy'
-            targets: 'x86_64-apple-darwin'
-          - os: windows-latest
-            rust: 'nightly'
-            components: 'rustfmt, clippy'
-            targets: 'x86_64-pc-windows-msvc'
           - os: ubuntu-latest
             rust: 'nightly'
-            components: 'rustfmt, clippy'
+            components: 'rustfmt'
             targets: 'x86_64-unknown-linux-gnu'
 
 
