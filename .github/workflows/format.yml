@@ -1,0 +1,47 @@
+name: Check format
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [nightly]
+        include:
+          - os: macOS-latest
+            rust: 'nightly'
+            components: 'rustfmt, clippy'
+            targets: 'x86_64-apple-darwin'
+          - os: windows-latest
+            rust: 'nightly'
+            components: 'rustfmt, clippy'
+            targets: 'x86_64-pc-windows-msvc'
+          - os: ubuntu-latest
+            rust: 'nightly'
+            components: 'rustfmt, clippy'
+            targets: 'x86_64-unknown-linux-gnu'
+
+
+    steps:
+    - uses: hecrj/setup-rust-action@v1.3.1
+      with: 
+         rust-version: ${{ matrix.rust }}
+         components: ${{ matrix.components || '' }}
+         targets: ${{ matrix.targets || '' }}
+    - uses: actions/checkout@v1
+      with:
+         submodules: true
+    - name: Check Cargo availability
+      run: cargo --version
+    - name: Check Formatting
+      run: cargo fmt -- --check
