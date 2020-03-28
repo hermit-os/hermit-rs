@@ -10,7 +10,7 @@ fn build() {
 		.current_dir(out_dir.clone())
 		.arg("download")
 		.arg("--output")
-		.arg(out_dir.clone()+"/rusty-hermit")
+		.arg(out_dir.clone() + "/rusty-hermit")
 		.arg("--extract")
 		.arg("rusty-hermit")
 		.output()
