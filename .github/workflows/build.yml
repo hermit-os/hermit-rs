@@ -44,6 +44,8 @@ jobs:
          submodules: true
     - name: Check Cargo availability
       run: cargo --version
+    - name: Install cargo-download
+      run: cargo install cargo-download
     - name: Building dev version
       run:
          cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
