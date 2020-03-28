@@ -18,7 +18,7 @@ fn build() {
 
 	if profile == "release" {
 		let _output = Command::new("cargo")
-			.current_dir(out_dir.clone()+"/rusty-hermit")
+			.current_dir(out_dir.clone() + "/rusty-hermit")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
@@ -29,7 +29,7 @@ fn build() {
 			.expect("Unable to build kernel");
 	} else {
 		let _output = Command::new("cargo")
-			.current_dir(out_dir.clone()+"/rusty-hermit")
+			.current_dir(out_dir.clone() + "/rusty-hermit")
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
