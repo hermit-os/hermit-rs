@@ -1,3 +1,5 @@
+//! `tcpstream` provide an interface to the network stack
+
 use crate::Handle;
 
 extern "Rust" {
@@ -23,6 +25,7 @@ pub fn connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Result<Handle, ()>
 	unsafe { sys_tcp_stream_connect(ip, port, timeout) }
 }
 
+/// Close a TCP connection
 #[inline(always)]
 pub fn close(handle: Handle) -> Result<(), ()> {
 	unsafe { sys_tcp_stream_close(handle) }
