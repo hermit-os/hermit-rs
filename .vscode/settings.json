@@ -1,0 +1,10 @@
+{
+    "search.exclude": {
+        "**/target": true
+        "build": true
+    },
+    "lldb.verboseLogging": true,
+    "rust-client.disableRustup": true,
+    "rust.all_targets": false,
+    "rust.target": "x86_64-unknown-hermit",
+}

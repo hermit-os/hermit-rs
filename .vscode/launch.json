@@ -1,0 +1,18 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Attach to gdbserver",
+            "executable": "./target/x86_64-unknown-hermit/debug/rusty_demo",
+            "target": "localhost:6677",
+            "remote": true,
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "/usr/local/Cellar/x86_64-elf-gdb/8.2/bin/x86_64-elf-gdb"
+        }
+    ]
+}
