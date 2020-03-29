@@ -1,6 +1,7 @@
 # hermit-abi
 
 [![Crates.io](https://img.shields.io/crates/v/hermit-abi.svg)](https://crates.io/crates/hermit-abi)
+[![Documentation](https://docs.rs/hermit-abi/badge.svg)](https://docs.rs/hermit-abi)
 [![License](https://img.shields.io/crates/l/hermit-abi.svg)](https://img.shields.io/crates/l/hermit-abi.svg)
 
 This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
@@ -15,3 +16,7 @@ Licensed under either of
 * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
