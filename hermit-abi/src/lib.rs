@@ -58,13 +58,13 @@ pub type Tid = u32;
 pub struct Priority(u8);
 
 impl Priority {
-    pub const fn into(self) -> u8 {
-        self.0
-    }
+	pub const fn into(self) -> u8 {
+		self.0
+	}
 
-    pub const fn from(x: u8) -> Self {
-        Priority(x)
-    }
+	pub const fn from(x: u8) -> Self {
+		Priority(x)
+	}
 }
 
 pub const HIGH_PRIO: Priority = Priority::from(3);
