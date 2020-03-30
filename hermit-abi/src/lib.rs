@@ -53,6 +53,24 @@ extern "C" {
 /// A thread handle type
 pub type Tid = u32;
 
+/// Priority of a thread
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
+pub struct Priority(u8);
+
+impl Priority {
+    pub const fn into(self) -> u8 {
+        self.0
+    }
+
+    pub const fn from(x: u8) -> Self {
+        Priority(x)
+    }
+}
+
+pub const HIGH_PRIO: Priority = Priority::from(3);
+pub const NORMAL_PRIO: Priority = Priority::from(2);
+pub const LOW_PRIO: Priority = Priority::from(1);
+
 /// A handle, identifying a socket
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Handle(usize);
@@ -63,9 +81,6 @@ pub const CLOCK_MONOTONIC: u64 = 4;
 pub const STDIN_FILENO: libc::c_int = 0;
 pub const STDOUT_FILENO: libc::c_int = 1;
 pub const STDERR_FILENO: libc::c_int = 2;
-pub const HIGH_PRIO: u8 = 3;
-pub const NORMAL_PRIO: u8 = 2;
-pub const LOW_PRIO: u8 = 1;
 pub const O_RDONLY: i32 = 0o0;
 pub const O_WRONLY: i32 = 0o1;
 pub const O_RDWR: i32 = 0o2;
