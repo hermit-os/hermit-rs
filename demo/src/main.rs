@@ -11,6 +11,7 @@
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
 extern crate rayon;
+extern crate rand;
 
 mod tests;
 
@@ -49,6 +50,11 @@ fn main() {
 		"Test {} ... {}",
 		stringify!(threading),
 		test_result(threading())
+	);
+	println!(
+		"Test {} ... {}",
+		stringify!(random_number),
+		test_result(random_number())
 	);
 	println!(
 		"Test {} ... {}",
