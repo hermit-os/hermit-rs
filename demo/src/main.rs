@@ -51,11 +51,11 @@ fn main() {
 		stringify!(threading),
 		test_result(threading())
 	);
-	println!(
+	/*println!(
 		"Test {} ... {}",
 		stringify!(random_number),
 		test_result(random_number())
-	);
+	);*/
 	println!(
 		"Test {} ... {}",
 		stringify!(pi_sequential),
