@@ -10,8 +10,8 @@
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
-extern crate rayon;
 extern crate rand;
+extern crate rayon;
 
 mod tests;
 

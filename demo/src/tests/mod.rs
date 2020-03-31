@@ -1,4 +1,5 @@
 use core::arch::x86_64 as arch;
+use rand::prelude::*;
 use std::env;
 use std::f64::consts::PI;
 use std::fs::File;
@@ -9,7 +10,6 @@ use std::str;
 use std::thread;
 use std::time::Instant;
 use std::vec;
-use rand::prelude::*;
 
 /*mod laplace;
 mod matmul;
