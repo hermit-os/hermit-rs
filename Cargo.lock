@@ -127,7 +127,7 @@ dependencies = [
 
 [[package]]
 name = "hermit-sys"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "lazy_static",
  "log",
