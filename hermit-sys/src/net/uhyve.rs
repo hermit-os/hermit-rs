@@ -24,14 +24,23 @@ extern "Rust" {
 	fn uhyve_get_mac_address() -> [u8; 6];
 }
 
-impl NetworkInterface<UhyveNet> {
-	pub fn new() -> Self {
-		debug!("Initialize uhyve network interface!");
+pub fn is_network_available() -> bool {
+	let myip = unsafe { uhyve_get_ip() };
+	if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
+		false
+	} else {
+		true
+	}
+}
 
+impl NetworkInterface<UhyveNet> {
+	pub fn new() -> Option<Self> {
 		let myip = unsafe { uhyve_get_ip() };
 		if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
-			panic!("Unable to determine IP address");
+			return None;
 		}
+
+		debug!("Initialize uhyve network interface!");
 
 		let mygw = unsafe { uhyve_get_gateway() };
 		let mymask = unsafe { uhyve_get_mask() };
@@ -73,13 +82,13 @@ impl NetworkInterface<UhyveNet> {
 			.routes(routes)
 			.finalize();
 
-		Self {
+		Some(Self {
 			iface: iface,
 			sockets: SocketSet::new(vec![]),
 			channels: BTreeMap::new(),
 			counter: 0,
 			timestamp: Instant::now(),
-		}
+		})
 	}
 }
 

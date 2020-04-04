@@ -18,8 +18,8 @@ use smoltcp::wire::IpAddress;
 use net::uhyve::UhyveNet;
 
 lazy_static! {
-	static ref NIC: Mutex<NetworkInterface<UhyveNet>> =
-		{ Mutex::new(NetworkInterface::<UhyveNet>::new()) };
+	static ref NIC: Mutex<Option<NetworkInterface<UhyveNet>>> =
+		Mutex::new(NetworkInterface::<UhyveNet>::new());
 }
 
 extern "Rust" {
@@ -68,6 +68,7 @@ pub enum WaitForResult {
 	Ok,
 	Failed,
 }
+
 pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
@@ -222,7 +223,7 @@ where
 #[no_mangle]
 extern "C" fn uhyve_thread(_: usize) {
 	loop {
-		let delay = NIC.lock().unwrap().poll();
+		let delay = NIC.lock().unwrap().as_mut().unwrap().poll();
 
 		unsafe {
 			uhyve_netwait(delay);
@@ -230,7 +231,11 @@ extern "C" fn uhyve_thread(_: usize) {
 	}
 }
 
-pub fn network_init() -> i32 {
+pub fn network_init() -> Result<(), ()> {
+	if !uhyve::is_network_available() {
+		return Err(());
+	}
+
 	// initialize variable, which contains the next local endpoint
 	let start_endpoint = ((unsafe { _rdtsc() as u64 }) % (u16::MAX as u64)) as u16;
 	LOCAL_ENDPOINT.store(start_endpoint, Ordering::SeqCst);
@@ -243,7 +248,7 @@ pub fn network_init() -> i32 {
 		info!("Spawn network thread with id {}", tid);
 	}
 
-	ret
+	Ok(())
 }
 
 #[no_mangle]
@@ -254,7 +259,8 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 		_ => 5000,
 	};
 	let handle = {
-		let mut nic = NIC.lock().map_err(|_| ())?;
+		let mut guard = NIC.lock().map_err(|_| ())?;
+		let nic = guard.as_mut().ok_or(())?;
 		let handle = nic.connect(ip, port)?;
 		nic.channels
 			.insert(handle, (WaitFor::Establish, tx.clone(), false));
@@ -280,7 +286,8 @@ fn tcp_stream_try_read(
 	buffer: &mut [u8],
 	tx: SyncSender<WaitForResult>,
 ) -> Result<usize, ReadFailed> {
-	let mut nic = NIC.lock().map_err(|_| ReadFailed::InternalError)?;
+	let mut guard = NIC.lock().map_err(|_| ReadFailed::InternalError)?;
+	let nic = guard.as_mut().ok_or(ReadFailed::InternalError)?;
 
 	nic.read(handle, buffer).map_err(|err| {
 		match err {
@@ -335,7 +342,8 @@ fn tcp_stream_try_write(
 	buffer: &[u8],
 	tx: SyncSender<WaitForResult>,
 ) -> Result<usize, WriteFailed> {
-	let mut nic = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
+	let mut guard = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
+	let nic = guard.as_mut().ok_or(WriteFailed::InternalError)?;
 
 	nic.write(handle, buffer).map_err(|err| {
 		match err {
@@ -390,7 +398,8 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
 	{
 		// close connection
-		let mut nic = NIC.lock().map_err(|_| ())?;
+		let mut guard = NIC.lock().map_err(|_| ())?;
+		let nic = guard.as_mut().ok_or(())?;
 		nic.close(handle)?;
 		*nic.channels
 			.get_mut(&handle)
