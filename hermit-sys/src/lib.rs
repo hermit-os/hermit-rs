@@ -40,9 +40,13 @@ pub extern "C" fn sys_network_init() -> i32 {
 	set_max_level(LevelFilter::Info);
 
 	#[cfg(feature = "smoltcp")]
-	let ret = net::network_init();
+	let ret: i32 = if net::network_init().is_ok() { 0 } else { -1 };
 	#[cfg(not(feature = "smoltcp"))]
-	let ret = -1;
+	let ret: i32 = -1;
+
+	if ret < 0 {
+		debug!("uhyve network isn't available!");
+	}
 
 	ret
 }
