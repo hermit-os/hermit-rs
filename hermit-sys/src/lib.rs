@@ -1,5 +1,3 @@
-#![feature(asm)]
-
 #[macro_use]
 extern crate log;
 #[cfg(feature = "smoltcp")]
