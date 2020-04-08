@@ -37,7 +37,7 @@ jobs:
     - name: Check Cargo availability
       run: cargo --version
     - name: Install cargo-download
-      run: cargo install cargo-download#
+      run: cargo install cargo-download
     - name: Install xbuild
       run: cargo install xbuild
     - name: Install qemu
