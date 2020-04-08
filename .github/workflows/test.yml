@@ -39,7 +39,7 @@ jobs:
     - name: Install cargo-download
       run: cargo install cargo-download
     - name: Install xbuild
-      run: cargo install xbuild
+      run: cargo install cargo-xbuild
     - name: Install qemu
       run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 
     - name: Building dev version
