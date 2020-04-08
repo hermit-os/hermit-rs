@@ -37,7 +37,9 @@ jobs:
     - name: Check Cargo availability
       run: cargo --version
     - name: Install cargo-download
-      run: cargo install cargo-download
+      run: cargo install cargo-download#
+    - name: Install xbuild
+      run: cargo install xbuild
     - name: Install qemu
       run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 
     - name: Building dev version
