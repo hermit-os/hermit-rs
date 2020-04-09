@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - devel
   pull_request:
     branches:
       - master
@@ -23,7 +22,7 @@ jobs:
         include:
           - os: ubuntu-latest
             rust: 'nightly'
-            components: 'rust-src', 'llvm-tools-preview'
+            components: 'rust-src'
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
