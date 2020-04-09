@@ -22,7 +22,7 @@ jobs:
         include:
           - os: ubuntu-latest
             rust: 'nightly'
-            components: 'rust-src'
+            components: 'rust-src', 'llvm-tools-preview'
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
