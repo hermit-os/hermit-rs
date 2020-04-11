@@ -11,10 +11,10 @@ use std::thread;
 use std::time::Instant;
 use std::vec;
 
-/*mod laplace;
+mod laplace;
 mod matmul;
 
-pub use matmul::test_matmul_strassen;*/
+pub use matmul::test_matmul_strassen;
 
 pub fn random_number() -> Result<(), ()> {
 	let mut rng = rand::thread_rng();
@@ -255,7 +255,7 @@ pub fn threading() -> Result<(), ()> {
 	Ok(())
 }
 
-/*pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
+pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
 	let matrix = matrix_setup(size_x, size_y);
 
 	let now = Instant::now();
@@ -274,7 +274,7 @@ pub fn threading() -> Result<(), ()> {
 	}
 }
 
-pub fn matrix_setup(size_x: usize, size_y: usize) -> (vec::Vec<vec::Vec<f64>>) {
+pub fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<vec::Vec<f64>> {
 	let mut matrix = vec![vec![0.0; size_x * size_y]; 2];
 
 	// top row
@@ -302,7 +302,7 @@ pub fn matrix_setup(size_x: usize, size_y: usize) -> (vec::Vec<vec::Vec<f64>>) {
 	}
 
 	matrix
-}*/
+}
 
 fn send_http_rquest() -> Result<Vec<u8>, std::io::Error> {
 	let mut stream = TcpStream::connect("10.0.5.1:7878")?;
