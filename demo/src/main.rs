@@ -76,7 +76,7 @@ fn main() {
 		stringify!(test_matmul_strassen),
 		test_result(test_matmul_strassen())
 	);
-	/*println!(
+	println!(
 		"Test {} ... {}",
 		stringify!(thread_creation),
 		test_result(thread_creation())
@@ -90,7 +90,7 @@ fn main() {
 		"Test {} ... {}",
 		stringify!(bench_sched_two_threads),
 		test_result(bench_sched_two_threads())
-	);*/
+	);
 	println!(
 		"Test {} ... {}",
 		stringify!(test_http_request),

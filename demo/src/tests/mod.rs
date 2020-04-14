@@ -36,20 +36,20 @@ fn get_timestamp_rdtscp() -> u64 {
 }
 
 pub fn thread_creation() -> Result<(), ()> {
-	let n = 1000;
+	const N: usize = 1000;
 
 	// cache warmup
 	let _ = get_timestamp_rdtscp();
 
-	let mut sum: u64 = 0;
-	for _ in 0..n {
+	let start = get_timestamp_rdtscp();
+	let mut end: u64 = 0;
+	for _ in 0..N {
 		let builder = thread::Builder::new();
-		let start = get_timestamp_rdtscp();
 		let child = builder.spawn(|| get_timestamp_rdtscp()).unwrap();
 		thread::yield_now();
 		match child.join() {
-			Ok(end) => {
-				sum += end - start;
+			Ok(ret) => {
+				end = ret;
 			}
 			Err(_) => {
 				println!("Unable to join thread!");
@@ -57,7 +57,7 @@ pub fn thread_creation() -> Result<(), ()> {
 		}
 	}
 
-	println!("Time to create a thread {} ticks", sum / n);
+	println!("Time to create a thread {} ticks", (end - start) / N as u64);
 
 	Ok(())
 }
