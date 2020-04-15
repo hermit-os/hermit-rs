@@ -42,6 +42,14 @@ extern "C" {
 		prio: u8,
 		core_id: isize,
 	) -> i32;
+	fn sys_spawn2(
+		id: *mut Tid,
+		func: extern "C" fn(usize),
+		arg: usize,
+		prio: u8,
+		stack_size: usize,
+		core_id: isize,
+	) -> i32;
 	fn sys_join(id: Tid) -> i32;
 	fn sys_yield();
 	fn sys_clock_gettime(clock_id: u64, tp: *mut timespec) -> i32;
@@ -304,6 +312,29 @@ pub unsafe fn spawn(
 	core_id: isize,
 ) -> i32 {
 	sys_spawn(id, func, arg, prio, core_id)
+}
+
+/// spawn a new thread with user-specified stack size
+///
+/// spawn2() starts a new thread. The new thread starts execution
+/// by invoking `func(usize)`; `arg` is passed as the argument
+/// to `func`. `prio` defines the priority of the new thread,
+/// which can be between `LOW_PRIO` and `HIGH_PRIO`.
+/// `core_id` defines the core, where the thread is located.
+/// A negative value give the operating system the possibility
+/// to select the core by its own.
+/// In contrast to spawn(), spawn2() is able to define the
+/// stack size.
+#[inline(always)]
+pub unsafe fn spawn2(
+	id: *mut Tid,
+	func: extern "C" fn(usize),
+	arg: usize,
+	prio: u8,
+	stack_size: usize,
+	core_id: isize,
+) -> i32 {
+	sys_spawn2(id, func, arg, prio, stack_size, core_id)
 }
 
 /// join with a terminated thread
