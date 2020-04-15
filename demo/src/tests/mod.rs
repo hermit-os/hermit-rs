@@ -42,22 +42,14 @@ pub fn thread_creation() -> Result<(), ()> {
 	let _ = get_timestamp_rdtscp();
 
 	let start = get_timestamp_rdtscp();
-	let mut end: u64 = 0;
 	for _ in 0..N {
 		let builder = thread::Builder::new();
-		let child = builder.spawn(|| get_timestamp_rdtscp()).unwrap();
-		thread::yield_now();
-		match child.join() {
-			Ok(ret) => {
-				end = ret;
-			}
-			Err(_) => {
-				println!("Unable to join thread!");
-			}
-		}
+		let child = builder.spawn(|| { }).unwrap();
+		let _ = child.join();
 	}
+	let end = get_timestamp_rdtscp();
 
-	println!("Time to create a thread {} ticks", (end - start) / N as u64);
+	println!("Time to create and to join a thread: {} ticks", (end - start) / N as u64);
 
 	Ok(())
 }
