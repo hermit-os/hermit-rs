@@ -44,12 +44,15 @@ pub fn thread_creation() -> Result<(), ()> {
 	let start = get_timestamp_rdtscp();
 	for _ in 0..N {
 		let builder = thread::Builder::new();
-		let child = builder.spawn(|| { }).unwrap();
+		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
 	let end = get_timestamp_rdtscp();
 
-	println!("Time to create and to join a thread: {} ticks", (end - start) / N as u64);
+	println!(
+		"Time to create and to join a thread: {} ticks",
+		(end - start) / N as u64
+	);
 
 	Ok(())
 }
