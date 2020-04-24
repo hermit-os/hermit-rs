@@ -11,6 +11,10 @@ categories = ["os"]
 links = "hermit"
 build = "build.rs"
 
+[features]
+# controlls whether RustyHermit is build with -Z instrument-mcount
+instrument = []
+
 [dependencies]
 log = { version = "0.4", default-features = false }
 lazy_static = "1.4.0"

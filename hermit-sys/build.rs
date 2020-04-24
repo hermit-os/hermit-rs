@@ -7,31 +7,31 @@ fn build() {
 	let target_dir = out_dir.clone() + "/target";
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 
+	let mut cmd = Command::new("cargo");
+	cmd.current_dir("../libhermit-rs")
+		.arg("build")
+		.arg("-Z")
+		.arg("build-std=core,alloc")
+		.arg("--target")
+		.arg("x86_64-unknown-hermit-kernel")
+		.arg("--target-dir")
+		.arg(target_dir);
+
+	#[cfg(feature = "instrument")]
+	cmd.env("RUSTFLAGS", "-Z instrument-mcount");
+	// if instrument is not set, ensure that instrument is not in environment variables!
+	#[cfg(not(feature = "instrument"))]
+	cmd.env(
+		"RUSTFLAGS",
+		env::var("RUSTFLAGS")
+			.unwrap_or("".into())
+			.replace("-Z instrument-mcount", ""),
+	);
+
+	cmd.output().expect("Unable to build kernel");
+
 	if profile == "release" {
-		let _output = Command::new("cargo")
-			.current_dir("../libhermit-rs")
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel")
-			.arg("--target-dir")
-			.arg(target_dir)
-			.arg("--release")
-			.output()
-			.expect("Unable to build kernel");
-	} else {
-		let _output = Command::new("cargo")
-			.current_dir("../libhermit-rs")
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel")
-			.arg("--target-dir")
-			.arg(target_dir)
-			.output()
-			.expect("Unable to build kernel");
+		cmd.arg("--release");
 	}
 
 	println!(
