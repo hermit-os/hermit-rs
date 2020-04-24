@@ -19,28 +19,30 @@ fn build() {
 		.output()
 		.expect("Unable to download rusty-hermit. Please install `cargo-download`.");
 
+	let mut cmd = Command::new("cargo")
+	cmd.current_dir(out_dir.clone() + "/rusty-hermit")
+		.arg("build")
+		.arg("-Z")
+		.arg("build-std=core,alloc")
+		.arg("--target")
+		.arg("x86_64-unknown-hermit-kernel");
+
 	if profile == "release" {
-		let _output = Command::new("cargo")
-			.current_dir(out_dir.clone() + "/rusty-hermit")
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel")
-			.arg("--release")
-			.output()
-			.expect("Unable to build kernel");
-	} else {
-		let _output = Command::new("cargo")
-			.current_dir(out_dir.clone() + "/rusty-hermit")
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel")
-			.output()
-			.expect("Unable to build kernel");
+		cmd.arg("--release");
 	}
+
+	#[cfg(feature = "instrument")]
+	cmd.env("RUSTFLAGS", "-Z instrument-mcount");
+	// if instrument is not set, ensure that instrument is not in environment variables!
+	#[cfg(not(feature = "instrument"))]
+	cmd.env(
+		"RUSTFLAGS",
+		env::var("RUSTFLAGS")
+			.unwrap_or("".into())
+			.replace("-Z instrument-mcount", ""),
+	);
+
+	cmd.output().expect("Unable to build kernel");
 
 	println!(
 		"cargo:rustc-link-search=native={}/rusty-hermit/target/x86_64-unknown-hermit-kernel/{}",
