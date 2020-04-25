@@ -43,13 +43,12 @@ extern "C" {
 		core_id: isize,
 	) -> i32;
 	fn sys_spawn2(
-		id: *mut Tid,
 		func: extern "C" fn(usize),
 		arg: usize,
 		prio: u8,
 		stack_size: usize,
 		core_id: isize,
-	) -> i32;
+	) -> Tid;
 	fn sys_join(id: Tid) -> i32;
 	fn sys_yield();
 	fn sys_clock_gettime(clock_id: u64, tp: *mut timespec) -> i32;
@@ -327,14 +326,13 @@ pub unsafe fn spawn(
 /// stack size.
 #[inline(always)]
 pub unsafe fn spawn2(
-	id: *mut Tid,
 	func: extern "C" fn(usize),
 	arg: usize,
 	prio: u8,
 	stack_size: usize,
 	core_id: isize,
-) -> i32 {
-	sys_spawn2(id, func, arg, prio, stack_size, core_id)
+) -> Tid {
+	sys_spawn2(func, arg, prio, stack_size, core_id)
 }
 
 /// join with a terminated thread
