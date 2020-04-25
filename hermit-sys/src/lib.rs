@@ -10,6 +10,7 @@ extern crate lazy_static;
 mod dummy;
 #[cfg(feature = "smoltcp")]
 mod net;
+mod rlib;
 
 use log::{set_logger, set_max_level, LevelFilter, Metadata, Record};
 
