@@ -36,10 +36,15 @@ fn get_timestamp_rdtscp() -> u64 {
 }
 
 pub fn thread_creation() -> Result<(), ()> {
-	const N: usize = 1000;
+	const N: usize = 10;
 
 	// cache warmup
 	let _ = get_timestamp_rdtscp();
+	{
+		let builder = thread::Builder::new();
+		let child = builder.spawn(|| {}).unwrap();
+		let _ = child.join();
+	}
 
 	let start = get_timestamp_rdtscp();
 	for _ in 0..N {
