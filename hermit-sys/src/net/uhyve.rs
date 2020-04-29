@@ -18,14 +18,14 @@ const UHYVE_QUEUE_SIZE: usize = 8;
 const UHYVE_PORT_NETWRITE: u16 = 0x640;
 
 extern "Rust" {
-	fn uhyve_get_ip() -> [u8; 4];
-	fn uhyve_get_gateway() -> [u8; 4];
-	fn uhyve_get_mask() -> [u8; 4];
-	fn uhyve_get_mac_address() -> [u8; 6];
+	fn sys_uhyve_get_ip() -> [u8; 4];
+	fn sys_uhyve_get_gateway() -> [u8; 4];
+	fn sys_uhyve_get_mask() -> [u8; 4];
+	fn sys_uhyve_get_mac_address() -> [u8; 6];
 }
 
 pub fn is_network_available() -> bool {
-	let myip = unsafe { uhyve_get_ip() };
+	let myip = unsafe { sys_uhyve_get_ip() };
 	if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
 		false
 	} else {
@@ -35,16 +35,16 @@ pub fn is_network_available() -> bool {
 
 impl NetworkInterface<UhyveNet> {
 	pub fn new() -> Option<Self> {
-		let myip = unsafe { uhyve_get_ip() };
+		let myip = unsafe { sys_uhyve_get_ip() };
 		if myip[0] == 0xff && myip[1] == 0xff && myip[2] == 0xff && myip[3] == 0xff {
 			return None;
 		}
 
 		debug!("Initialize uhyve network interface!");
 
-		let mygw = unsafe { uhyve_get_gateway() };
-		let mymask = unsafe { uhyve_get_mask() };
-		let mac = unsafe { uhyve_get_mac_address() };
+		let mygw = unsafe { sys_uhyve_get_gateway() };
+		let mymask = unsafe { sys_uhyve_get_mask() };
+		let mac = unsafe { sys_uhyve_get_mac_address() };
 
 		// calculate the netmask length
 		// => count the number of contiguous 1 bits,

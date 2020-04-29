@@ -23,8 +23,8 @@ lazy_static! {
 }
 
 extern "Rust" {
-	fn uhyve_netwakeup();
-	fn uhyve_netwait(millis: Option<u64>);
+	fn sys_netwakeup();
+	fn sys_netwait(millis: Option<u64>);
 }
 
 extern "C" {
@@ -226,7 +226,7 @@ extern "C" fn uhyve_thread(_: usize) {
 		let delay = NIC.lock().unwrap().as_mut().unwrap().poll();
 
 		unsafe {
-			uhyve_netwait(delay);
+			sys_netwait(delay);
 		}
 	}
 }
@@ -269,7 +269,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 	};
 
 	unsafe {
-		uhyve_netwakeup();
+		sys_netwakeup();
 	}
 
 	let result = rx
@@ -311,7 +311,7 @@ pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, (
 		let result = tcp_stream_try_read(handle, buffer, tx.clone());
 
 		unsafe {
-			uhyve_netwakeup();
+			sys_netwakeup();
 			// switch to IP thread
 			sys_yield();
 		}
@@ -367,7 +367,7 @@ pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> 
 		let result = tcp_stream_try_write(handle, buffer, tx.clone());
 
 		unsafe {
-			uhyve_netwakeup();
+			sys_netwakeup();
 			// switch to IP thread
 			sys_yield();
 		}
@@ -407,7 +407,7 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 	}
 
 	unsafe {
-		uhyve_netwakeup();
+		sys_netwakeup();
 		// switch to IP thread
 		sys_yield();
 	}
