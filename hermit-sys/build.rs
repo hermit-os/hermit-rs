@@ -19,7 +19,7 @@ fn build() {
 		.output()
 		.expect("Unable to download rusty-hermit. Please install `cargo-download`.");
 
-	let mut cmd = Command::new("cargo")
+	let mut cmd = Command::new("cargo");
 	cmd.current_dir(out_dir.clone() + "/rusty-hermit")
 		.arg("build")
 		.arg("-Z")
