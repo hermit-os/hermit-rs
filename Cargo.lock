@@ -133,6 +133,7 @@ version = "0.1.12"
 dependencies = [
  "lazy_static",
  "log",
+ "rftrace",
  "smoltcp",
  "x86",
 ]
@@ -241,9 +242,9 @@ dependencies = [
 
 [[package]]
 name = "raw-cpuid"
-version = "7.0.3"
+version = "8.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4a349ca83373cfa5d6dbb66fd76e58b2cca08da71a5f6400de0a0a6a9bceeaf"
+checksum = "9e9c0f2091b865a94bc3c9d34896cc4bbda04453453c391f7eb224491be9ae1d"
 dependencies = [
  "bitflags",
  "cc",
@@ -272,6 +273,14 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
+]
+
+[[package]]
+name = "rftrace"
+version = "0.1.0"
+source = "git+https://github.com/tlambertz/rftrace#1c9fcd2283ccad5105dd7f1326bf4081b8df2166"
+dependencies = [
+ "byteorder",
 ]
 
 [[package]]
@@ -339,9 +348,9 @@ checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
 
 [[package]]
 name = "x86"
-version = "0.32.0"
+version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8cc872a9a776500ccc6f49799729858738c946b8865fa7e3d6b47cc5dc3a8a7"
+checksum = "2786ac694ed572ab5d2bbcd9e188805dba26b3501973dd69718914fb3d4a5a69"
 dependencies = [
  "bit_field",
  "bitflags",
