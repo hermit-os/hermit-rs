@@ -17,6 +17,10 @@ fn build() {
 		.arg("--target-dir")
 		.arg(target_dir);
 
+	if profile == "release" {
+		cmd.arg("--release");
+	}
+
 	#[cfg(feature = "instrument")]
 	cmd.env("RUSTFLAGS", "-Z instrument-mcount");
 	// if instrument is not set, ensure that instrument is not in environment variables!
@@ -29,10 +33,6 @@ fn build() {
 	);
 
 	cmd.output().expect("Unable to build kernel");
-
-	if profile == "release" {
-		cmd.arg("--release");
-	}
 
 	println!(
 		"cargo:rustc-link-search=native={}/target/x86_64-unknown-hermit-kernel/{}",
