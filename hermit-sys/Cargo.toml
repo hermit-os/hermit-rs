@@ -14,6 +14,7 @@ build = "build.rs"
 [features]
 # controlls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
+trace = []
 
 [dependencies]
 log = { version = "0.4", default-features = false }
