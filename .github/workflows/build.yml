@@ -18,18 +18,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        rust: [nightly]
+        rust: [nightly-2020-04-29]
         include:
           - os: macOS-latest
-            rust: 'nightly'
+            rust: 'nightly-2020-04-29'
             components: 'rust-src'
             targets: 'x86_64-apple-darwin'
           - os: windows-latest
-            rust: 'nightly'
+            rust: 'nightly-2020-04-29'
             components: 'rust-src'
             targets: 'x86_64-pc-windows-msvc'
           - os: ubuntu-latest
-            rust: 'nightly'
+            rust: 'nightly-2020-04-29'
             components: 'rust-src'
             targets: 'x86_64-unknown-linux-gnu'
 
@@ -46,6 +46,8 @@ jobs:
       run: cargo --version
     - name: Install cargo-download
       run: cargo install cargo-download
+    - name: Set override for Rust version
+      run: rustup override set ${{ matrix.rust }}
     - name: Building dev version
       run:
          cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
