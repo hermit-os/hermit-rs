@@ -32,7 +32,13 @@ fn build() {
 			.replace("-Z instrument-mcount", ""),
 	);
 
-	cmd.output().expect("Unable to build kernel");
+	let output = cmd.output().expect("Unable to build kernel");
+	let stdout = std::string::String::from_utf8(output.stdout);
+	let stderr = std::string::String::from_utf8(output.stderr);
+	println!("Build libhermit-rs output-status: {}", output.status);
+	println!("Build libhermit-rs output-stdout: {}", stdout.unwrap());
+	println!("Build libhermit-rs output-stderr: {}", stderr.unwrap());
+	assert!(output.status.success());
 
 	println!(
 		"cargo:rustc-link-search=native={}/target/x86_64-unknown-hermit-kernel/{}",
