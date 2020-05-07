@@ -1,0 +1,48 @@
+[package]
+
+name = "rust-tcp-io-perf"
+version = "0.0.0"
+authors = ["Lorenzo Martini <lmartini@student.ethz.ch>"]
+readme = "README.md"
+
+description = "A Rust program to measure bandwidth or latency over a Rust TCP connection"
+
+[dependencies]
+bytes = "*"
+clap = "2"
+core_affinity = "0.5.10"
+hdrhist = "^0.5.0"
+
+[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
+hermit-sys = { path = "../hermit-sys", default-features = false, features = ["smoltcp"]}
+
+[[bin]]
+name = "server-bw"
+path = "src/rust-tcp-bw/server.rs"
+
+[[bin]]
+name = "client-bw"
+path = "src/rust-tcp-bw/client.rs"
+
+[[bin]]
+name = "server-latency"
+path = "src/rust-tcp-latency/server.rs"
+
+[[bin]]
+name = "client-latency"
+path = "src/rust-tcp-latency/client.rs"
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+
+[profile.dev]
+opt-level = 1      # controls the `--opt-level` the compiler builds with
+debug = true       # controls whether the compiler passes `-C debuginfo`
+                   # a value of `true` is equivalent to `2`
+rpath = false      # controls whether the compiler passes `-C rpath`
+lto = false         # controls `-C lto` for binaries and staticlibs
+debug-assertions = true # controls whether debug assertions are enabled
