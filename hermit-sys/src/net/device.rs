@@ -18,6 +18,7 @@ extern "Rust" {
 	fn sys_send_tx_buffer(handle: usize, len: usize) -> Result<(), ()>;
 	fn sys_receive_rx_buffer() -> Result<&'static mut [u8], ()>;
 	fn sys_rx_buffer_consumed() -> Result<(), ()>;
+	fn sys_free_tx_buffer(handle: usize);
 }
 
 /// Data type to determine the mac address
@@ -142,8 +143,11 @@ impl phy::RxToken for RxToken {
 		F: FnOnce(&mut [u8]) -> smoltcp::Result<R>,
 	{
 		let result = f(self.buffer);
-		unsafe { sys_rx_buffer_consumed() };
-		result
+		if unsafe { sys_rx_buffer_consumed().is_ok() } {
+			result
+		} else {
+			Err(smoltcp::Error::Exhausted)
+		}
 	}
 }
 
@@ -164,11 +168,18 @@ impl phy::TxToken for TxToken {
 		let (tx_buffer, handle) =
 			unsafe { sys_get_tx_buffer(len).map_err(|_| smoltcp::Error::Exhausted)? };
 		let tx_slice: &'static mut [u8] = unsafe { slice::from_raw_parts_mut(tx_buffer, len) };
-		let result = f(tx_slice);
-		if unsafe { sys_send_tx_buffer(handle, len) }.is_err() {
-			Err(smoltcp::Error::Exhausted)
-		} else {
-			result
+		match f(tx_slice) {
+			Ok(result) => {
+				if unsafe { sys_send_tx_buffer(handle, len).is_ok() } {
+					Ok(result) 
+				} else {
+					Err(smoltcp::Error::Exhausted)
+				}
+			}
+			Err(e) => {
+				unsafe { sys_free_tx_buffer(handle) };
+				Err(e)
+			}
 		}
 	}
 }
