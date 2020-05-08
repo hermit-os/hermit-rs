@@ -171,7 +171,7 @@ impl phy::TxToken for TxToken {
 		match f(tx_slice) {
 			Ok(result) => {
 				if unsafe { sys_send_tx_buffer(handle, len).is_ok() } {
-					Ok(result) 
+					Ok(result)
 				} else {
 					Err(smoltcp::Error::Exhausted)
 				}
