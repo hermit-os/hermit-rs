@@ -12,12 +12,12 @@ use smoltcp::time::Instant;
 use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
 
 extern "Rust" {
-	fn sys_get_mac_address() -> [u8; 6];
-	fn sys_get_mtu() -> u16;
+	fn sys_get_mac_address() -> Result<[u8; 6], ()>;
+	fn sys_get_mtu() -> Result<u16, ()>;
 	fn sys_get_tx_buffer(len: usize) -> Result<(*mut u8, usize), ()>;
 	fn sys_send_tx_buffer(handle: usize, len: usize) -> Result<(), ()>;
 	fn sys_receive_rx_buffer() -> Result<&'static mut [u8], ()>;
-	fn sys_rx_buffer_consumed();
+	fn sys_rx_buffer_consumed() -> Result<(),()>;
 }
 
 /// Data type to determine the mac address
@@ -35,14 +35,20 @@ impl HermitNet {
 
 impl NetworkInterface<HermitNet> {
 	pub fn new() -> Option<Self> {
-		let mtu = unsafe { sys_get_mtu() };
+		let mtu = match unsafe { sys_get_mtu() } {
+			Ok(mtu) => mtu,
+			Err(_) => { return None; },
+		};
 		let device = HermitNet::new(mtu);
 		#[cfg(feature = "trace")]
 		let device = EthernetTracer::new(device, |_timestamp, printer| {
 			trace!("{}", printer);
 		});
 
-		let mac: [u8; 6] = unsafe { sys_get_mac_address() };
+		let mac: [u8; 6] = match unsafe { sys_get_mac_address() } {
+			Ok(mac) => mac,
+			Err(_) => { return None; },
+		};
 		let myip: [u8; 4] = [10, 0, 5, 3];
 		let mygw: [u8; 4] = [10, 0, 5, 1];
 		let mymask: [u8; 4] = [255, 255, 255, 0];
