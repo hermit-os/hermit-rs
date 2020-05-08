@@ -1,69 +1,69 @@
 #![allow(unused_imports)]
 
+extern crate bytes;
+extern crate hdrhist;
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
-extern crate bytes;
 extern crate rust_tcp_io_perf;
-extern crate hdrhist;
 
-use std::time::Instant;
-use std::{thread, time};
 use rust_tcp_io_perf::config;
 use rust_tcp_io_perf::connection;
 use rust_tcp_io_perf::print_utils;
 use rust_tcp_io_perf::threading;
+use std::time::Instant;
+use std::{thread, time};
 
 fn main() {
+	let args = config::parse_config();
 
-    let args = config::parse_config();
+	println!("Connecting to the server {}...", args.address);
+	let n_rounds = args.n_rounds;
+	let n_bytes = args.n_bytes;
 
-    println!("Connecting to the server {}...", args.address);
-    let n_rounds = args.n_rounds;
-    let n_bytes = args.n_bytes;
+	// Create buffers to read/write
+	let wbuf: Vec<u8> = vec![0; n_bytes];
+	let mut rbuf: Vec<u8> = vec![0; n_bytes];
 
-    // Create buffers to read/write
-    let wbuf: Vec<u8> = vec![0; n_bytes];
-    let mut rbuf: Vec<u8> = vec![0; n_bytes];
+	let progress_tracking_percentage = (n_rounds * 2) / 100;
 
-    let progress_tracking_percentage = (n_rounds * 2) / 100;
+	let mut connected = false;
 
-    let mut connected = false;
+	while !connected {
+		match connection::client_connect(args.address_and_port()) {
+			Ok(mut stream) => {
+				connection::setup(&args, &mut stream);
+				threading::setup(&args);
+				connected = true;
+				let mut hist = hdrhist::HDRHist::new();
 
-    while !connected {
-        match connection::client_connect(args.address_and_port()) {
-            Ok(mut stream) => {
-                connection::setup(&args, &mut stream);
-                threading::setup(&args);
-                connected = true;
-                let mut hist = hdrhist::HDRHist::new();
+				println!("Connection established! Ready to send...");
 
-                println!("Connection established! Ready to send...");
+				// To avoid TCP slowstart we do double iterations and measure only the second half
+				for i in 0..(n_rounds * 2) {
+					let start = Instant::now();
 
-                // To avoid TCP slowstart we do double iterations and measure only the second half
-                for i in 0..(n_rounds * 2) {
+					connection::send_message(n_bytes, &mut stream, &wbuf);
+					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
 
-                    let start = Instant::now();
+					let duration = Instant::now().duration_since(start);
+					if i >= n_rounds {
+						hist.add_value(
+							duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64,
+						);
+					}
 
-                    connection::send_message(n_bytes, &mut stream, &wbuf);
-                    connection::receive_message(n_bytes, &mut stream, &mut rbuf);
-
-                    let duration = Instant::now().duration_since(start);
-                    if i >= n_rounds {
-                        hist.add_value(duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64);
-                    }
-
-                    if i % progress_tracking_percentage == 0 {
-                        // Track progress on screen
-                        println!("{}% completed", i / progress_tracking_percentage);
-                    }
-                }
-                connection::close_connection(&stream);
-                print_utils::print_summary(hist);
-            },
-            Err(error) => {
-                println!("Couldn't connect to server, retrying... Error {}", error);
-                thread::sleep(time::Duration::from_secs(1));
-            }
-        }
-    }
+					if i % progress_tracking_percentage == 0 {
+						// Track progress on screen
+						println!("{}% completed", i / progress_tracking_percentage);
+					}
+				}
+				connection::close_connection(&stream);
+				print_utils::print_summary(hist);
+			}
+			Err(error) => {
+				println!("Couldn't connect to server, retrying... Error {}", error);
+				thread::sleep(time::Duration::from_secs(1));
+			}
+		}
+	}
 }

@@ -17,7 +17,7 @@ extern "Rust" {
 	fn sys_get_tx_buffer(len: usize) -> Result<(*mut u8, usize), ()>;
 	fn sys_send_tx_buffer(handle: usize, len: usize) -> Result<(), ()>;
 	fn sys_receive_rx_buffer() -> Result<&'static mut [u8], ()>;
-	fn sys_rx_buffer_consumed() -> Result<(),()>;
+	fn sys_rx_buffer_consumed() -> Result<(), ()>;
 }
 
 /// Data type to determine the mac address
@@ -37,7 +37,9 @@ impl NetworkInterface<HermitNet> {
 	pub fn new() -> Option<Self> {
 		let mtu = match unsafe { sys_get_mtu() } {
 			Ok(mtu) => mtu,
-			Err(_) => { return None; },
+			Err(_) => {
+				return None;
+			}
 		};
 		let device = HermitNet::new(mtu);
 		#[cfg(feature = "trace")]
@@ -47,7 +49,9 @@ impl NetworkInterface<HermitNet> {
 
 		let mac: [u8; 6] = match unsafe { sys_get_mac_address() } {
 			Ok(mac) => mac,
-			Err(_) => { return None; },
+			Err(_) => {
+				return None;
+			}
 		};
 		let myip: [u8; 4] = [10, 0, 5, 3];
 		let mygw: [u8; 4] = [10, 0, 5, 1];

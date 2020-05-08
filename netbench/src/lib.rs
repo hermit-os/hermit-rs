@@ -1,6 +1,6 @@
 extern crate clap;
 
-pub mod connection;
 pub mod config;
-pub mod threading;
+pub mod connection;
 pub mod print_utils;
+pub mod threading;
