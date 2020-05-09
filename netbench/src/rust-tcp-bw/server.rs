@@ -22,7 +22,7 @@ fn main() {
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port);
 
 	let start = Instant::now();
-	while tot_bytes < tot_n_bytes {
+	while tot_bytes <= tot_n_bytes {
 		let recv = stream.read(&mut buf).unwrap();
 		if recv > 0 {
 			tot_bytes += recv as u64;
@@ -33,9 +33,9 @@ fn main() {
 	let end = Instant::now();
 	let duration = end.duration_since(start);
 
-	println!("Sent in total {} Kbytes", tot_bytes / 1024);
+	println!("Sent in total {} KBytes", tot_bytes / 1024);
 	println!(
 		"Available approximated bandwidth: {} Mbit/s",
-		tot_bytes as f64 * 8.0f64 / (1024.0f64 * 1024.0f64 * duration.as_secs_f64())
+		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64())
 	);
 }
