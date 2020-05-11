@@ -10,6 +10,8 @@ use std::str;
 use std::thread;
 use std::time::Instant;
 use std::vec;
+#[cfg(target_os = "linux")]
+use syscalls::SYS_getpid;
 
 mod laplace;
 mod matmul;
@@ -58,6 +60,37 @@ pub fn thread_creation() -> Result<(), ()> {
 		"Time to create and to join a thread: {} ticks",
 		(end - start) / N as u64
 	);
+
+	Ok(())
+}
+
+extern "C" {
+	#[cfg(target_os = "hermit")]
+	fn sys_getpid() -> u32;
+}
+
+pub fn bench_syscall() -> Result<(), ()> {
+	let n = 1000000;
+
+	let ticks = unsafe {
+		// cache warmup
+		#[cfg(target_os = "hermit")]
+		let _ = sys_getpid();
+		#[cfg(target_os = "linux")]
+		let _ = syscall!(SYS_getpid);
+		let _ = get_timestamp_rdtscp();
+
+		let start = get_timestamp_rdtscp();
+		for _ in 0..n {
+			#[cfg(target_os = "hermit")]
+			let _ = sys_getpid();
+			#[cfg(target_os = "linux")]
+			let _ = syscall!(SYS_getpid);
+		}
+		get_timestamp_rdtscp() - start
+	};
+
+	println!("Time {} for a system call (in ticks)", ticks / n);
 
 	Ok(())
 }
