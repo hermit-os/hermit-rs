@@ -12,6 +12,9 @@ rand = "0.7"
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
 hermit-sys = { path = "../hermit-sys", default-features = false, features = ["smoltcp"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+syscalls = { version = "0.2", default-features = false }
+
 [profile.release]
 opt-level = 3
 debug = false
