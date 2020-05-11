@@ -1,11 +1,10 @@
 pub mod device;
 
+use crossbeam_channel::{Receiver, Sender};
 use std::arch::x86_64::_rdtsc;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, SyncSender};
 use std::sync::Mutex;
 use std::u16;
 
@@ -76,7 +75,7 @@ pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	#[cfg(not(feature = "trace"))]
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
-	pub channels: BTreeMap<Handle, (WaitFor, SyncSender<WaitForResult>, bool)>,
+	pub channels: BTreeMap<Handle, (WaitFor, Sender<WaitForResult>, bool)>,
 	pub timestamp: Instant,
 }
 
@@ -265,7 +264,7 @@ pub fn network_init() -> Result<(), ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Result<Handle, ()> {
-	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
+	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = crossbeam_channel::bounded(1);
 	let limit = match timeout {
 		Some(t) => t,
 		_ => 5000,
@@ -296,7 +295,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 fn tcp_stream_try_read(
 	handle: Handle,
 	buffer: &mut [u8],
-	tx: SyncSender<WaitForResult>,
+	tx: Sender<WaitForResult>,
 ) -> Result<usize, ReadFailed> {
 	let mut guard = NIC.lock().map_err(|_| ReadFailed::InternalError)?;
 	let nic = guard.as_mut().ok_or(ReadFailed::InternalError)?;
@@ -317,7 +316,7 @@ fn tcp_stream_try_read(
 
 #[no_mangle]
 pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
-	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
+	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = crossbeam_channel::bounded(1);
 
 	loop {
 		let result = tcp_stream_try_read(handle, buffer, tx.clone());
@@ -352,7 +351,7 @@ pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, (
 fn tcp_stream_try_write(
 	handle: Handle,
 	buffer: &[u8],
-	tx: SyncSender<WaitForResult>,
+	tx: Sender<WaitForResult>,
 ) -> Result<usize, WriteFailed> {
 	let mut guard = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
 	let nic = guard.as_mut().ok_or(WriteFailed::InternalError)?;
@@ -373,7 +372,7 @@ fn tcp_stream_try_write(
 
 #[no_mangle]
 pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
-	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
+	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = crossbeam_channel::bounded(1);
 
 	loop {
 		let result = tcp_stream_try_write(handle, buffer, tx.clone());
@@ -407,7 +406,7 @@ pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> 
 
 #[no_mangle]
 pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
-	let (tx, rx): (SyncSender<WaitForResult>, Receiver<WaitForResult>) = mpsc::sync_channel(1);
+	let (tx, rx): (Sender<WaitForResult>, Receiver<WaitForResult>) = crossbeam_channel::bounded(1);
 	{
 		// close connection
 		let mut guard = NIC.lock().map_err(|_| ())?;

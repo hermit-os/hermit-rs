@@ -1,3 +1,4 @@
+extern crate crossbeam_channel;
 #[macro_use]
 extern crate log;
 #[cfg(feature = "smoltcp")]
