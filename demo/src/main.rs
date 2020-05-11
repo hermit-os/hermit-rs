@@ -12,6 +12,9 @@
 extern crate hermit_sys;
 extern crate rand;
 extern crate rayon;
+#[cfg(target_os = "linux")]
+#[macro_use]
+extern crate syscalls;
 
 mod tests;
 
@@ -90,6 +93,11 @@ fn main() {
 		"Test {} ... {}",
 		stringify!(bench_sched_two_threads),
 		test_result(bench_sched_two_threads())
+	);
+	println!(
+		"Test {} ... {}",
+		stringify!(bench_syscall),
+		test_result(bench_syscall())
 	);
 	println!(
 		"Test {} ... {}",
