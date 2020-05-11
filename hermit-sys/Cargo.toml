@@ -29,6 +29,9 @@ optional = true
 default-features = false
 features = ["log", "verbose", "std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6"]
 
+[dependencies.crossbeam-channel]
+version = "0.4"
+
 [dependencies.rftrace]
 optional = true
 features = ["backend", "buildstd", "hermit"]
