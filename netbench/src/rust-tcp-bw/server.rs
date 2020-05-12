@@ -20,6 +20,7 @@ fn main() {
 	let mut tot_bytes: u64 = 0;
 
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port);
+	connection::setup(&args, &mut stream);
 
 	let start = Instant::now();
 	while tot_bytes <= tot_n_bytes {
