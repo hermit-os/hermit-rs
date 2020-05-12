@@ -99,6 +99,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cced8691919c02aac3cb0a1bc2e9b73d89e832bf9a06fc579d4e71b68a2da061"
+dependencies = [
+ "crossbeam-utils",
+ "maybe-uninit",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -190,6 +200,7 @@ dependencies = [
 name = "hermit-sys"
 version = "0.1.10"
 dependencies = [
+ "crossbeam-channel",
  "lazy_static",
  "log",
  "rftrace",
