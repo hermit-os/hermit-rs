@@ -184,11 +184,7 @@ where
 			let len = socket
 				.recv_slice(buffer)
 				.map_err(|_| ReadFailed::InternalError)?;
-			trace!(
-				"receive {} bytes, {}",
-				len,
-				std::str::from_utf8(&buffer).unwrap().to_owned()
-			);
+
 			Ok(len)
 		} else {
 			Err(ReadFailed::CanRecvFailed)
@@ -199,20 +195,13 @@ where
 		let mut socket = self.sockets.get::<TcpSocket>(handle);
 		if !socket.may_recv() {
 			return Ok(0);
-		} else if socket.can_send() {
-			socket
-				.send_slice(buffer)
-				.map_err(|_| WriteFailed::InternalError)?;
-			trace!(
-				"sending {} bytes, {}",
-				buffer.len(),
-				std::str::from_utf8(&buffer).unwrap().to_owned()
-			);
-		} else {
+		} else if !socket.can_send() {
 			return Err(WriteFailed::CanSendFailed);
 		}
 
-		trace!("send {}", std::str::from_utf8(&buffer).unwrap().to_owned());
+		socket
+			.send_slice(buffer)
+			.map_err(|_| WriteFailed::InternalError)?;
 
 		Ok(buffer.len())
 	}
@@ -343,7 +332,7 @@ fn tcp_stream_try_write(
 	let mut guard = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
 	let nic = guard.as_mut().ok_or(WriteFailed::InternalError)?;
 
-	nic.write(handle, buffer).map_err(|err| {
+	let len = nic.write(handle, buffer).map_err(|err| {
 		match err {
 			WriteFailed::CanSendFailed => {
 				*nic.channels
@@ -354,7 +343,16 @@ fn tcp_stream_try_write(
 		}
 
 		err
-	})
+	})?;
+
+	// transfer packet to nic
+	while let Some(delay) = nic.poll() {
+		if delay > 0 {
+			break;
+		}
+	}
+
+	Ok(len)
 }
 
 #[no_mangle]
@@ -363,12 +361,6 @@ pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> 
 
 	loop {
 		let result = tcp_stream_try_write(handle, buffer, tx.clone());
-
-		unsafe {
-			uhyve_netwakeup();
-			// switch to IP thread
-			sys_yield();
-		}
 
 		match result {
 			Ok(len) => {
@@ -402,12 +394,13 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 		*nic.channels
 			.get_mut(&handle)
 			.expect("Unable to find handle") = (WaitFor::Close, tx.clone(), false);
-	}
 
-	unsafe {
-		uhyve_netwakeup();
-		// switch to IP thread
-		sys_yield();
+		// transfer request to nic
+		while let Some(delay) = nic.poll() {
+			if delay > 0 {
+				break;
+			}
+		}
 	}
 
 	rx.recv().map_err(|_| ())?;
