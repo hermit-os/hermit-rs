@@ -14,23 +14,15 @@ use std::time::Instant;
 fn main() {
 	let args = config::parse_config();
 	let n_bytes = args.n_bytes;
-	let tot_n_bytes = (n_bytes * args.n_rounds) as u64;
+	let tot_n_bytes = n_bytes * args.n_rounds;
 
-	let mut buf = vec![0; n_bytes];
-	let mut tot_bytes: u64 = 0;
+	let mut buf = vec![0; tot_n_bytes];
 
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port);
 	connection::setup(&args, &mut stream);
 
 	let start = Instant::now();
-	while tot_bytes <= tot_n_bytes {
-		let recv = stream.read(&mut buf).unwrap();
-		if recv > 0 {
-			tot_bytes += recv as u64;
-		} else {
-			break;
-		}
-	}
+	let tot_bytes = stream.read_to_end(&mut buf).unwrap();
 	let end = Instant::now();
 	let duration = end.duration_since(start);
 
