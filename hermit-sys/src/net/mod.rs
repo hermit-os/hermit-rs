@@ -1,5 +1,4 @@
-#[cfg(feature = "smoltcp")]
-pub mod uhyve;
+pub mod device;
 
 use crossbeam_channel::{Receiver, Sender};
 use std::arch::x86_64::_rdtsc;
@@ -10,20 +9,22 @@ use std::sync::Mutex;
 use std::u16;
 
 use smoltcp::phy::Device;
+#[cfg(feature = "trace")]
+use smoltcp::phy::EthernetTracer;
 use smoltcp::socket::{SocketHandle, SocketSet, TcpSocket, TcpSocketBuffer, TcpState};
 use smoltcp::time::Instant;
 use smoltcp::wire::IpAddress;
 
-use net::uhyve::UhyveNet;
+use net::device::HermitNet;
 
 lazy_static! {
-	static ref NIC: Mutex<Option<NetworkInterface<UhyveNet>>> =
-		Mutex::new(NetworkInterface::<UhyveNet>::new());
+	static ref NIC: Mutex<Option<NetworkInterface<HermitNet>>> =
+		Mutex::new(NetworkInterface::<HermitNet>::new());
 }
 
 extern "Rust" {
-	fn uhyve_netwakeup();
-	fn uhyve_netwait(millis: Option<u64>);
+	fn sys_netwakeup();
+	fn sys_netwait(millis: Option<u64>);
 }
 
 extern "C" {
@@ -69,6 +70,9 @@ pub enum WaitForResult {
 }
 
 pub struct NetworkInterface<T: for<'a> Device<'a>> {
+	#[cfg(feature = "trace")]
+	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, EthernetTracer<T>>,
+	#[cfg(not(feature = "trace"))]
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
 	pub channels: BTreeMap<Handle, (WaitFor, Sender<WaitForResult>, bool)>,
@@ -82,10 +86,7 @@ where
 	pub fn poll(&mut self) -> Option<u64> {
 		self.iface
 			.poll(&mut self.sockets, self.timestamp)
-			.map(|_| {
-				trace!("receive message {}", self.counter);
-				self.counter += 1;
-			})
+			.map(|_| ())
 			.unwrap_or_else(|e| debug!("Poll: {:?}", e));
 
 		// check if we have to inform a thread, which waits for input
@@ -210,19 +211,26 @@ where
 #[no_mangle]
 extern "C" fn uhyve_thread(_: usize) {
 	loop {
-		let delay = NIC.lock().unwrap().as_mut().unwrap().poll();
+		let mut guard = NIC.lock().unwrap();
+		match guard.as_mut() {
+			Some(iface) => {
+				let delay = iface.poll();
+				// release lock
+				drop(guard);
 
-		unsafe {
-			uhyve_netwait(delay);
+				unsafe {
+					sys_netwait(delay);
+				}
+			}
+			None => {
+				warn!("Ethernet interface not available");
+				return;
+			}
 		}
 	}
 }
 
 pub fn network_init() -> Result<(), ()> {
-	if !uhyve::is_network_available() {
-		return Err(());
-	}
-
 	// initialize variable, which contains the next local endpoint
 	let start_endpoint = ((unsafe { _rdtsc() as u64 }) % (u16::MAX as u64)) as u16;
 	LOCAL_ENDPOINT.store(start_endpoint, Ordering::SeqCst);
@@ -233,6 +241,11 @@ pub fn network_init() -> Result<(), ()> {
 	let ret = unsafe { sys_spawn(&mut tid, uhyve_thread, 0, 3, 0) };
 	if ret >= 0 {
 		info!("Spawn network thread with id {}", tid);
+	}
+
+	// switch to
+	unsafe {
+		sys_yield();
 	}
 
 	Ok(())
@@ -256,7 +269,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 	};
 
 	unsafe {
-		uhyve_netwakeup();
+		sys_netwakeup();
 	}
 
 	let result = rx
@@ -298,7 +311,7 @@ pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, (
 		let result = tcp_stream_try_read(handle, buffer, tx.clone());
 
 		unsafe {
-			uhyve_netwakeup();
+			sys_netwakeup();
 			// switch to IP thread
 			sys_yield();
 		}

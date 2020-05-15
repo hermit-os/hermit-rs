@@ -36,6 +36,9 @@ impl log::Log for SysLogger {
 #[no_mangle]
 pub extern "C" fn sys_network_init() -> i32 {
 	set_logger(&SysLogger).expect("Can't initialize logger");
+	#[cfg(feature = "trace")]
+	set_max_level(LevelFilter::Trace);
+	#[cfg(not(feature = "trace"))]
 	set_max_level(LevelFilter::Info);
 
 	#[cfg(feature = "smoltcp")]
