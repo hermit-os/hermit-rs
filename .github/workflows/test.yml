@@ -40,8 +40,8 @@ jobs:
       run: cargo --version
     - name: Install cargo-download
       run: cargo install cargo-download
-    - name: Install qemu/nasm
-      run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 nasm
+    - name: Install qemu/nasm/llvm
+      run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 nasm llvm
     - name: Building dev version
       run:
          cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
