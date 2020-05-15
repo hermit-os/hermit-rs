@@ -13,7 +13,7 @@ build = "build.rs"
 
 [features]
 # controlls whether RustyHermit is build with -Z instrument-mcount
-instrument = ["rftrace"]
+#instrument = ["rftrace"]
 trace = []
 
 [dependencies]
@@ -33,7 +33,7 @@ features = ["log", "verbose", "std", "ethernet", "socket-udp", "socket-tcp", "pr
 [dependencies.crossbeam-channel]
 version = "0.4"
 
-[dependencies.rftrace]
-optional = true
-features = ["backend", "buildstd", "hermit"]
-git = "https://github.com/tlambertz/rftrace"
+#[dependencies.rftrace]
+#optional = true
+#features = ["backend", "buildstd", "hermit"]
+#git = "https://github.com/tlambertz/rftrace"

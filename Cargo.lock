@@ -203,7 +203,6 @@ dependencies = [
  "crossbeam-channel",
  "lazy_static",
  "log",
- "rftrace",
  "smoltcp",
  "x86",
 ]
@@ -371,14 +370,6 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
-]
-
-[[package]]
-name = "rftrace"
-version = "0.1.0"
-source = "git+https://github.com/tlambertz/rftrace#1c9fcd2283ccad5105dd7f1326bf4081b8df2166"
-dependencies = [
- "byteorder",
 ]
 
 [[package]]
