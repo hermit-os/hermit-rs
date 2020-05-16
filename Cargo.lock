@@ -180,20 +180,20 @@ checksum = "51b22edfb537aaffec56e77d3116a1dd0a0fa8bb5a8bd7d6d4a522132c9bb383"
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.11"
-dependencies = [
- "compiler_builtins",
- "libc",
- "rustc-std-workspace-core",
-]
-
-[[package]]
-name = "hermit-abi"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61565ff7aaace3525556587bd2dc31d4a07071957be715e63ce7b1eccf51a8f4"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "hermit-abi"
+version = "0.1.13"
+dependencies = [
+ "compiler_builtins",
+ "libc",
+ "rustc-std-workspace-core",
 ]
 
 [[package]]
