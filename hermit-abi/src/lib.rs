@@ -15,6 +15,7 @@ extern "C" {
 	fn sys_malloc(size: usize, align: usize) -> *mut u8;
 	fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8;
 	fn sys_free(ptr: *mut u8, size: usize, align: usize);
+	fn sys_init_queue(ptr: usize) -> i32;
 	fn sys_notify(id: usize, count: i32) -> i32;
 	fn sys_add_queue(id: usize, timeout_ns: i64) -> i32;
 	fn sys_wait(id: usize) -> i32;
@@ -156,6 +157,12 @@ pub unsafe fn add_queue(id: usize, timeout_ns: i64) -> i32 {
 #[inline(always)]
 pub unsafe fn wait(id: usize) -> i32 {
 	sys_wait(id)
+}
+
+#[doc(hidden)]
+#[inline(always)]
+pub unsafe fn init_queue(id: usize) -> i32 {
+	sys_init_queue(id)
 }
 
 #[doc(hidden)]
