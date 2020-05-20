@@ -13,6 +13,7 @@ before_install:
   - sudo adduser $USER kvm
   - rustup component add rust-src
   - rustup component add llvm-tools-preview
+  - cargo install cargo-download
   - cargo install uhyve
   - >
     if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq "0" ]; then
