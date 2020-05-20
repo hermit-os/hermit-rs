@@ -53,13 +53,13 @@ jobs:
          cd loader && make
     - name: Test dev version
       run:
-         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand,x2apic
     - name: Test dev version (smp)
       run:
-         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand,x2apic
     - name: Test release version
       run:
-         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand,x2apic
     - name: Test release version (smp)
       run:
-         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand,x2apic
