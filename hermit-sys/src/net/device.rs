@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::convert::TryInto;
 use std::slice;
 
-use net::NetworkInterface;
 use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
 #[cfg(feature = "trace")]
 use smoltcp::phy::EthernetTracer;
@@ -10,6 +9,8 @@ use smoltcp::phy::{self, Device, DeviceCapabilities};
 use smoltcp::socket::SocketSet;
 use smoltcp::time::Instant;
 use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
+
+use crate::net::NetworkInterface;
 
 extern "Rust" {
 	fn sys_get_mac_address() -> Result<[u8; 6], ()>;
