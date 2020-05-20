@@ -1,6 +1,3 @@
-pub mod device;
-
-use crossbeam_channel::{Receiver, Sender};
 use std::arch::x86_64::_rdtsc;
 use std::collections::BTreeMap;
 use std::str::FromStr;
@@ -8,6 +5,7 @@ use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
 use std::u16;
 
+use crossbeam_channel::{Receiver, Sender};
 use smoltcp::phy::Device;
 #[cfg(feature = "trace")]
 use smoltcp::phy::EthernetTracer;
@@ -15,7 +13,9 @@ use smoltcp::socket::{SocketHandle, SocketSet, TcpSocket, TcpSocketBuffer, TcpSt
 use smoltcp::time::Instant;
 use smoltcp::wire::IpAddress;
 
-use net::device::HermitNet;
+use crate::net::device::HermitNet;
+
+pub mod device;
 
 lazy_static! {
 	static ref NIC: Mutex<Option<NetworkInterface<HermitNet>>> =

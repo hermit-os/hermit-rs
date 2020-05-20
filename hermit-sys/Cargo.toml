@@ -10,6 +10,7 @@ keywords = ["unikernel", "libos"]
 categories = ["os"]
 links = "hermit"
 build = "build.rs"
+edition = "2018"
 
 [features]
 # controlls whether RustyHermit is build with -Z instrument-mcount
