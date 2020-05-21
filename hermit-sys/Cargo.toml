@@ -19,6 +19,9 @@ trace = []
 # only for internal usage, please don't use it
 with_submodule = []
 
+[build-dependencies]
+walkdir = "2"
+
 [dependencies]
 log = { version = "0.4", default-features = false }
 lazy_static = "1.4.0"

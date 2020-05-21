@@ -1,5 +1,8 @@
+extern crate walkdir;
+
 use std::env;
 use std::process::Command;
+use walkdir::{DirEntry, WalkDir};
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
 fn build() {
