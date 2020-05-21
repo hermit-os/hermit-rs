@@ -105,7 +105,32 @@ fn build() {
 	println!("cargo:rustc-link-lib=static=hermit");
 }
 
+#[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
+fn configure_cargo_rerun_if_changed() {
+	fn is_not_ignored(entry: &DirEntry) -> bool {
+		// Ignore .git .vscode and target directories, but not .cargo or .github
+		if entry.depth() == 1 && entry.path().is_dir() {
+			if entry.path().ends_with("target")
+				|| entry.path().ends_with(".git")
+				|| entry.path().ends_with(".vscode")
+			{
+				return false;
+			}
+		}
+		true
+	}
+
+	WalkDir::new("../libhermit-rs")
+		.into_iter()
+		.filter_entry(|e| is_not_ignored(e))
+		.filter_map(|v| v.ok())
+		.filter_map(|v| v.path().canonicalize().ok())
+		.for_each(|x| println!("cargo:rerun-if-changed={}", x.display()));
+}
+
 fn main() {
+	#[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
+	configure_cargo_rerun_if_changed();
 	#[cfg(not(feature = "rustc-dep-of-std"))]
 	build();
 }
