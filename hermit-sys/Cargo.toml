@@ -16,6 +16,8 @@ edition = "2018"
 # controlls whether RustyHermit is build with -Z instrument-mcount
 #instrument = ["rftrace"]
 trace = []
+# only for internal usage, please don't use it
+with_submodule = []
 
 [dependencies]
 log = { version = "0.4", default-features = false }
