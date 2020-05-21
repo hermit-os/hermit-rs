@@ -28,7 +28,6 @@ fn test_result<T>(result: Result<(), T>) -> &'static str {
 }
 
 fn main() {
-	println!("HH");
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
 	println!(
 		"Test {} ... {}",
