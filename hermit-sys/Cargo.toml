@@ -4,7 +4,7 @@ version = "0.1.13"
 authors = ["Stefan Lankes"]
 license = "MIT/Apache-2.0"
 description = "FFI bindings to HermitCore"
-repository = "https://github.com/hermitcore/rusty-hermit"
+repository = "https://github.com/hermitcore/libhermit-rs"
 readme = "README.md"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
@@ -16,6 +16,11 @@ edition = "2018"
 # controlls whether RustyHermit is build with -Z instrument-mcount
 #instrument = ["rftrace"]
 trace = []
+# only for internal usage, please don't use it
+with_submodule = []
+
+[build-dependencies]
+walkdir = "2"
 
 [dependencies]
 log = { version = "0.4", default-features = false }

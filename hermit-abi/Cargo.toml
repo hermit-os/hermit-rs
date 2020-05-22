@@ -9,7 +9,7 @@ description = """
 hermit-abi is small interface to call functions from the unikernel RustyHermit.
 It is used to build the target `x86_64-unknown-hermit`.
 """
-repository = "https://github.com/hermitcore/rusty-hermit"
+repository = "https://github.com/hermitcore/libhermit-rs"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
 
