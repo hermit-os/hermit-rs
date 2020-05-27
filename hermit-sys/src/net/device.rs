@@ -85,7 +85,7 @@ impl NetworkInterface<HermitNet> {
 
 		info!("MAC address {}", ethernet_addr);
 		info!("Configure network interface with address {}", ip_addrs[0]);
-		info!("Configure gatway with address {}", default_v4_gw);
+		info!("Configure gateway with address {}", default_v4_gw);
 		info!("MTU: {} bytes", mtu);
 
 		let iface = EthernetInterfaceBuilder::new(device)
