@@ -1,9 +1,8 @@
+use std::time::Instant;
+
 /// Code is derived Rayon's matmul example
 /// https://github.com/rayon-rs/rayon/tree/master/rayon-demo/src/matmul
-use rayon;
 use rayon::prelude::*;
-
-use std::time::Instant;
 
 // TODO: Investigate other cache patterns for row-major order that may be more
 // parallelizable.
@@ -100,7 +99,7 @@ fn seq_matmulz(a: &[f32], b: &[f32], dest: &mut [f32]) {
 	}
 }
 
-const MULT_CHUNK: usize = 1 * 1024;
+const MULT_CHUNK: usize = 1024;
 const LINEAR_CHUNK: usize = 64 * 1024;
 
 fn quarter_chunks(v: &[f32]) -> (&[f32], &[f32], &[f32], &[f32]) {

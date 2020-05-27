@@ -75,7 +75,7 @@ pub fn get_write_timeout(handle: Handle) -> Result<Option<u64>, ()> {
 pub fn set_nodelay(_: Handle, mode: bool) -> Result<(), ()> {
 	// smoltcp does not support Nagle's algorithm
 	// => to enable Nagle's algorithm isn't possible
-	if mode == true {
+	if mode {
 		Ok(())
 	} else {
 		Err(())
