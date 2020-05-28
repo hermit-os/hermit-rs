@@ -129,6 +129,9 @@ fn configure_cargo_rerun_if_changed() {
 		.filter_map(|v| v.ok())
 		.filter_map(|v| v.path().canonicalize().ok())
 		.for_each(|x| println!("cargo:rerun-if-changed={}", x.display()));
+
+	//HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
+	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 }
 
 fn main() {
