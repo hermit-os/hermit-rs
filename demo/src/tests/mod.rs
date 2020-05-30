@@ -265,7 +265,16 @@ pub fn print_env() -> Result<(), ()> {
 
 pub fn hello() -> Result<(), ()> {
 	println!("Hello, world!");
-
+	println!("Привет мир!");
+	println!("こんにちは世界");
+	println!("你好，世界");
+	println!("สวัสดีชาวโลก");
+	println!("Chào thế giới");
+	let crab = vec![0xF0 as u8, 0x9F as u8, 0xA6 as u8, 0x80 as u8];
+	println!(
+		"Crab emoji: {}",
+		String::from_utf8(crab).unwrap_or_default()
+	);
 	Ok(())
 }
 
