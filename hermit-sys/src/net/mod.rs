@@ -262,8 +262,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 		let mut guard = NIC.lock().map_err(|_| ())?;
 		let nic = guard.as_mut().ok_or(())?;
 		let handle = nic.connect(ip, port)?;
-		nic.channels
-			.insert(handle, (WaitFor::Establish, tx.clone(), false));
+		nic.channels.insert(handle, (WaitFor::Establish, tx, false));
 
 		handle
 	};
@@ -406,7 +405,7 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 		nic.close(handle)?;
 		*nic.channels
 			.get_mut(&handle)
-			.expect("Unable to find handle") = (WaitFor::Close, tx.clone(), false);
+			.expect("Unable to find handle") = (WaitFor::Close, tx, false);
 
 		// transfer request to nic
 		while let Some(delay) = nic.poll() {

@@ -2,6 +2,7 @@ extern crate walkdir;
 
 use std::env;
 use std::process::Command;
+
 use walkdir::{DirEntry, WalkDir};
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
@@ -41,7 +42,7 @@ fn build() {
 	cmd.env(
 		"RUSTFLAGS",
 		env::var("RUSTFLAGS")
-			.unwrap_or("".into())
+			.unwrap_or_else(|_| "".into())
 			.replace("-Z instrument-mcount", ""),
 	);
 
@@ -88,7 +89,7 @@ fn build() {
 	cmd.env(
 		"RUSTFLAGS",
 		env::var("RUSTFLAGS")
-			.unwrap_or("".into())
+			.unwrap_or_else(|_| "".into())
 			.replace("-Z instrument-mcount", ""),
 	);
 
@@ -102,8 +103,7 @@ fn build() {
 
 	println!(
 		"cargo:rustc-link-search=native={}/target/x86_64-unknown-hermit-kernel/{}",
-		out_dir.clone(),
-		profile
+		out_dir, profile
 	);
 	println!("cargo:rustc-link-lib=static=hermit");
 }
@@ -112,13 +112,13 @@ fn build() {
 fn configure_cargo_rerun_if_changed() {
 	fn is_not_ignored(entry: &DirEntry) -> bool {
 		// Ignore .git .vscode and target directories, but not .cargo or .github
-		if entry.depth() == 1 && entry.path().is_dir() {
-			if entry.path().ends_with("target")
+		if entry.depth() == 1
+			&& entry.path().is_dir()
+			&& (entry.path().ends_with("target")
 				|| entry.path().ends_with(".git")
-				|| entry.path().ends_with(".vscode")
-			{
-				return false;
-			}
+				|| entry.path().ends_with(".vscode"))
+		{
+			return false;
 		}
 		true
 	}
