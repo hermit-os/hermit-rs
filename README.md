@@ -168,6 +168,8 @@ Consequently, it is required to **extend** *Cargo.toml* with following lines:
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit-sys = "0.1.*"
+default-features = false
+features = ["smoltcp"]
 
 [profile.release]
 opt-level = 3
@@ -176,6 +178,7 @@ opt-level = 3
 opt-level = 1
 ```
 
+The feature `smoltcp` includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers the possibility of communication base on TCP/UDP.
 To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.
 
 ```rust
