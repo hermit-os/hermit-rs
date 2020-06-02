@@ -43,7 +43,7 @@ rustup component add llvm-tools-preview
 
 The repository contains following directories and submodules:
 
-1. _demo_ is a small demo applications based on data-parallelism library [Rayon](https://github.com/rayon-rs/rayon)
+1. _demo_ is a small demo application based on the data-parallelism library [Rayon](https://github.com/rayon-rs/rayon)
 2. _hermit-abi_ contains the platform APIs and builds the interface between library operating system and the application
 3. _hermit-sys_ contains a crate to automate the build process of the library operating systems
 4. _libhermit-rs_ is the kernel itself
@@ -227,6 +227,7 @@ RustyHermit is derived from following tutorials and software distributions:
 
 HermitCore's Emoji is provided for free by [EmojiOne](https://www.gfxmag.com/crab-emoji-vector-icon/).
 
+
 ## License
 
 Licensed under either of
@@ -236,9 +237,10 @@ Licensed under either of
 
 at your option.
 
+
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
-RustyHermit is being developed on [GitHub](https://github.com/hermitcore/libhermit-rs).
+RustyHermit is being developed on [GitHub](https://github.com/hermitcore/rusty-hermit).
 Create your own fork, send us a pull request, and chat with us on [Slack](https://radiant-ridge-95061.herokuapp.com)
