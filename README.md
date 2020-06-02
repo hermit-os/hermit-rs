@@ -28,15 +28,15 @@ Rust applications that do not bypass the Rust runtime and directly use OS servic
 The Rust toolchain can be installed from the [official webpage](https://www.rust-lang.org/).
 RusyHermit currently requires the **nightly versions** of the toolchain.
 ```sh
-rustup default nightly
+$ rustup default nightly
 ```
 
 Further requirements are the source code of the Rust runtime,  [cargo-download](https://crates.io/crates/cargo-download), and llvm-tools:
 
 ```sh
-cargo install cargo-download
-rustup component add rust-src
-rustup component add llvm-tools-preview
+$ cargo install cargo-download
+$ rustup component add rust-src
+$ rustup component add llvm-tools-preview
 ```
 
 ## Building RustyHermit
@@ -63,10 +63,22 @@ $ git submodule update
 The final step is building RustyHermit with all demo applications as follows:
 
 ```sh
-cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+$ cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
 ```
 
 The resulting "hypervisor-ready" binaries then can be found in the directory `target/x86_64-unknown-hermit/debug`
+
+### Controlling the number of kernel messages
+
+RustyHermit uses the lightweight logging crate [log](https://github.com/rust-lang/log) to print kernel messages.
+If the environment variable `HERMIT_LOG_LEVEL_FILTER` is set at compile time to a string matching the name of a [LevelFilter](https://docs.rs/log/0.4.8/log/enum.LevelFilter.html), then that value is used for the LevelFilter.
+If the environment variable is not set, or the name doesn't match, then LevelFilter::Info is used by default, which is the same as it was before.
+
+For instance, the following command build RustyHermit with debug messages:
+
+```sh
+$ HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+```
 
 ## Running RustyHermit
 
