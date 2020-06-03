@@ -1,5 +1,8 @@
+include!(concat!(env!("OUT_DIR"), "/constants.rs"));
+
 use std::collections::BTreeMap;
 use std::convert::TryInto;
+use std::net::Ipv4Addr;
 use std::slice;
 
 use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
@@ -55,9 +58,14 @@ impl NetworkInterface<HermitNet> {
 				return None;
 			}
 		};
-		let myip: [u8; 4] = [10, 0, 5, 3];
-		let mygw: [u8; 4] = [10, 0, 5, 1];
-		let mymask: [u8; 4] = [255, 255, 255, 0];
+		let myip: Ipv4Addr = HERMIT_IP.parse().expect("Unable to parse IPv4 address");
+		let myip = myip.octets();
+		let mygw: Ipv4Addr = HERMIT_GATEWAY
+			.parse()
+			.expect("Unable to parse IPv4 address");
+		let mygw = mygw.octets();
+		let mymask: Ipv4Addr = HERMIT_MASK.parse().expect("Unable to parse IPv4 address");
+		let mymask = mymask.octets();
 
 		// calculate the netmask length
 		// => count the number of contiguous 1 bits,

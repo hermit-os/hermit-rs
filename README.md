@@ -128,29 +128,7 @@ You can provide arguments to the application via the kernel commandline, which y
 qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 ```
 
-#### Using virtio-fs
-
-The Kernel has rudimentary support for the virtio-fs shared file system. Currently only files, no folders are supported. To use it, you have to run a virtio-fs daemon and start qemu as described in [Standalone virtio-fs usage](https://virtio-fs.gitlab.io/howto-qemu.html):
-
-```bash
-# start virtiofsd in the background
-$ sudo virtiofsd --thread-pool-size=1 --socket-path=/tmp/vhostqemu -o source=$(pwd)/SHARED_DIRECTORY
-# give non-root-users access to the socket
-$ sudo chmod 777 /tmp/vhostqemu
-# start qemu with virtio-fs device.
-# you might want to change the socket (/tmp/vhostqemu) and virtiofs tag (currently myfs)
-$ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr -enable-kvm -display none -smp 1 -m 1G -serial stdio \
-        -kernel path_to_loader/rusty-loader \
-        -initrd path_to_app/app \
-        -chardev socket,id=char0,path=/tmp/vhostqemu \
-        -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs \
-        -object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on \
-        -numa node,memdev=mem
-```
-
-You can now access the files in SHARED_DIRECTORY under the virtiofs tag like `/myfs/testfile`.
-
-## Building own applications
+## Building your own applications
 
 To build own application based on RustyHermit, a new cargo project must be created:
 
@@ -199,6 +177,64 @@ cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-herm
 ```
 
 The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unknown-hermit/debug`
+
+
+## Network support
+
+To enable an ethernet device, we have to setup a tap device on the
+host system. For instance, the following command establish the tap device
+`tap10` on Linux:
+
+```bash
+$ sudo ip tuntap add tap10 mode tap
+$ sudo ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
+$ sudo ip link set dev tap10 up
+$ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap100/proxy_arp'
+```
+
+Per default, RustyHermit's network interface uses `10.0.5.3` as IP address, `10.0.5.1`
+for the gateway and `255.255.255.0` as network mask.
+The default configuration could be overloaded at compile time by the environment variable
+`HERMIT_IP`, `HERMIT_GATEWAY` and `HERMIT_MASK`.
+
+```sh
+$ HERMIT_IP="10.0.5.3" HERMIT_GATEWAY="10.0.5.1" HERMIT_MASK="255.255.255.0" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+```
+
+Currently, RustyHermit does only support network interfaces through [virtio](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net).
+To use it, you have to start RustyHermit in Qemu with following command:
+
+```bash
+$ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr \
+        -enable-kvm -display none -smp 1 -m 1G -serial stdio \
+        -kernel path_to_loader/rusty-loader \
+        -initrd path_to_app/app \
+        -netdev tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=on \
+        -device virtio-net-pci,netdev=net0,disable-legacy=on
+```
+
+
+## Using virtio-fs
+
+The Kernel has rudimentary support for the virtio-fs shared file system. Currently only files, no folders are supported. To use it, you have to run a virtio-fs daemon and start qemu as described in [Standalone virtio-fs usage](https://virtio-fs.gitlab.io/howto-qemu.html):
+
+```bash
+# start virtiofsd in the background
+$ sudo virtiofsd --thread-pool-size=1 --socket-path=/tmp/vhostqemu -o source=$(pwd)/SHARED_DIRECTORY
+# give non-root-users access to the socket
+$ sudo chmod 777 /tmp/vhostqemu
+# start qemu with virtio-fs device.
+# you might want to change the socket (/tmp/vhostqemu) and virtiofs tag (currently myfs)
+$ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr -enable-kvm -display none -smp 1 -m 1G -serial stdio \
+        -kernel path_to_loader/rusty-loader \
+        -initrd path_to_app/app \
+        -chardev socket,id=char0,path=/tmp/vhostqemu \
+        -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs \
+        -object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on \
+        -numa node,memdev=mem
+```
+
+You can now access the files in SHARED_DIRECTORY under the virtiofs tag like `/myfs/testfile`.
 
 
 ## Use RustyHermit for C/C++, Go, and Fortran applications
