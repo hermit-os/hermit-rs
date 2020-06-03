@@ -178,6 +178,7 @@ cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-herm
 
 The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unknown-hermit/debug`
 
+A simple example is published at [rusty-demo](https://github.com/hermitcore/rusty-demo).
 
 ## Network support
 
