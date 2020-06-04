@@ -6,7 +6,9 @@ extern crate smoltcp;
 extern crate x86;
 #[macro_use]
 extern crate lazy_static;
+extern crate libm;
 
+mod cmath;
 #[cfg(not(feature = "smoltcp"))]
 mod dummy;
 #[cfg(feature = "smoltcp")]
