@@ -197,7 +197,7 @@ Per default, RustyHermit's network interface uses `10.0.5.3` as IP address, `10.
 for the gateway and `255.255.255.0` as network mask.
 The default configuration could be overloaded at compile time by the environment variables
 `HERMIT_IP`, `HERMIT_GATEWAY` and `HERMIT_MASK`.
-For instance, the following command define the IP address to `10.0.5.100`.
+For instance, the following command sets the IP address to `10.0.5.100`.
 
 ```sh
 $ HERMIT_IP="10.0.5.100" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
