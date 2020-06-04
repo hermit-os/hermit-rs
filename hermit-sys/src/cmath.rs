@@ -12,12 +12,12 @@ pub extern "C" fn acosf(n: f32) -> f32 {
 
 #[no_mangle]
 pub extern "C" fn acosh(x: f64) -> f64 {
-    libm::acosh(x)
+	libm::acosh(x)
 }
 
 #[no_mangle]
 pub extern "C" fn acoshf(x: f32) -> f32 {
-    libm::acoshf(x)
+	libm::acoshf(x)
 }
 
 #[no_mangle]
@@ -32,12 +32,12 @@ pub extern "C" fn asinf(n: f32) -> f32 {
 
 #[no_mangle]
 pub extern "C" fn asinh(x: f64) -> f64 {
-    libm::asinh(x)
+	libm::asinh(x)
 }
 
 #[no_mangle]
 pub extern "C" fn asinhf(x: f32) -> f32 {
-    libm::asinhf(x)
+	libm::asinhf(x)
 }
 
 #[no_mangle]
@@ -71,32 +71,32 @@ pub extern "C" fn cbrtf(n: f32) -> f32 {
 
 #[no_mangle]
 pub extern "C" fn ceil(x: f64) -> f64 {
-    libm::ceil(x)
+	libm::ceil(x)
 }
 
 #[no_mangle]
 pub extern "C" fn ceilf(x: f32) -> f32 {
-    libm::ceilf(x)
+	libm::ceilf(x)
 }
 
 #[no_mangle]
 pub extern "C" fn cos(x: f64) -> f64 {
-    libm::cos(x)
+	libm::cos(x)
 }
 
 #[no_mangle]
 pub extern "C" fn cosf(x: f32) -> f32 {
-    libm::cosf(x)
+	libm::cosf(x)
 }
 
 #[no_mangle]
 pub extern "C" fn cosh(x: f64) -> f64 {
-    libm::cosh(x)
+	libm::cosh(x)
 }
 
 #[no_mangle]
 pub extern "C" fn coshf(x: f32) -> f32 {
-    libm::coshf(x)
+	libm::coshf(x)
 }
 
 #[no_mangle]
@@ -170,12 +170,12 @@ pub extern "C" fn sinhf(n: f32) -> f32 {
 
 #[no_mangle]
 pub extern "C" fn sqrt(x: f64) -> f64 {
-    libm::sqrt(x)
+	libm::sqrt(x)
 }
 
 #[no_mangle]
 pub extern "C" fn sqrtf(x: f32) -> f32 {
-    libm::sqrtf(x)
+	libm::sqrtf(x)
 }
 
 #[no_mangle]
