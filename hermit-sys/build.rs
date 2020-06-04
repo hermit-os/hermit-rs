@@ -1,6 +1,8 @@
 extern crate walkdir;
 
 use std::env;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -119,7 +121,34 @@ fn configure_cargo_rerun_if_changed(src_dir: &Path) {
 		.for_each(|x| println!("cargo:rerun-if-changed={}", x.display()));
 }
 
+#[cfg(not(feature = "rustc-dep-of-std"))]
+fn create_constants() {
+	let out_dir = env::var("OUT_DIR").expect("No out dir");
+	let dest_path = Path::new(&out_dir).join("constants.rs");
+	let mut f = File::create(&dest_path).expect("Could not create file");
+
+	let ip = option_env!("HERMIT_IP");
+	let ip = ip.map_or("\"10.0.5.3\"", |v| v);
+
+	let gateway = option_env!("HERMIT_GATEWAY");
+	let gateway = gateway.map_or("\"10.0.5.1\"", |v| v);
+
+	let mask = option_env!("HERMIT_MASK");
+	let mask = mask.map_or("\"255.255.255.0\"", |v| v);
+
+	writeln!(&mut f, "const HERMIT_IP: &str = {};", ip).expect("Could not write file");
+	println!("cargo:rerun-if-env-changed=HERMIT_IP");
+
+	writeln!(&mut f, "const HERMIT_GATEWAY: &str = {};", gateway).expect("Could not write file");
+	println!("cargo:rerun-if-env-changed=HERMIT_GATEWAY");
+
+	writeln!(&mut f, "const HERMIT_MASK: &str = {};", mask).expect("Could not write file");
+	println!("cargo:rerun-if-env-changed=HERMIT_MASK");
+}
+
 fn main() {
+	#[cfg(not(feature = "rustc-dep-of-std"))]
+	create_constants();
 	#[cfg(not(feature = "rustc-dep-of-std"))]
 	build();
 }
