@@ -12,6 +12,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
 	cmd.current_dir(src_dir)
+		.arg("+nightly")
 		.arg("build")
 		.arg("-Z")
 		.arg("build-std=core,alloc")
