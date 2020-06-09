@@ -50,6 +50,7 @@ pub extern "C" fn atan2(a: f64, b: f64) -> f64 {
 	libm::atan2(a, b)
 }
 
+#[no_mangle]
 pub extern "C" fn atan2f(a: f32, b: f32) -> f32 {
 	libm::atan2f(a, b)
 }
@@ -144,7 +145,8 @@ pub extern "C" fn log(x: f64) -> f64 {
 	libm::log(x)
 }
 
-pub fn logf(x: f32) -> f32 {
+#[no_mangle]
+pub extern "C" fn logf(x: f32) -> f32 {
 	libm::logf(x)
 }
 
