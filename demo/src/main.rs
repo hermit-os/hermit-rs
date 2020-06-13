@@ -31,6 +31,11 @@ fn main() {
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
 	println!(
 		"Test {} ... {}",
+		stringify!(arithmetic),
+		test_result(arithmetic())
+	);
+	println!(
+		"Test {} ... {}",
 		stringify!(print_argv),
 		test_result(print_argv())
 	);

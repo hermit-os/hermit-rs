@@ -224,6 +224,7 @@ version = "0.1.13"
 dependencies = [
  "crossbeam-channel",
  "lazy_static",
+ "libm",
  "log",
  "smoltcp",
  "walkdir",
@@ -273,6 +274,12 @@ checksum = "3baa92041a6fec78c687fa0cc2b3fae8884f743d672cf551bed1d6dac6988d0f"
 dependencies = [
  "rustc-std-workspace-core",
 ]
+
+[[package]]
+name = "libm"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
 
 [[package]]
 name = "log"

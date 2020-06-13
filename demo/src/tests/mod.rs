@@ -1,7 +1,7 @@
 use core::arch::x86_64 as arch;
 use rand::prelude::*;
 use std::env;
-use std::f64::consts::PI;
+use std::f64::consts::{E, PI};
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -275,6 +275,18 @@ pub fn hello() -> Result<(), ()> {
 		"Crab emoji: {}",
 		String::from_utf8(crab).unwrap_or_default()
 	);
+
+	Ok(())
+}
+
+pub fn arithmetic() -> Result<(), ()> {
+	let mut rng = rand::thread_rng();
+	let x = rng.gen::<f64>();
+	let y: f64 = x.exp();
+	let z: f64 = y.log(E);
+
+	println!("x = {}, e^x = {}, ln(e^x) = {}", x, y, z);
+
 	Ok(())
 }
 

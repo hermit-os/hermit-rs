@@ -25,6 +25,7 @@ walkdir = "2"
 [dependencies]
 log = { version = "0.4", default-features = false }
 lazy_static = "1.4.0"
+libm = { version = "0.2.1", default-features = false }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies.x86]
 version = "0.*"
