@@ -5,6 +5,7 @@
 #![feature(const_raw_ptr_to_usize_cast)]
 extern crate libc;
 
+pub mod tcplistener;
 pub mod tcpstream;
 
 use libc::c_void;
@@ -116,6 +117,38 @@ pub struct timespec {
 	pub tv_sec: i64,
 	/// nanoseconds
 	pub tv_nsec: i64,
+}
+
+/// Internet protocol version.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum Version {
+	Unspecified,
+	Ipv4,
+	Ipv6,
+	#[doc(hidden)]
+	__Nonexhaustive,
+}
+
+/// A four-octet IPv4 address.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
+pub struct Ipv4Address(pub [u8; 4]);
+
+/// A sixteen-octet IPv6 address.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
+pub struct Ipv6Address(pub [u8; 16]);
+
+/// An internetworking address.
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum IpAddress {
+	/// An unspecified address.
+	/// May be used as a placeholder for storage where the address is not assigned yet.
+	Unspecified,
+	/// An IPv4 address.
+	Ipv4(Ipv4Address),
+	/// An IPv6 address.
+	Ipv6(Ipv6Address),
+	#[doc(hidden)]
+	__Nonexhaustive,
 }
 
 /// determines the number of activated processors
