@@ -21,7 +21,7 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 dependencies = [
- "hermit-abi 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hermit-abi 0.1.13",
  "libc",
  "winapi 0.3.8",
 ]
@@ -203,15 +203,6 @@ checksum = "51b22edfb537aaffec56e77d3116a1dd0a0fa8bb5a8bd7d6d4a522132c9bb383"
 [[package]]
 name = "hermit-abi"
 version = "0.1.13"
-dependencies = [
- "compiler_builtins",
- "libc",
- "rustc-std-workspace-core",
-]
-
-[[package]]
-name = "hermit-abi"
-version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91780f809e750b0a89f5544be56617ff6b1227ee485bcb06ebe10cdf89bd3b71"
 dependencies = [
@@ -219,8 +210,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hermit-abi"
+version = "0.1.14"
+dependencies = [
+ "compiler_builtins",
+ "libc",
+ "rustc-std-workspace-core",
+]
+
+[[package]]
 name = "hermit-sys"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "crossbeam-channel",
  "lazy_static",
@@ -342,7 +342,7 @@ version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 dependencies = [
- "hermit-abi 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hermit-abi 0.1.13",
  "libc",
 ]
 
