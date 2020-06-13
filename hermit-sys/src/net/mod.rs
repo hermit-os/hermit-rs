@@ -491,10 +491,7 @@ pub fn sys_tcp_stream_get_write_timeout(_handle: Handle) -> Result<Option<u64>, 
 	Err(())
 }
 
-#[deprecated(
-    since = "0.1.14",
-    note = "Please don't use this function"
-)]
+#[deprecated(since = "0.1.14", note = "Please don't use this function")]
 #[no_mangle]
 pub fn sys_tcp_stream_duplicate(_handle: Handle) -> Result<Handle, ()> {
 	Err(())
