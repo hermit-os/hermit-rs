@@ -10,7 +10,6 @@
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
-extern crate rand;
 extern crate rayon;
 #[cfg(target_os = "linux")]
 #[macro_use]

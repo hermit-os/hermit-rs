@@ -1,5 +1,4 @@
 use core::arch::x86_64 as arch;
-use rand::prelude::*;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
@@ -17,15 +16,6 @@ mod laplace;
 mod matmul;
 
 pub use matmul::test_matmul_strassen;
-
-pub fn random_number() -> Result<(), ()> {
-	let mut rng = rand::thread_rng();
-	let y: f64 = rng.gen(); // generates a float between 0 and 1
-
-	println!("random: {}", y);
-
-	Ok(())
-}
 
 #[inline]
 fn get_timestamp_rdtscp() -> u64 {
@@ -280,8 +270,7 @@ pub fn hello() -> Result<(), ()> {
 }
 
 pub fn arithmetic() -> Result<(), ()> {
-	let mut rng = rand::thread_rng();
-	let x = rng.gen::<f64>();
+	let x = (get_timestamp_rdtscp() % 10) as f64 * 3.41f64;
 	let y: f64 = x.exp();
 	let z: f64 = y.log(E);
 
