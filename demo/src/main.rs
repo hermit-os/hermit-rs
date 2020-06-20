@@ -58,11 +58,6 @@ fn main() {
 		stringify!(threading),
 		test_result(threading())
 	);
-	/*println!(
-		"Test {} ... {}",
-		stringify!(random_number),
-		test_result(random_number())
-	);*/
 	println!(
 		"Test {} ... {}",
 		stringify!(pi_sequential),
@@ -102,10 +97,5 @@ fn main() {
 		"Test {} ... {}",
 		stringify!(bench_syscall),
 		test_result(bench_syscall())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(test_http_request),
-		test_result(test_http_request())
 	);
 }
