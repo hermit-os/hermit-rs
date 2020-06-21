@@ -24,7 +24,7 @@ build:
   stage: build
   script:
     - cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-    - cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
   image: ${IMAGE}
   cache:
     paths:
