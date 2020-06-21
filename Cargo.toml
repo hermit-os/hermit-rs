@@ -12,7 +12,7 @@ exclude = ["target", "loader", "libhermit-rs"]
 opt-level = 3
 debug = false
 rpath = false
-lto = true
+lto = "thin"
 debug-assertions = false
 
 [profile.dev]
