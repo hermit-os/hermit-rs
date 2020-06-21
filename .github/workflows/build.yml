@@ -54,3 +54,5 @@ jobs:
     - name: Building release version
       run:
          cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
+      env:
+         RUSTFLAGS: -Clinker-plugin-lto
