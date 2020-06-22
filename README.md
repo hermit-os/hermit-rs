@@ -180,6 +180,21 @@ The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unkn
 
 A simple example is published at [rusty-demo](https://github.com/hermitcore/rusty-demo).
 
+To enable *Link Time Optimization* (LTO), please extend the release configuration in *Cargo.toml* as follows:
+
+```toml
+[profile.release]
+opt-level = 3
+lto = "thin"
+```
+
+In addition, the [Linker-plugin LTO](https://doc.rust-lang.org/rustc/linker-plugin-lto.html) have to be enabled by setting the compiler flag `linker-plugin-lto`.
+In this case, the release version have to build as follows:
+
+```sh
+RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit -v --release
+```
+
 ## Network support
 
 To enable an ethernet device, we have to setup a tap device on the
