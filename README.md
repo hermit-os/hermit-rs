@@ -192,7 +192,7 @@ In addition, the [Linker-plugin LTO](https://doc.rust-lang.org/rustc/linker-plug
 In this case, the release version have to build as follows:
 
 ```sh
-RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit -v --release
+RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
 ```
 
 ## Network support
