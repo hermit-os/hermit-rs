@@ -139,7 +139,8 @@ fn create_constants() {
 	writeln!(&mut f, "const HERMIT_IP: &str = \"{}\";", ip).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_IP");
 
-	writeln!(&mut f, "const HERMIT_GATEWAY: &str = \"{}\";", gateway).expect("Could not write file");
+	writeln!(&mut f, "const HERMIT_GATEWAY: &str = \"{}\";", gateway)
+		.expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_GATEWAY");
 
 	writeln!(&mut f, "const HERMIT_MASK: &str = \"{}\";", mask).expect("Could not write file");
