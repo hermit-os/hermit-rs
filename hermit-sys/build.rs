@@ -128,21 +128,21 @@ fn create_constants() {
 	let mut f = File::create(&dest_path).expect("Could not create file");
 
 	let ip = option_env!("HERMIT_IP");
-	let ip = ip.map_or("\"10.0.5.3\"", |v| v);
+	let ip = ip.map_or("10.0.5.3", |v| v);
 
 	let gateway = option_env!("HERMIT_GATEWAY");
-	let gateway = gateway.map_or("\"10.0.5.1\"", |v| v);
+	let gateway = gateway.map_or("10.0.5.1", |v| v);
 
 	let mask = option_env!("HERMIT_MASK");
-	let mask = mask.map_or("\"255.255.255.0\"", |v| v);
+	let mask = mask.map_or("255.255.255.0", |v| v);
 
-	writeln!(&mut f, "const HERMIT_IP: &str = {};", ip).expect("Could not write file");
+	writeln!(&mut f, "const HERMIT_IP: &str = \"{}\";", ip).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_IP");
 
-	writeln!(&mut f, "const HERMIT_GATEWAY: &str = {};", gateway).expect("Could not write file");
+	writeln!(&mut f, "const HERMIT_GATEWAY: &str = \"{}\";", gateway).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_GATEWAY");
 
-	writeln!(&mut f, "const HERMIT_MASK: &str = {};", mask).expect("Could not write file");
+	writeln!(&mut f, "const HERMIT_MASK: &str = \"{}\";", mask).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_MASK");
 }
 
