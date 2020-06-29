@@ -106,7 +106,7 @@ impl NetworkInterface<HermitNet> {
 		Some(Self {
 			iface: iface,
 			sockets: SocketSet::new(vec![]),
-			channels: BTreeMap::new(),
+			wait_for: BTreeMap::new(),
 			timestamp: Instant::now(),
 		})
 	}
