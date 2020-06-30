@@ -125,8 +125,6 @@ pub enum Version {
 	Unspecified,
 	Ipv4,
 	Ipv6,
-	#[doc(hidden)]
-	__Nonexhaustive,
 }
 
 /// A four-octet IPv4 address.
@@ -147,8 +145,6 @@ pub enum IpAddress {
 	Ipv4(Ipv4Address),
 	/// An IPv6 address.
 	Ipv6(Ipv6Address),
-	#[doc(hidden)]
-	__Nonexhaustive,
 }
 
 /// determines the number of activated processors

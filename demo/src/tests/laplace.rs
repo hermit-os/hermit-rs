@@ -2,7 +2,7 @@ use rayon::prelude::*;
 use std::vec;
 
 fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
-	let sum = (1..size_y - 1)
+	(1..size_y - 1)
 		.into_par_iter()
 		.map(|y| {
 			let mut local_sum = 0.0;
@@ -20,9 +20,7 @@ fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
 
 			local_sum
 		})
-		.sum();
-
-	sum
+		.sum()
 }
 
 fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {

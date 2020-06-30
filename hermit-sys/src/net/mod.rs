@@ -378,13 +378,10 @@ fn tcp_stream_try_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ReadF
 	let nic = guard.as_mut().ok_or(ReadFailed::InternalError)?;
 
 	nic.read(handle, buffer).map_err(|err| {
-		match err {
-			ReadFailed::CanRecvFailed => {
-				*nic.wait_for
-					.get_mut(&handle)
-					.expect("Unable to find handle") = WaitFor::Read;
-			}
-			_ => {}
+		if let ReadFailed::CanRecvFailed = err {
+			*nic.wait_for
+				.get_mut(&handle)
+				.expect("Unable to find handle") = WaitFor::Read;
 		}
 
 		err
@@ -422,13 +419,10 @@ fn tcp_stream_try_write(handle: Handle, buffer: &[u8]) -> Result<usize, WriteFai
 	let nic = guard.as_mut().ok_or(WriteFailed::InternalError)?;
 
 	let len = nic.write(handle, buffer).map_err(|err| {
-		match err {
-			WriteFailed::CanSendFailed => {
-				*nic.wait_for
-					.get_mut(&handle)
-					.expect("Unable to find handle") = WaitFor::Write;
-			}
-			_ => {}
+		if let WriteFailed::CanSendFailed = err {
+			*nic.wait_for
+				.get_mut(&handle)
+				.expect("Unable to find handle") = WaitFor::Write;
 		}
 
 		err
