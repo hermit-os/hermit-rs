@@ -147,6 +147,7 @@ impl RxToken {
 }
 
 impl phy::RxToken for RxToken {
+	#[allow(unused_mut)]
 	fn consume<R, F>(mut self, _timestamp: Instant, f: F) -> smoltcp::Result<R>
 	where
 		F: FnOnce(&mut [u8]) -> smoltcp::Result<R>,
