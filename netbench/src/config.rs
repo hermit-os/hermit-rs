@@ -52,7 +52,7 @@ pub fn parse_config() -> Config {
 				.value_name("rounds")
 				.help("number of rounds of transfer to perform")
 				.takes_value(true)
-				.default_value("1000"),
+				.default_value("100000"),
 		)
 		.arg(
 			Arg::with_name("nodelay")
