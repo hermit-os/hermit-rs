@@ -130,7 +130,8 @@ where
 		}
 
 		if let Some(wait) = self.wait_for.get(&handle) {
-			self.check_handle(handle, *wait)
+			let wait = *wait;
+			self.check_handle(handle, wait)
 		} else {
 			None
 		}
