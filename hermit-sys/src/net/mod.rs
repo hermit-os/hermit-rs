@@ -248,9 +248,7 @@ where
 
 		socket
 			.send_slice(buffer)
-			.map_err(|_| WriteFailed::InternalError)?;
-
-		Ok(buffer.len())
+			.map_err(|_| WriteFailed::InternalError)
 	}
 }
 
