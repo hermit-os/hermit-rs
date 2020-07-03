@@ -11,17 +11,28 @@
 Unikernel means, you bundle your application directly with the kernel library, so that it can run without any installed operating system.
 This reduces overhead, therefore, interesting applications include virtual machines and high-performance computing.
 
+The kernel is able to run [Rust](https://github.com/hermitcore/rusty-hermit) applications, as well as [C/C++/Go/Fortran](https://github.com/hermitcore/hermit-playground) applications.
+
+The repository contains following directories and submodules:
+
+1. _demo_ is a small demo application based on the data-parallelism library [Rayon](https://github.com/rayon-rs/rayon)
+2. _hermit-abi_ contains the platform APIs and builds the interface between library operating system and the application
+3. _hermit-sys_ contains a crate to automate the build process of the library operating systems
+4. _libhermit-rs_ is the kernel itself
+5. _loader_ contains a loader to run RustyHermit on a common virtualization platforms ([Qemu](https://www.qemu.org)) or bare-mateal on a x86 system
+6. _netbench_ provides some basic network benchmarks
+
 ## Background
 
-HermitCore was a research unikernel developed at [RWTH-Aachen](https://www.rwth-aachen.de) written in C ([libhermit](https://github.com/hermitcore/libhermit)).
-**RustyHermit** is a rewrite of HermitCore written in [Rust](https://www.rust-lang.org).
+**RustyHermit** is a rewrite of HermitCore in [Rust](https://www.rust-lang.org) developed at [RWTH-Aachen](https://www.rwth-aachen.de).
+HermitCore was a research unikernel written in C ([libhermit](https://github.com/hermitcore/libhermit)).
 
 The ownership  model of Rust guarantees memory/thread-safety and enables us to eliminate many classes of bugs at compile-time.
 Consequently, the use of Rust for kernel development promises less vulnerabilities in comparison to common programming languages.
 
-The kernel and the integration into the Rust runtime is entirely written in Rust and does not use any C/C++ Code.
-We extend the Rust toolchain so that the build process is similar to Rust's usual workflow.
-Rust applications that do not bypass the Rust runtime and directly use OS services are able to run on RustyHermit without modifications.
+The kernel and the integration into the Rust runtime are entirely written in Rust and do not use any C/C++ Code.
+We extended the Rust toolchain so that the build process is similar to Rust's usual workflow.
+Rust applications that use the Rust runtime and do not directly use OS services are able to run on RustyHermit without modifications.
 
 ## Prerequisites
 
@@ -39,48 +50,58 @@ $ rustup component add rust-src
 $ rustup component add llvm-tools-preview
 ```
 
-## Building RustyHermit
+## Building your own applications
 
-The repository contains following directories and submodules:
-
-1. _demo_ is a small demo application based on the data-parallelism library [Rayon](https://github.com/rayon-rs/rayon)
-2. _hermit-abi_ contains the platform APIs and builds the interface between library operating system and the application
-3. _hermit-sys_ contains a crate to automate the build process of the library operating systems
-4. _libhermit-rs_ is the kernel itself
-5. _loader_ contains a loader to run RustyHermit on a common virtualization platforms ([Qemu](https://www.qemu.org)) or bare-mateal on a x86 system
-6. _netbench_ provides some basic network benchmarks
-
-To build RustyHermit, the repository and all submodules are required:
+To give you an example on how to build your application with RustyHermit, lets create a new cargo project:
+A more comprehensive version of the example project is published at [rusty-demo](https://github.com/hermitcore/rusty-demo).
 
 ```sh
-$ # Get our source code.
-$ git clone https://github.com/hermitcore/rusty-hermit.git
-$ cd rusty-hermit
-$ git submodule init
-$ git submodule update
+cargo new hello_world
+cd hello_world
 ```
 
-The final step is building RustyHermit with all demo applications as follows:
+To bind the library operating system to the application, add the crate [hermit-sys](https://crates.io/crates/hermit-sys) to the dependencies in the file *Cargo.toml*.
+It is important to use at least the _optimization level 1_.
+Consequently, it is required to **extend** *Cargo.toml* with following lines:
+
+```toml
+# Cargo.toml
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit-sys = "0.1.*"
+
+[profile.release]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+```
+
+To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.
+
+```rust
+// src/main.rs
+
+#[cfg(target_os = "hermit")]
+extern crate hermit_sys;
+
+fn main() {
+        println!("Hello World!");
+}
+```
+
+The final step is building the application as follows:
 
 ```sh
-$ cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
 ```
+(You can set an easy alias for this in the `.cargo/config` file. Take a look at the [demo](https://github.com/hermitcore/rusty-demo/blob/master/.cargo/config))
 
-The resulting "hypervisor-ready" binaries then can be found in the directory `target/x86_64-unknown-hermit/debug`
-
-### Controlling the number of kernel messages
-
-RustyHermit uses the lightweight logging crate [log](https://github.com/rust-lang/log) to print kernel messages.
-If the environment variable `HERMIT_LOG_LEVEL_FILTER` is set at compile time to a string matching the name of a [LevelFilter](https://docs.rs/log/0.4.8/log/enum.LevelFilter.html), then that value is used for the LevelFilter.
-If the environment variable is not set, or the name doesn't match, then LevelFilter::Info is used by default, which is the same as it was before.
-
-For instance, the following command build RustyHermit with debug messages:
-
-```sh
-$ HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-```
+The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unknown-hermit/debug`.
 
 ## Running RustyHermit
+
+RustyHermit binaries can be run on either uhyve or qemu.
 
 ### Using uhyve as Hypervisor
 
@@ -128,61 +149,15 @@ You can provide arguments to the application via the kernel commandline, which y
 qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 ```
 
-## Building your own applications
+## Advanced Features
 
-To build own application based on RustyHermit, a new cargo project must be created:
+You are not happy with `Hello World` yet?
 
-```sh
-cargo new hello_world
-cd hello_world
-```
-
-To bind the library operating system to the application, add the crate [hermit-sys](https://crates.io/crates/hermit-sys) to the dependencies in the file *Cargo.toml*.
-It is important to use at least the optimization level 1.
-Consequently, it is required to **extend** *Cargo.toml* with following lines:
-
-```toml
-# Cargo.toml
-
-[target.'cfg(target_os = "hermit")'.dependencies]
-hermit-sys = "0.1.*"
-default-features = false
-features = ["smoltcp"]
-
-[profile.release]
-opt-level = 3
-
-[profile.dev]
-opt-level = 1
-```
-
-The feature `smoltcp` includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers the possibility of communication base on TCP/UDP.
-To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.
-
-```rust
-// src/main.rs
-
-#[cfg(target_os = "hermit")]
-extern crate hermit_sys;
-
-fn main() {
-        println!("Hello World!");
-}
-```
-
-The final step is building the application as follows:
-
-```sh
-cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-```
-
-The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unknown-hermit/debug`
-
-A simple example is published at [rusty-demo](https://github.com/hermitcore/rusty-demo).
-
+### Link Time Optimization (LTO)
 To enable *Link Time Optimization* (LTO), please extend the release configuration in *Cargo.toml* as follows:
 
 ```toml
+# Cargo.toml
 [profile.release]
 opt-level = 3
 lto = "thin"
@@ -195,7 +170,19 @@ In this case, the release version have to build as follows:
 RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
 ```
 
-## Network support
+### Controlling kernel message verbosity
+
+RustyHermit uses the lightweight logging crate [log](https://github.com/rust-lang/log) to print kernel messages.
+If the environment variable `HERMIT_LOG_LEVEL_FILTER` is set at compile time to a string matching the name of a [LevelFilter](https://docs.rs/log/0.4.8/log/enum.LevelFilter.html), then that value is used for the LevelFilter.
+If the environment variable is not set, or the name doesn't match, then LevelFilter::Info is used by default, which is the same as it was before.
+
+For instance, the following command build RustyHermit with debug messages:
+
+```sh
+$ HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+```
+
+### Network support
 
 To enable an ethernet device, we have to setup a tap device on the
 host system. For instance, the following command establish the tap device
@@ -206,6 +193,16 @@ $ sudo ip tuntap add tap10 mode tap
 $ sudo ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
 $ sudo ip link set dev tap10 up
 $ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap100/proxy_arp'
+```
+
+Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
+```toml
+# Cargo.toml
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit-sys = "0.1.*"
+default-features = false
+features = ["smoltcp"]
 ```
 
 Per default, RustyHermit's network interface uses `10.0.5.3` as IP address, `10.0.5.1`
@@ -230,8 +227,7 @@ $ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr \
         -device virtio-net-pci,netdev=net0,disable-legacy=on
 ```
 
-
-## Using virtio-fs
+### Using virtio-fs
 
 The Kernel has rudimentary support for the virtio-fs shared file system. Currently only files, no folders are supported. To use it, you have to run a virtio-fs daemon and start qemu as described in [Standalone virtio-fs usage](https://virtio-fs.gitlab.io/howto-qemu.html):
 
