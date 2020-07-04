@@ -25,7 +25,7 @@ fn main() {
 
 		for _i in 0..n_rounds {
 			match stream.write_all(&buf) {
-				Ok(_) => {},
+				Ok(_) => {}
 				Err(err) => panic!("crazy stuff happened while sending {}", err),
 			}
 		}
