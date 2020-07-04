@@ -158,7 +158,13 @@ where
 				} else if !socket.may_recv() {
 					Some(WaitForResult::Failed)
 				} else {
-					None
+					match socket.state() {
+						TcpState::FinWait1
+						| TcpState::FinWait2
+						| TcpState::Closing
+						| TcpState::Closed => Some(WaitForResult::Failed),
+						_ => None,
+					}
 				}
 			}
 			// a thread wants to write data
@@ -166,12 +172,22 @@ where
 				if socket.can_send() {
 					Some(WaitForResult::Ok)
 				} else {
-					None
+					match socket.state() {
+						TcpState::FinWait1
+						| TcpState::FinWait2
+						| TcpState::Closing
+						| TcpState::Closed => Some(WaitForResult::Failed),
+						_ => None,
+					}
 				}
 			}
 			// a thread is waiting for acknowledge
 			WaitFor::Close => match socket.state() {
-				TcpState::Closed | TcpState::TimeWait => Some(WaitForResult::Ok),
+				TcpState::FinWait1
+				| TcpState::FinWait2
+				| TcpState::Closed
+				| TcpState::Closing
+				| TcpState::TimeWait => Some(WaitForResult::Ok),
 				_ => None,
 			},
 			// a thread is waiting for an active connection
@@ -179,7 +195,13 @@ where
 				if socket.is_active() {
 					Some(WaitForResult::Ok)
 				} else {
-					None
+					match socket.state() {
+						TcpState::FinWait1
+						| TcpState::FinWait2
+						| TcpState::Closing
+						| TcpState::Closed => Some(WaitForResult::Failed),
+						_ => None,
+					}
 				}
 			}
 		}
