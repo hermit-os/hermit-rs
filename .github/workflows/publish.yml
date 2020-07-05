@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Generate documentation
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --workspace -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+      - name: Deploy documentation
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v1
+        with:
+          target_branch: gh-pages
+          build_dir: target/x86_64-unknown-hermit/doc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
