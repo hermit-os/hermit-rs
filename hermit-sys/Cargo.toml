@@ -11,6 +11,7 @@ categories = ["os"]
 links = "hermit"
 build = "build.rs"
 edition = "2018"
+documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
 # controlls whether RustyHermit is build with -Z instrument-mcount

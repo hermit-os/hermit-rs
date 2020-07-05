@@ -1,7 +1,10 @@
 # hermit-sys
 
 [![Crates.io](https://img.shields.io/crates/v/hermit-sys.svg)](https://crates.io/crates/hermit-sys)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/rusty-hermit/hermit_sys/)
 [![License](https://img.shields.io/crates/l/hermit-sys.svg)](https://img.shields.io/crates/l/hermit-sys.svg)
+
+https://hermitcore.github.io/rusty-hermit/hermit_sys/
 
 This is a container for the library operating system [RustyHermit](https://github.com/hermitcore/libhermit-rs) and is used to link the libos to the application.
 
