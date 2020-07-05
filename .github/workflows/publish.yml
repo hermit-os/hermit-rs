@@ -15,6 +15,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          components: rust-src llvm-tools-preview
           override: true
       - name: Generate documentation
         uses: actions-rs/cargo@v1
