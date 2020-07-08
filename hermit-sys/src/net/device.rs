@@ -107,7 +107,6 @@ impl NetworkInterface<HermitNet> {
 			iface,
 			sockets: SocketSet::new(vec![]),
 			wait_for: BTreeMap::new(),
-			timestamp: Instant::now(),
 		})
 	}
 }
