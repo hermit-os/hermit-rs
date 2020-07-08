@@ -112,9 +112,7 @@ where
 			}
 		}
 
-		let delay = self
-			.iface
-			.poll_delay(&self.sockets, timestamp);
+		let delay = self.iface.poll_delay(&self.sockets, timestamp);
 
 		(delay, vec)
 	}
@@ -247,7 +245,7 @@ where
 			.poll(&mut self.sockets, timestamp)
 			.unwrap_or(true)
 		{
-				// just to be sure that everything is sent
+			// just to be sure that everything is sent
 		}
 
 		let mut socket = self.sockets.get::<TcpSocket>(handle);
@@ -307,7 +305,7 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 	let start = std::time::Instant::now();
 	let mut task = Box::pin(socket_wait(handle));
 
-	// I can do this because I know that the AsyncSocket primitive and 
+	// I can do this because I know that the AsyncSocket primitive and
 	// never use the context argument.
 	let v = MaybeUninit::uninit();
 	let mut ctx: Context = unsafe { v.assume_init() };
@@ -324,11 +322,7 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 					}
 				}
 
-				let new_timeout = if polling {
-					Some(0)
-				} else {
-					timeout
-				};
+				let new_timeout = if polling { Some(0) } else { timeout };
 
 				sys_netwait(handle, new_timeout);
 			},
