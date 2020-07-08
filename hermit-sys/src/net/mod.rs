@@ -84,17 +84,17 @@ pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
 	pub wait_for: BTreeMap<Handle, WaitFor>,
-	pub timestamp: Instant,
 }
 
 impl<T> NetworkInterface<T>
 where
 	T: for<'a> Device<'a>,
 {
-	pub fn poll(&mut self) -> (std::option::Option<u64>, Vec<Handle>) {
+	pub fn poll(&mut self) -> (std::option::Option<Duration>, Vec<Handle>) {
+		let timestamp = Instant::now();
 		while self
 			.iface
-			.poll(&mut self.sockets, self.timestamp)
+			.poll(&mut self.sockets, timestamp)
 			.unwrap_or(true)
 		{
 			// just to make progress
@@ -114,16 +114,16 @@ where
 
 		let delay = self
 			.iface
-			.poll_delay(&self.sockets, self.timestamp)
-			.map(|s| if s.millis() == 0 { 1 } else { s.millis() });
+			.poll_delay(&self.sockets, timestamp);
 
 		(delay, vec)
 	}
 
 	pub fn poll_handle(&mut self, handle: Handle) -> Option<WaitForResult> {
+		let timestamp = Instant::now();
 		while self
 			.iface
-			.poll(&mut self.sockets, self.timestamp)
+			.poll(&mut self.sockets, timestamp)
 			.unwrap_or(true)
 		{
 			// just to make progress
@@ -241,6 +241,15 @@ where
 	}
 
 	pub fn close(&mut self, handle: Handle) -> Result<(), ()> {
+		let timestamp = Instant::now();
+		while self
+			.iface
+			.poll(&mut self.sockets, timestamp)
+			.unwrap_or(true)
+		{
+				// just to be sure that everything is sent
+		}
+
 		let mut socket = self.sockets.get::<TcpSocket>(handle);
 		socket.close();
 
@@ -294,12 +303,12 @@ async fn socket_wait(handle: Handle) -> WaitForResult {
 	AsyncSocket(handle).await
 }
 
-fn wait_for_result(handle: Handle, timeout: Option<u64>) -> WaitForResult {
+fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitForResult {
 	let start = std::time::Instant::now();
 	let mut task = Box::pin(socket_wait(handle));
 
-	// I can do this because I know that the AsyncSocket primitive I wrote never
-	// actually accesses the context argument.)
+	// I can do this because I know that the AsyncSocket primitive and 
+	// never use the context argument.
 	let v = MaybeUninit::uninit();
 	let mut ctx: Context = unsafe { v.assume_init() };
 
@@ -315,7 +324,13 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>) -> WaitForResult {
 					}
 				}
 
-				sys_netwait(handle, timeout);
+				let new_timeout = if polling {
+					Some(0)
+				} else {
+					timeout
+				};
+
+				sys_netwait(handle, new_timeout);
 			},
 		}
 	}
@@ -332,7 +347,7 @@ extern "C" fn uhyve_thread(_: usize) {
 				drop(guard);
 
 				unsafe {
-					sys_netwait_and_wakeup(handles.as_slice(), delay);
+					sys_netwait_and_wakeup(handles.as_slice(), delay.map(|s| s.millis()));
 				}
 			}
 			None => {
@@ -379,7 +394,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 		handle
 	};
 
-	let result = wait_for_result(handle, Some(limit));
+	let result = wait_for_result(handle, Some(limit), false);
 	match result {
 		WaitForResult::Ok => {
 			let mut guard = NIC.lock().map_err(|_| ())?;
@@ -421,7 +436,7 @@ pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, (
 				match err {
 					ReadFailed::CanRecvFailed => {
 						// wait for tx buffers and try the send operation
-						if wait_for_result(handle, None) != WaitForResult::Ok {
+						if wait_for_result(handle, None, false) != WaitForResult::Ok {
 							return Ok(0);
 						}
 					}
@@ -464,7 +479,7 @@ pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> 
 				match err {
 					WriteFailed::CanSendFailed => {
 						// wait for tx buffers and try the send operation
-						if wait_for_result(handle, None) != WaitForResult::Ok {
+						if wait_for_result(handle, None, true) != WaitForResult::Ok {
 							return Err(());
 						}
 					}
@@ -489,7 +504,7 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 			.expect("Unable to find handle") = WaitFor::Close;
 	}
 
-	wait_for_result(handle, None);
+	wait_for_result(handle, None, false);
 
 	Ok(())
 }
@@ -581,7 +596,7 @@ pub fn sys_tcp_listener_accept(port: u16) -> Result<(Handle, IpAddress, u16), ()
 		handle
 	};
 
-	let result = wait_for_result(handle, None);
+	let result = wait_for_result(handle, None, false);
 	match result {
 		WaitForResult::Ok => {
 			let mut guard = NIC.lock().map_err(|_| ())?;
