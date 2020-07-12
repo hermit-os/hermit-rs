@@ -307,6 +307,7 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 
 	// I can do this because I know that the AsyncSocket primitive and
 	// never use the context argument.
+	// Fixme: This is UB
 	let v = MaybeUninit::uninit();
 	let mut ctx: Context = unsafe { v.assume_init() };
 
