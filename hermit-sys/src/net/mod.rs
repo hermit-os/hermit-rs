@@ -315,7 +315,7 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 			Poll::Ready(res) => {
 				return res;
 			}
-			Poll::Pending => unsafe {
+			Poll::Pending => {
 				if let Some(t) = timeout {
 					if u128::from(t) < std::time::Instant::now().duration_since(start).as_millis() {
 						return WaitForResult::Failed;
@@ -323,8 +323,9 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 				}
 
 				let new_timeout = if polling { Some(0) } else { timeout };
-
-				sys_netwait(handle, new_timeout);
+				unsafe {
+					sys_netwait(handle, new_timeout);
+				}
 			},
 		}
 	}
