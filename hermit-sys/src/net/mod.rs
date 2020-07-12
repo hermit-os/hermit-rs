@@ -426,18 +426,16 @@ pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, (
 			Ok(len) => {
 				return Ok(len);
 			}
-			Err(err) => {
-				match err {
-					ReadFailed::CanRecvFailed => {
-						// wait for tx buffers and try the send operation
-						if wait_for_result(handle, None, false) != WaitForResult::Ok {
-							return Ok(0);
-						}
-					}
-					_ => {
-						return Err(());
-					}
+			Err(ReadFailed::CanRecvFailed) => {
+				// wait for tx buffers and try the send operation
+				// ToDo: Is the != here correct? seems unintuitive to return ok if result is not okay
+				//	Additionally timeout of None seems like a bad idea
+				if wait_for_result(handle, None, false) != WaitForResult::Ok {
+					return Ok(0);
 				}
+			}
+			_ => {
+				return Err(());
 			}
 		}
 	}
@@ -469,18 +467,14 @@ pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> 
 			Ok(len) => {
 				return Ok(len);
 			}
-			Err(err) => {
-				match err {
-					WriteFailed::CanSendFailed => {
-						// wait for tx buffers and try the send operation
-						if wait_for_result(handle, None, true) != WaitForResult::Ok {
-							return Err(());
-						}
-					}
-					_ => {
-						return Err(());
-					}
+			Err(WriteFailed::CanSendFailed) => {
+				// wait for tx buffers and try the send operation
+				if wait_for_result(handle, None, true) != WaitForResult::Ok {
+					return Err(());
 				}
+			}
+			_ => {
+				return Err(());
 			}
 		}
 	}
@@ -503,6 +497,7 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 	Ok(())
 }
 
+//ToDo: an enum, or at least constants would be better
 #[no_mangle]
 pub fn sys_tcp_stream_shutdown(handle: Handle, how: i32) -> Result<(), ()> {
 	match how {
