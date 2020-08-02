@@ -192,7 +192,7 @@ host system. For instance, the following command establish the tap device
 $ sudo ip tuntap add tap10 mode tap
 $ sudo ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
 $ sudo ip link set dev tap10 up
-$ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap100/proxy_arp'
+$ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap10/proxy_arp'
 ```
 
 Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
