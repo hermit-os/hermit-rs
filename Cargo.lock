@@ -324,6 +324,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "micro_benchmarks"
+version = "0.1.0"
+dependencies = [
+ "hermit-sys",
+ "rayon",
+ "syscalls",
+]
+
+[[package]]
 name = "num-integer"
 version = "0.1.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"

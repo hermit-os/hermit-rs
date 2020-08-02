@@ -83,19 +83,4 @@ fn main() {
 		stringify!(thread_creation),
 		test_result(thread_creation())
 	);
-	println!(
-		"Test {} ... {}",
-		stringify!(bench_sched_one_thread),
-		test_result(bench_sched_one_thread())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(bench_sched_two_threads),
-		test_result(bench_sched_two_threads())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(bench_syscall),
-		test_result(bench_syscall())
-	);
 }
