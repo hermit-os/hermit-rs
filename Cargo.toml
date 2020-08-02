@@ -2,9 +2,9 @@
 members = [
     "hermit-abi",
     "hermit-sys",
-    "demo",
-    "netbench",
-    "httpd",
+    "benches/netbench",
+    "examples/httpd",
+    "examples/demo",
 ]
 exclude = ["target", "loader", "libhermit-rs"]
 
