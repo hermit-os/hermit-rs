@@ -1,20 +1,18 @@
-[workspace]
-members = [
-    "hermit-abi",
-    "hermit-sys",
-    "benches/netbench",
-    "benches/micro",
-    "examples/hello_world",
-    "examples/httpd",
-    "examples/demo",
-]
-exclude = ["target", "loader", "libhermit-rs"]
+[package]
+name = "hello_world"
+version = "0.1.0"
+authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+edition = "2018"
+publish = false
+
+[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
+hermit-sys = { path = "../../hermit-sys", default-features = false, features = ["with_submodule"] }
 
 [profile.release]
 opt-level = 3
 debug = false
 rpath = false
-lto = "thin"
+lto = false
 debug-assertions = false
 
 [profile.dev]
