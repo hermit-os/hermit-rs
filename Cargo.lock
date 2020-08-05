@@ -197,6 +197,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b22edfb537aaffec56e77d3116a1dd0a0fa8bb5a8bd7d6d4a522132c9bb383"
 
 [[package]]
+name = "hello_world"
+version = "0.1.0"
+dependencies = [
+ "hermit-sys",
+]
+
+[[package]]
 name = "hermit-abi"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
