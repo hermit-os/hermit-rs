@@ -290,9 +290,10 @@ impl Future for AsyncSocket {
 		let mut guard = NIC.lock().unwrap();
 		let nic = guard.as_mut().unwrap();
 
-		match nic.poll_handle(self.0) {
-			Some(result) => Poll::Ready(result),
-			_ => Poll::Pending,
+		if let Some(result) = nic.poll_handle(self.0) {
+			Poll::Ready(result)
+		} else {
+			Poll::Pending
 		}
 	}
 }
@@ -327,7 +328,7 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 				unsafe {
 					sys_netwait(handle, new_timeout);
 				}
-			},
+			}
 		}
 	}
 }
@@ -336,20 +337,17 @@ fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitF
 extern "C" fn uhyve_thread(_: usize) {
 	loop {
 		let mut guard = NIC.lock().unwrap();
-		match guard.as_mut() {
-			Some(iface) => {
-				let (delay, handles) = iface.poll();
-				// release lock
-				drop(guard);
+		if let Some(iface) = guard.as_mut() {
+			let (delay, handles) = iface.poll();
+			// release lock
+			drop(guard);
 
-				unsafe {
-					sys_netwait_and_wakeup(handles.as_slice(), delay.map(|s| s.millis()));
-				}
+			unsafe {
+				sys_netwait_and_wakeup(handles.as_slice(), delay.map(|s| s.millis()));
 			}
-			None => {
-				warn!("Ethernet interface not available");
-				return;
-			}
+		} else {
+			warn!("Ethernet interface not available");
+			return;
 		}
 	}
 }
