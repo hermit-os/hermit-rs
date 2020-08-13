@@ -1,5 +1,9 @@
+#[cfg(target_arch = "aarch64")]
+use aarch64::regs::get_cntpct_el0;
+#[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::collections::BTreeMap;
+use std::convert::TryInto;
 use std::future::Future;
 use std::mem::MaybeUninit;
 use std::pin::Pin;
@@ -352,10 +356,21 @@ extern "C" fn uhyve_thread(_: usize) {
 	}
 }
 
+#[cfg(target_arch = "x86_64")]
+fn start_endpoint() -> u16 {
+	((unsafe { _rdtsc() as u64 }) % (u16::MAX as u64))
+		.try_into()
+		.unwrap()
+}
+
+#[cfg(target_arch = "aarch64")]
+fn start_endpoint() -> u16 {
+	unsafe { (get_cntpct_el0() % (u16::MAX as u64)).try_into().unwrap() }
+}
+
 pub fn network_init() -> Result<(), ()> {
 	// initialize variable, which contains the next local endpoint
-	let start_endpoint = ((unsafe { _rdtsc() as u64 }) % (u16::MAX as u64)) as u16;
-	LOCAL_ENDPOINT.store(start_endpoint, Ordering::SeqCst);
+	LOCAL_ENDPOINT.store(start_endpoint(), Ordering::SeqCst);
 
 	// create thread, which manages the network stack
 	// use a higher priority to reduce the network latency

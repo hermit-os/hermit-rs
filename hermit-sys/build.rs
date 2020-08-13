@@ -1,3 +1,4 @@
+extern crate target_build_utils;
 extern crate walkdir;
 
 use std::env;
@@ -6,17 +7,31 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
-	cmd.current_dir(src_dir)
-		.arg("build")
-		.arg("-Z")
-		.arg("build-std=core,alloc")
-		.arg("--target")
-		.arg("x86_64-unknown-hermit-kernel");
+
+	if target.target_arch() == "x86_64" {
+		cmd.current_dir(src_dir)
+			.arg("build")
+			.arg("-Z")
+			.arg("build-std=core,alloc")
+			.arg("--target")
+			.arg("x86_64-unknown-hermit-kernel");
+	} else if target.target_arch() == "aarch64" {
+		cmd.current_dir(src_dir)
+			.arg("build")
+			.arg("-Z")
+			.arg("build-std=core,alloc")
+			.arg("--target")
+			.arg("aarch64-unknown-hermit");
+	} else {
+		panic!("Try to build for an unsupported platform");
+	}
 
 	if let Some(target_dir) = target_dir_opt {
 		cmd.arg("--target-dir").arg(target_dir);
@@ -50,11 +65,21 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	println!("Build libhermit-rs output-stderr: {}", stderr.unwrap());
 	assert!(output.status.success());
 
-	let lib_location = target_dir
-		.join("x86_64-unknown-hermit-kernel")
-		.join(&profile)
-		.canonicalize()
-		.unwrap(); // Must exist after building
+	let lib_location = if target.target_arch() == "x86_64" {
+		target_dir
+			.join("x86_64-unknown-hermit-kernel")
+			.join(&profile)
+			.canonicalize()
+			.unwrap() // Must exist after building
+	} else if target.target_arch() == "aarch64" {
+		target_dir
+			.join("aarch64-unknown-hermit")
+			.join(&profile)
+			.canonicalize()
+			.unwrap() // Must exist after building
+	} else {
+		panic!("Try to build for an unsupported platform");
+	};
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
 

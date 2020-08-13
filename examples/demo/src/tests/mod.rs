@@ -1,4 +1,5 @@
-use core::arch::x86_64 as arch;
+#[cfg(target_arch = "aarch64")]
+use aarch64::regs::get_cntpct_el0;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
@@ -17,34 +18,41 @@ mod matmul;
 
 pub use matmul::test_matmul_strassen;
 
+#[cfg(target_arch = "x86_64")]
 #[inline]
-fn get_timestamp_rdtscp() -> u64 {
+fn get_timestamp() -> u64 {
 	unsafe {
 		let mut _aux = 0;
-		let value = arch::__rdtscp(&mut _aux);
-		arch::_mm_lfence();
+		let value = core::arch::x86_64::__rdtscp(&mut _aux);
+		core::arch::x86_64::_mm_lfence();
 		value
 	}
+}
+
+#[cfg(target_arch = "aarch64")]
+#[inline]
+fn get_timestamp() -> u64 {
+	unsafe { get_cntpct_el0() }
 }
 
 pub fn thread_creation() -> Result<(), ()> {
 	const N: usize = 10;
 
 	// cache warmup
-	let _ = get_timestamp_rdtscp();
+	let _ = get_timestamp();
 	{
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
 
-	let start = get_timestamp_rdtscp();
+	let start = get_timestamp();
 	for _ in 0..N {
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
-	let end = get_timestamp_rdtscp();
+	let end = get_timestamp();
 
 	println!(
 		"Time to create and to join a thread: {} ticks",
@@ -182,7 +190,7 @@ pub fn hello() -> Result<(), ()> {
 }
 
 pub fn arithmetic() -> Result<(), ()> {
-	let x = (get_timestamp_rdtscp() % 10) as f64 * 3.41f64;
+	let x = (get_timestamp() % 10) as f64 * 3.41f64;
 	let y: f64 = x.exp();
 	let z: f64 = y.log(E);
 
