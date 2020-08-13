@@ -1,5 +1,5 @@
 #[cfg(target_arch = "aarch64")]
-use aarch64::regs::get_cntpct_el0;
+use aarch64::regs::*;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
@@ -27,7 +27,7 @@ fn get_timestamp() -> u64 {
 #[cfg(target_arch = "aarch64")]
 #[inline]
 fn get_timestamp() -> u64 {
-	unsafe { get_cntpct_el0() }
+	CNTPCT_EL0.get()
 }
 
 extern "C" {

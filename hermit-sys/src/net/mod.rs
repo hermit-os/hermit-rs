@@ -1,5 +1,5 @@
 #[cfg(target_arch = "aarch64")]
-use aarch64::regs::get_cntpct_el0;
+use aarch64::regs::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::collections::BTreeMap;
@@ -365,7 +365,7 @@ fn start_endpoint() -> u16 {
 
 #[cfg(target_arch = "aarch64")]
 fn start_endpoint() -> u16 {
-	unsafe { (get_cntpct_el0() % (u16::MAX as u64)).try_into().unwrap() }
+	(CNTPCT_EL0.get() % (u16::MAX as u64)).try_into().unwrap()
 }
 
 pub fn network_init() -> Result<(), ()> {
