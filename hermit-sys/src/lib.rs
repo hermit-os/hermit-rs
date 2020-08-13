@@ -1,7 +1,10 @@
+#[cfg(target_arch = "aarch64")]
+extern crate aarch64;
 #[macro_use]
 extern crate log;
 #[cfg(feature = "smoltcp")]
 extern crate smoltcp;
+#[cfg(target_arch = "x86_64")]
 extern crate x86;
 #[macro_use]
 extern crate lazy_static;
