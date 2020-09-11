@@ -154,7 +154,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
 name = "crossbeam-channel"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -165,8 +164,6 @@ dependencies = [
 ]
 
 [[package]]
-=======
->>>>>>> use new interfaces to the registers
 name = "crossbeam-deque"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -630,15 +627,12 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
 name = "rftrace"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa2ee2d77e97cb948eb4576a5b7908aac75c02afa337c99aa34b9cef0346bedd"
 
 [[package]]
-=======
->>>>>>> use new interfaces to the registers
 name = "rust-tcp-io-perf"
 version = "0.0.0"
 dependencies = [
@@ -835,12 +829,6 @@ name = "tinyvec"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "238ce071d267c5710f9d31451efec16c5ee22de34df17cc05e56cbc92e967117"
-
-[[package]]
-name = "tock-registers"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70323afdb8082186c0986da0e10f6e4ed103d681c921c00597e98d9806dac20f"
 
 [[package]]
 name = "tock-registers"
