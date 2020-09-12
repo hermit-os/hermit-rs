@@ -29,7 +29,7 @@ jobs:
             targets: 'x86_64-pc-windows-msvc'
           - os: ubuntu-latest
             rust: 'nightly'
-            components: 'rust-src, llvm-tools-preview'
+            components: 'rust-src, llvm-tools-preview, rustfmt'
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
@@ -43,6 +43,9 @@ jobs:
          submodules: true
     - name: Check Cargo availability
       run: cargo --version
+    - name: Check Formatting
+      run: cargo fmt -- --check
+      if: ${{ matrix.os == 'ubuntu-latest' }}
     - name: Install qemu/nasm (apt)
       run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 nasm
       if: ${{ matrix.os == 'ubuntu-latest' }}
