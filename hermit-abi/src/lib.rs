@@ -11,7 +11,15 @@ pub mod tcpstream;
 use libc::c_void;
 
 // sysmbols, which are part of the library operating system
+
+extern "Rust" {
+	fn sys_secure_rand64() -> Option<u64>;
+	fn sys_secure_rand32() -> Option<u32>;
+}
+
 extern "C" {
+	fn sys_rand() -> u32;
+	fn sys_srand(seed: u32);
 	fn sys_get_processor_count() -> usize;
 	fn sys_malloc(size: usize, align: usize) -> *mut u8;
 	fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8;
@@ -419,4 +427,37 @@ pub unsafe fn open(name: *const i8, flags: i32, mode: i32) -> i32 {
 #[inline(always)]
 pub unsafe fn unlink(name: *const i8) -> i32 {
 	sys_unlink(name)
+}
+
+/// The largest number `rand` will return
+pub const RAND_MAX: u64 = 2_147_483_647;
+
+/// The function computes a sequence of pseudo-random integers
+/// in the range of 0 to RAND_MAX
+#[inline(always)]
+pub unsafe fn rand() -> u32 {
+	sys_rand()
+}
+
+/// The function sets its argument as the seed for a new sequence
+/// of pseudo-random numbers to be returned by `rand`
+#[inline(always)]
+pub unsafe fn sys_srand(seed: u32) {
+	sys_srand(seed);
+}
+
+/// Create a cryptographicly secure 32bit random number with the support of
+/// the underlying hardware. If the required hardware isn't available,
+/// the function returns `None`.
+#[inline(always)]
+pub unsafe fn secure_rand32() -> Option<u32> {
+	sys_secure_rand32()
+}
+
+/// Create a cryptographicly secure 64bit random number with the support of
+/// the underlying hardware. If the required hardware isn't available,
+/// the function returns `None`.
+#[inline(always)]
+pub unsafe fn secure_rand64() -> Option<u64> {
+	sys_secure_rand64()
 }
