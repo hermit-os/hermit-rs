@@ -442,7 +442,7 @@ pub unsafe fn rand() -> u32 {
 /// The function sets its argument as the seed for a new sequence
 /// of pseudo-random numbers to be returned by `rand`
 #[inline(always)]
-pub unsafe fn sys_srand(seed: u32) {
+pub unsafe fn srand(seed: u32) {
 	sys_srand(seed);
 }
 
