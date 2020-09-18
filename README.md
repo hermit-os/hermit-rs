@@ -37,7 +37,7 @@ Rust applications that use the Rust runtime and do not directly use OS services 
 ## Prerequisites
 
 The Rust toolchain can be installed from the [official webpage](https://www.rust-lang.org/).
-RusyHermit currently requires the **nightly versions** of the toolchain.
+RustyHermit currently requires the **nightly versions** of the toolchain.
 ```sh
 $ rustup default nightly
 ```
