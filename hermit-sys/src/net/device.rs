@@ -21,7 +21,7 @@ extern "Rust" {
 	fn sys_get_tx_buffer(len: usize) -> Result<(*mut u8, usize), ()>;
 	fn sys_send_tx_buffer(handle: usize, len: usize) -> Result<(), ()>;
 	fn sys_receive_rx_buffer() -> Result<&'static mut [u8], ()>;
-	fn sys_rx_buffer_consumed() -> Result<(), ()>;
+	fn sys_rx_buffer_consumed(data: &'static mut [u8]) -> Result<(), ()>;
 	fn sys_free_tx_buffer(handle: usize);
 }
 
@@ -152,7 +152,7 @@ impl phy::RxToken for RxToken {
 		F: FnOnce(&mut [u8]) -> smoltcp::Result<R>,
 	{
 		let result = f(self.buffer);
-		if unsafe { sys_rx_buffer_consumed().is_ok() } {
+		if unsafe { sys_rx_buffer_consumed(self.buffer).is_ok() } {
 			result
 		} else {
 			Err(smoltcp::Error::Exhausted)
