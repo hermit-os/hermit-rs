@@ -67,6 +67,7 @@ extern "C" {
 	fn sys_network_init() -> i32;
 	fn sys_block_current_task();
 	fn sys_wakeup_task(tid: Tid);
+	fn sys_get_priority() -> u8;
 }
 
 /// A thread handle type
@@ -475,4 +476,10 @@ pub unsafe fn block_current_task() {
 #[inline(always)]
 pub unsafe fn wakeup_task(tid: Tid) {
 	sys_wakeup_task(tid);
+}
+
+/// Determine the priority of the current thread
+#[inline(always)]
+pub unsafe fn get_priority() -> u8 {
+	sys_get_priority()
 }
