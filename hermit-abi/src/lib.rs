@@ -65,6 +65,8 @@ extern "C" {
 	fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32;
 	fn sys_unlink(name: *const i8) -> i32;
 	fn sys_network_init() -> i32;
+	fn sys_block_current_task();
+	fn sys_wakeup_task(tid: Tid);
 }
 
 /// A thread handle type
@@ -460,4 +462,17 @@ pub unsafe fn secure_rand32() -> Option<u32> {
 #[inline(always)]
 pub unsafe fn secure_rand64() -> Option<u64> {
 	sys_secure_rand64()
+}
+
+/// Add current task to the queue of blocked tasl. After calling `block_current_task`,
+/// call `yield_now` to switch to another task.
+#[inline(always)]
+pub unsafe fn block_current_task() {
+	sys_block_current_task();
+}
+
+/// Wakeup task with the thread id `tid`
+#[inline(always)]
+pub unsafe fn wakeup_task(tid: Tid) {
+	sys_wakeup_task(tid);
 }
