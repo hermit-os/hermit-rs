@@ -73,6 +73,9 @@ extern "C" {
 /// A thread handle type
 pub type Tid = u32;
 
+/// Maximum number of priorities
+pub const NO_PRIORITIES: usize = 31;
+
 /// Priority of a thread
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Copy)]
 pub struct Priority(u8);
@@ -480,6 +483,6 @@ pub unsafe fn wakeup_task(tid: Tid) {
 
 /// Determine the priority of the current thread
 #[inline(always)]
-pub unsafe fn get_priority() -> u8 {
-	sys_get_priority()
+pub unsafe fn get_priority() -> Priority {
+	Priority::from(sys_get_priority())
 }
