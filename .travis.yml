@@ -9,6 +9,8 @@ branches:
     - master
 rust:
   - nightly
+services:
+  - docker
 os: linux
 dist: bionic
 cache: cargo
@@ -19,10 +21,8 @@ before_install:
   - sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
   - sudo adduser $USER libvirt
   - sudo adduser $USER kvm
-  - rustup component add rust-src
-  - rustup component add llvm-tools-preview
-  - cargo install cargo-download
   - cargo install uhyve
+  - docker pull registry.git.rwth-aachen.de/acs/public/hermitcore/hermitrust:latest 
   - >
     if [ $(egrep -c '(vmx|svm)' /proc/cpuinfo) -eq "0" ]; then
         echo "No virtualization possible - uhyve can't run";
@@ -32,7 +32,7 @@ jobs:
   include:
     - name: "Test Debug Build"
       script:
-        - cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+        - docker run -v $PWD:/volume -e USER=$USER -w /volume --rm -t registry.git.rwth-aachen.de/acs/public/hermitcore/hermitrust cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
         # used to get terminal with new groups permissions while preserving own user
         - sudo -E sudo -u $USER -E bash -c "HERMIT_VERBOSE=1 $HOME/.cargo/bin/uhyve target/x86_64-unknown-hermit/debug/rusty_demo"
         - sudo -E sudo -u $USER -E bash -c "HERMIT_VERBOSE=1 HERMIT_CPUS=2 $HOME/.cargo/bin/uhyve target/x86_64-unknown-hermit/debug/rusty_demo"
