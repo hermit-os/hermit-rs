@@ -7,20 +7,15 @@ on:
 
 jobs:
   publish:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04 # linux required if you want to use docker
+    container:
+      image: registry.git.rwth-aachen.de/acs/public/hermitcore/hermitrust
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v1
         with:
          submodules: true
-      - name: Install nightly toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          components: rust-src
-          override: true
       - name: Generate documentation
         uses: actions-rs/cargo@v1
         with:
