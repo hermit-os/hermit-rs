@@ -2,7 +2,6 @@
 
 # RustyHermit - A Rust-based, lightweight unikernel
 
-[![Build Status](https://git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/badges/master/pipeline.svg)](https://git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/pipelines)
 [![Build Status](https://travis-ci.com/hermitcore/rusty-hermit.svg?branch=master)](https://travis-ci.com/hermitcore/rusty-hermit)
 ![Actions Status](https://github.com/hermitcore/rusty-hermit/workflows/Test/badge.svg)
 [![Slack Status](https://radiant-ridge-95061.herokuapp.com/badge.svg)](https://radiant-ridge-95061.herokuapp.com)
