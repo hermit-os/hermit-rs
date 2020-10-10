@@ -1,0 +1,46 @@
+name: Build and test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-18.04 # linux required if you want to use docker
+    container:
+      image: registry.git.rwth-aachen.de/acs/public/hermitcore/hermitrust
+      options: --cpus 2 
+    steps:
+    - uses: actions/checkout@v1
+      with:
+         submodules: true
+    - name: Building dev version
+      run:
+         cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+    - name: Building release version
+      run:
+         cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
+      env:
+         RUSTFLAGS: -Clinker-plugin-lto
+    - name: Build loader
+      working-directory: loader
+      run: make
+    - name: Test dev version
+      run:
+         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+    - name: Test dev version (smp)
+      run:
+         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+      timeout-minutes: 20
+    - name: Test release version
+      run:
+         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+    - name: Test release version (smp)
+      run:
+         qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+      timeout-minutes: 20
