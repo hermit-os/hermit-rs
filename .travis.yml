@@ -38,7 +38,7 @@ jobs:
         - sudo -E sudo -u $USER -E bash -c "HERMIT_VERBOSE=1 HERMIT_CPUS=2 $HOME/.cargo/bin/uhyve target/x86_64-unknown-hermit/debug/rusty_demo"
     - name: "Test Release Build"
       script:
-        - RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
+        - docker run -v $PWD:/volume -e USER=$USER -e RUSTFLAGS="-Clinker-plugin-lto" -w /volume --rm -t registry.git.rwth-aachen.de/acs/public/hermitcore/hermitrust cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
         - sudo -E sudo -u $USER -E bash -c "HERMIT_VERBOSE=1 $HOME/.cargo/bin/uhyve target/x86_64-unknown-hermit/release/rusty_demo"
         - sudo -E sudo -u $USER -E bash -c "HERMIT_VERBOSE=1 HERMIT_CPUS=2 $HOME/.cargo/bin/uhyve target/x86_64-unknown-hermit/release/rusty_demo"
 
