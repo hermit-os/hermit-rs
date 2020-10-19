@@ -4,7 +4,7 @@
 
 [![Build Status](https://travis-ci.com/hermitcore/rusty-hermit.svg?branch=master)](https://travis-ci.com/hermitcore/rusty-hermit)
 ![Actions Status](https://github.com/hermitcore/rusty-hermit/workflows/Test/badge.svg)
-[![Slack Status](https://radiant-ridge-95061.herokuapp.com/badge.svg)](https://radiant-ridge-95061.herokuapp.com)
+[![Slack Status](https://matrix.osbyexample.com:3008/badge.svg)](https://matrix.osbyexample.com:3008)
 
 [RustyHermit](http://www.hermitcore.org) is a [unikernel](http://unikernel.org) targeting a scalable and predictable runtime for high-performance and cloud computing.
 Unikernel means, you bundle your application directly with the kernel library, so that it can run without any installed operating system.
