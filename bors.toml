@@ -1,5 +1,9 @@
 status = [
   "Test",
+  "Tests (macOS-latest, nightly)",
+  "Tests (windows-latest, nightly)",
+  "Tests (ubuntu-latest, nightly)",
+  "Format check (ubuntu-latest, nightly)",
   "continuous-integration/travis-ci/push"
 ]
 delete_merged_branches = true
