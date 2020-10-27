@@ -125,9 +125,9 @@ dependencies = [
 
 [[package]]
 name = "compiler_builtins"
-version = "0.1.35"
+version = "0.1.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3fcd8aba10d17504c87ef12d4f62ef404c6a4703d16682a9eb5543e6cf24455"
+checksum = "7cd0782e0a7da7598164153173e5a5d4d9b1da094473c98dce0ff91406112369"
 dependencies = [
  "rustc-std-workspace-core",
 ]
@@ -256,6 +256,7 @@ dependencies = [
  "aarch64",
  "lazy_static",
  "libm",
+ "llvm-tools",
  "log",
  "rftrace",
  "smoltcp",
@@ -319,6 +320,12 @@ name = "libm"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
+
+[[package]]
+name = "llvm-tools"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "955be5d0ca0465caf127165acb47964f911e2bc26073e865deb8be7189302faf"
 
 [[package]]
 name = "log"
