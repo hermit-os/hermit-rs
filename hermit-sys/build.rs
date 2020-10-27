@@ -99,6 +99,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 			}
 		};
 
+		let lib = lib_location.join("libhermit.a");
+
 		// determine llvm_objcopy
 		let llvm_objcopy = llvm_tools
 			.tool(&llvm_tools::exe("llvm-objcopy"))
@@ -116,7 +118,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 			.arg("memcmp=kernel_memcmp")
 			.arg("--redefine-sym")
 			.arg("bcmp=kernel_bcmp")
-			.arg(lib_location.display().to_string() + "/libhermit.a");
+			.arg(lib.display().to_string());
 
 		println!("cmd {:?}", cmd);
 		let output = cmd.output().expect("Unable to rename symbols");
