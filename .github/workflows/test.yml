@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     # these tests based on the nightly compiler, which can be broken
     # consequently, we continue on an error
-    continue-on-error: true
+    #continue-on-error: true
 
     strategy:
       matrix:
@@ -33,7 +33,7 @@ jobs:
             targets: 'x86_64-pc-windows-msvc'
           - os: ubuntu-latest
             rust: 'nightly'
-            components: 'rust-src, llvm-tools-preview, rustfmt'
+            components: 'rust-src, llvm-tools-preview'
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
@@ -47,9 +47,6 @@ jobs:
          submodules: true
     - name: Check Cargo availability
       run: cargo --version
-    - name: Check Formatting
-      run: cargo fmt -- --check
-      if: ${{ matrix.os == 'ubuntu-latest' }}
     - name: Install qemu/nasm (apt)
       run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 nasm
       if: ${{ matrix.os == 'ubuntu-latest' }}
