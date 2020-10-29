@@ -199,3 +199,8 @@ pub extern "C" fn tanh(n: f64) -> f64 {
 pub extern "C" fn tanhf(n: f32) -> f32 {
 	libm::tanhf(n)
 }
+
+#[no_mangle]
+pub extern "C" fn round(x: f64) -> f64 {
+	libm::round(x)
+}
