@@ -135,7 +135,7 @@ fn memcpy_builtin(n: usize) {
 	println!(
 		"memcpy_builtin:  {} block size, {} MByte/s",
 		n,
-		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+		(NR_RUNS * n) as f64 / (1024.0 * 1024.0 * now.elapsed().as_secs_f64())
 	);
 }
 
