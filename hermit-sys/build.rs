@@ -83,6 +83,11 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	};
 	println!("Lib location: {}", lib_location.display());
 
+	// in case of a debug version of the library, we have to avoid a symbol collision.
+	// Kernel and user space has its own versions of memcpy, memset, etc,
+	// Consequently, we rename the functions in the libos to avoid collisions.
+	// In addition, it provides us the offer to create a optimized version of memcpy
+	// in user space.
 	if profile == "debug" {
 		// get access to llvm tools shipped in the llvm-tools-preview rustup component
 		let llvm_tools = match llvm_tools::LlvmTools::new() {
