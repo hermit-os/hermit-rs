@@ -83,57 +83,54 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	};
 	println!("Lib location: {}", lib_location.display());
 
-	// in case of a debug version of the library, we have to avoid a symbol collision.
 	// Kernel and user space has its own versions of memcpy, memset, etc,
 	// Consequently, we rename the functions in the libos to avoid collisions.
 	// In addition, it provides us the offer to create a optimized version of memcpy
 	// in user space.
-	if profile == "debug" {
-		// get access to llvm tools shipped in the llvm-tools-preview rustup component
-		let llvm_tools = match llvm_tools::LlvmTools::new() {
-			Ok(tools) => tools,
-			Err(llvm_tools::Error::NotFound) => {
-				eprintln!("Error: llvm-tools not found");
-				eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
-				eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
-				process::exit(1);
-			}
-			Err(err) => {
-				eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
-				process::exit(1);
-			}
-		};
 
-		let lib = lib_location.join("libhermit.a");
+	// get access to llvm tools shipped in the llvm-tools-preview rustup component
+	let llvm_tools = match llvm_tools::LlvmTools::new() {
+		Ok(tools) => tools,
+		Err(llvm_tools::Error::NotFound) => {
+			eprintln!("Error: llvm-tools not found");
+			eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
+			eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
+			process::exit(1);
+		}
+		Err(err) => {
+			eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
+			process::exit(1);
+		}
+	};
 
-		// determine llvm_objcopy
-		let llvm_objcopy = llvm_tools
-			.tool(&llvm_tools::exe("llvm-objcopy"))
-			.expect("llvm_objcopy not found in llvm-tools");
+	let lib = lib_location.join("libhermit.a");
 
-		// rename symbols
-		let mut cmd = Command::new(llvm_objcopy);
-		cmd.arg("--redefine-sym")
-			.arg("memcpy=kernel_memcpy")
-			.arg("--redefine-sym")
-			.arg("memmove=kernel_memmove")
-			.arg("--redefine-sym")
-			.arg("memset=kernel_memset")
-			.arg("--redefine-sym")
-			.arg("memcmp=kernel_memcmp")
-			.arg("--redefine-sym")
-			.arg("bcmp=kernel_bcmp")
-			.arg(lib.display().to_string());
+	// determine llvm_objcopy
+	let llvm_objcopy = llvm_tools
+		.tool(&llvm_tools::exe("llvm-objcopy"))
+		.expect("llvm_objcopy not found in llvm-tools");
 
-		println!("cmd {:?}", cmd);
-		let output = cmd.output().expect("Unable to rename symbols");
-		let stdout = std::string::String::from_utf8(output.stdout);
-		let stderr = std::string::String::from_utf8(output.stderr);
-		println!("Rename symbols output-status: {}", output.status);
-		println!("Rename symbols output-stdout: {}", stdout.unwrap());
-		println!("Rename symbols output-stderr: {}", stderr.unwrap());
-		assert!(output.status.success());
-	}
+	// rename symbols
+	let mut cmd = Command::new(llvm_objcopy);
+	cmd.arg("--redefine-sym")
+		.arg("memcpy=kernel_memcpy")
+		.arg("--redefine-sym")
+		.arg("memmove=kernel_memmove")
+		.arg("--redefine-sym")
+		.arg("memset=kernel_memset")
+		.arg("--redefine-sym")
+		.arg("memcmp=kernel_memcmp")
+		.arg("--redefine-sym")
+		.arg("bcmp=kernel_bcmp")
+		.arg(lib.display().to_string());
+
+	println!("cmd {:?}", cmd);
+	let output = cmd.output().expect("Unable to rename symbols");
+	let stdout = std::string::String::from_utf8(output.stdout);
+	let stderr = std::string::String::from_utf8(output.stderr);
+	println!("Rename symbols output-status: {}", output.status);
+	println!("Rename symbols output-stdout: {}", stdout.unwrap());
+	println!("Rename symbols output-stderr: {}", stderr.unwrap());
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
