@@ -105,32 +105,27 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib = lib_location.join("libhermit.a");
 
-	// determine llvm_objcopy
-	let llvm_objcopy = llvm_tools
-		.tool(&llvm_tools::exe("llvm-objcopy"))
-		.expect("llvm_objcopy not found in llvm-tools");
+	let symbols: [&str; 5] = ["memcpy", "memmove", "memset", "memcmp", "bcmp"];
+	for symbol in symbols.iter() {
+		// determine llvm_objcopy
+		let llvm_objcopy = llvm_tools
+			.tool(&llvm_tools::exe("llvm-objcopy"))
+			.expect("llvm_objcopy not found in llvm-tools");
 
-	// rename symbols
-	let mut cmd = Command::new(llvm_objcopy);
-	cmd.arg("--redefine-sym")
-		.arg("memcpy=kernel_memcpy")
-		.arg("--redefine-sym")
-		.arg("memmove=kernel_memmove")
-		.arg("--redefine-sym")
-		.arg("memset=kernel_memset")
-		.arg("--redefine-sym")
-		.arg("memcmp=kernel_memcmp")
-		.arg("--redefine-sym")
-		.arg("bcmp=kernel_bcmp")
-		.arg(lib.display().to_string());
+		// rename symbols
+		let mut cmd = Command::new(llvm_objcopy);
+		cmd.arg("--redefine-sym")
+			.arg(String::from(*symbol) + &String::from("=kernel") + &String::from(*symbol))
+			.arg(lib.display().to_string());
 
-	println!("cmd {:?}", cmd);
-	let output = cmd.output().expect("Unable to rename symbols");
-	let stdout = std::string::String::from_utf8(output.stdout);
-	let stderr = std::string::String::from_utf8(output.stderr);
-	println!("Rename symbols output-status: {}", output.status);
-	println!("Rename symbols output-stdout: {}", stdout.unwrap());
-	println!("Rename symbols output-stderr: {}", stderr.unwrap());
+		println!("cmd {:?}", cmd);
+		let output = cmd.output().expect("Unable to rename symbols");
+		let stdout = std::string::String::from_utf8(output.stdout);
+		let stderr = std::string::String::from_utf8(output.stderr);
+		println!("Rename symbols output-status: {}", output.status);
+		println!("Rename symbols output-stdout: {}", stdout.unwrap());
+		println!("Rename symbols output-stderr: {}", stderr.unwrap());
+	}
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
