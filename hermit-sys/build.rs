@@ -1,3 +1,4 @@
+extern crate llvm_tools;
 extern crate target_build_utils;
 extern crate walkdir;
 
@@ -5,7 +6,7 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{self, Command};
 
 use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
@@ -80,6 +81,52 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	} else {
 		panic!("Try to build for an unsupported platform");
 	};
+	println!("Lib location: {}", lib_location.display());
+
+	// Kernel and user space has its own versions of memcpy, memset, etc,
+	// Consequently, we rename the functions in the libos to avoid collisions.
+	// In addition, it provides us the offer to create a optimized version of memcpy
+	// in user space.
+
+	// get access to llvm tools shipped in the llvm-tools-preview rustup component
+	let llvm_tools = match llvm_tools::LlvmTools::new() {
+		Ok(tools) => tools,
+		Err(llvm_tools::Error::NotFound) => {
+			eprintln!("Error: llvm-tools not found");
+			eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
+			eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
+			process::exit(1);
+		}
+		Err(err) => {
+			eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
+			process::exit(1);
+		}
+	};
+
+	let lib = lib_location.join("libhermit.a");
+
+	let symbols: [&str; 5] = ["memcpy", "memmove", "memset", "memcmp", "bcmp"];
+	for symbol in symbols.iter() {
+		// determine llvm_objcopy
+		let llvm_objcopy = llvm_tools
+			.tool(&llvm_tools::exe("llvm-objcopy"))
+			.expect("llvm_objcopy not found in llvm-tools");
+
+		// rename symbols
+		let mut cmd = Command::new(llvm_objcopy);
+		cmd.arg("--redefine-sym")
+			.arg(String::from(*symbol) + &String::from("=kernel") + &String::from(*symbol))
+			.arg(lib.display().to_string());
+
+		println!("cmd {:?}", cmd);
+		let output = cmd.output().expect("Unable to rename symbols");
+		let stdout = std::string::String::from_utf8(output.stdout);
+		let stderr = std::string::String::from_utf8(output.stderr);
+		println!("Rename symbols output-status: {}", output.status);
+		println!("Rename symbols output-stdout: {}", stdout.unwrap());
+		println!("Rename symbols output-stderr: {}", stderr.unwrap());
+	}
+
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
 
