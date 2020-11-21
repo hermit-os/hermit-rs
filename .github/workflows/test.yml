@@ -37,7 +37,7 @@ jobs:
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
-    - uses: hecrj/setup-rust-action@v1.3.1
+    - uses: hecrj/setup-rust-action@v1
       with: 
          rust-version: ${{ matrix.rust }}
          components: ${{ matrix.components || '' }}
@@ -55,10 +55,14 @@ jobs:
           brew install qemu nasm
       if: ${{ matrix.os == 'macOS-latest' }}
     - name: Install qemu/nasm (windows)
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+          args: install qemu nasm
+      if: ${{ matrix.os == 'windows-latest' }}
+    - name: Set path to qemu/nasm (Windows)
       run: |
-          choco install qemu nasm
-          echo "::add-path::C:\Program Files\NASM"
-          echo "::add-path::C:\Program Files\qemu"
+          echo "C:\Program Files\qemu" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\Program Files\nasm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Building dev version
       run:
@@ -71,6 +75,7 @@ jobs:
     - name: Build loader (unix)
       working-directory: loader
       run: make
+      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
     # Workaround since makefile doesn't work when using powershell
     - name: Build loader (windows)
       working-directory: loader

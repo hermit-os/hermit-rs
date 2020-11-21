@@ -25,7 +25,7 @@ jobs:
 
 
     steps:
-      - uses: hecrj/setup-rust-action@v1.3.1
+      - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: ${{ matrix.rust }}
           components: ${{ matrix.components || '' }}
