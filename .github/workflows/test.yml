@@ -37,7 +37,7 @@ jobs:
             targets: 'x86_64-unknown-linux-gnu'
 
     steps:
-    - uses: hecrj/setup-rust-action@v1.3.4
+    - uses: hecrj/setup-rust-action@v1
       with: 
          rust-version: ${{ matrix.rust }}
          components: ${{ matrix.components || '' }}
@@ -55,10 +55,8 @@ jobs:
           brew install qemu nasm
       if: ${{ matrix.os == 'macOS-latest' }}
     - name: Install qemu/nasm (windows)
-      run: |
-          choco install qemu nasm
-          echo "::add-path::C:\Program Files\NASM"
-          echo "::add-path::C:\Program Files\qemu"
+      uses: crazy-max/ghaction-chocolatey@v1
+      with: install qemu nasm
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Building dev version
       run:
