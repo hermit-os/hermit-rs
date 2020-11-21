@@ -61,8 +61,8 @@ jobs:
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Set path to qemu/nasm (Windows)
       run: |
-          echo "C:\Program Files\qemu" >> $GITHUB_PATH
-          echo "C:\Program Files\nasm" >> $GITHUB_PATH
+          echo "C:\Program Files\qemu" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\Program Files\nasm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Building dev version
       run:
