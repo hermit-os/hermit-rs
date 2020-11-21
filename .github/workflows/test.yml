@@ -56,7 +56,8 @@ jobs:
       if: ${{ matrix.os == 'macOS-latest' }}
     - name: Install qemu/nasm (windows)
       uses: crazy-max/ghaction-chocolatey@v1
-      with: install qemu nasm
+      with:
+          args: install qemu nasm
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Building dev version
       run:
