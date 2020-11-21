@@ -71,6 +71,7 @@ jobs:
     - name: Build loader (unix)
       working-directory: loader
       run: make
+      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
     # Workaround since makefile doesn't work when using powershell
     - name: Build loader (windows)
       working-directory: loader
