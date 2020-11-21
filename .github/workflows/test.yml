@@ -59,6 +59,11 @@ jobs:
       with:
           args: install qemu nasm
       if: ${{ matrix.os == 'windows-latest' }}
+    - name: Set path to qemu/nasm (Windows)
+      run: |
+          echo "C:\Program Files\qemu" >> $GITHUB_PATH
+          echo "C:\Program Files\nasm" >> $GITHUB_PATH
+      if: ${{ matrix.os == 'windows-latest' }}
     - name: Building dev version
       run:
          cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
