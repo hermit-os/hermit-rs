@@ -3,6 +3,7 @@ use aarch64::regs::*;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
+use std::ffi::c_void;
 use std::hint::black_box;
 use std::io::Read;
 use std::io::Write;
@@ -13,6 +14,15 @@ use std::time::Instant;
 use std::vec;
 #[cfg(target_os = "linux")]
 use syscalls::SYS_getpid;
+
+extern "C" {
+	pub fn memcpy(
+        dest: *mut c_void,
+        src: *const c_void,
+        n: usize,
+	) -> *mut c_void;
+	pub fn memset(dest: *mut c_void, c: u8, n: usize) -> *mut c_void;
+}
 
 const NR_RUNS: usize = 1000;
 
@@ -121,6 +131,8 @@ pub fn bench_sched_two_threads() -> Result<(), ()> {
 	Ok(())
 }
 
+// derived from
+// https://github.com/rust-lang/compiler-builtins/blob/master/testcrate/benches/mem.rs
 fn memcpy_builtin(n: usize) {
 	let v1 = vec![1u8; n];
 	let mut v2 = vec![0u8; n];
@@ -139,6 +151,8 @@ fn memcpy_builtin(n: usize) {
 	);
 }
 
+// derived from
+// https://github.com/rust-lang/compiler-builtins/blob/master/testcrate/benches/mem.rs
 fn memset_builtin(n: usize) {
 	let mut v1 = vec![0u8; n];
 	let now = Instant::now();
@@ -157,11 +171,52 @@ fn memset_builtin(n: usize) {
 	);
 }
 
+// derived from
+// https://github.com/rust-lang/compiler-builtins/blob/master/testcrate/benches/mem.rs
+fn memcpy_rust(n: usize) {
+    let v1 = vec![1u8; n];
+	let mut v2 = vec![0u8; n];
+	let now = Instant::now();
+    for _i in 0..NR_RUNS {
+        let src: &[u8] = black_box(&v1[0..]);
+        let dst: &mut [u8] = black_box(&mut v2[0..]);
+        unsafe { memcpy(dst.as_mut_ptr() as *mut c_void, src.as_ptr() as *mut c_void, n); }
+	}
+	
+	println!(
+		"memcpy_rust:  {} block, {} MByte/s",
+		n,
+		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+	);
+}
+
+// derived from
+// https://github.com/rust-lang/compiler-builtins/blob/master/testcrate/benches/mem.rs
+fn memset_rust(n: usize) {
+	let mut v1 = vec![0u8; n];
+	let now = Instant::now();
+    for _i in 0..NR_RUNS {
+        let dst: &mut [u8] = black_box(&mut v1[0..]);
+        let val = black_box(27);
+        unsafe { memset(dst.as_mut_ptr() as *mut c_void, val, n); }
+	}
+	
+	println!(
+		"memset_rust:  {} block, {} MByte/s",
+		n,
+		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+	);
+}
+
 pub fn bench_mem() -> Result<(), ()> {
 	memcpy_builtin(4096);
 	memcpy_builtin(1048576);
 	memset_builtin(4096);
 	memset_builtin(1048576);
+	memcpy_rust(4096);
+	memcpy_rust(1048576);
+	memset_rust(4096);
+	memset_rust(1048576);
 
 	Ok(())
 }
