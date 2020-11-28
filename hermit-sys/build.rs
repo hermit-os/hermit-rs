@@ -6,7 +6,8 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{self, Command};
+//use std::process::{self, Command};
+use std::process::Command;
 
 use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
@@ -89,7 +90,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	// in user space.
 
 	// get access to llvm tools shipped in the llvm-tools-preview rustup component
-	let llvm_tools = match llvm_tools::LlvmTools::new() {
+	/*let llvm_tools = match llvm_tools::LlvmTools::new() {
 		Ok(tools) => tools,
 		Err(llvm_tools::Error::NotFound) => {
 			eprintln!("Error: llvm-tools not found");
@@ -125,7 +126,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		println!("Rename symbols output-status: {}", output.status);
 		println!("Rename symbols output-stdout: {}", stdout.unwrap());
 		println!("Rename symbols output-stderr: {}", stderr.unwrap());
-	}
+	}*/
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
