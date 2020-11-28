@@ -54,10 +54,15 @@ jobs:
       run: |
           brew install qemu nasm
       if: ${{ matrix.os == 'macOS-latest' }}
-    - name: Install qemu/nasm (windows)
+    - name: Install nasm (windows)
       uses: crazy-max/ghaction-chocolatey@v1
       with:
-          args: install qemu nasm
+          args: install nasm
+      if: ${{ matrix.os == 'windows-latest' }}
+    - name: Install qemu (windows)
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install qemu --version=2020.08.14
       if: ${{ matrix.os == 'windows-latest' }}
     - name: Set path to qemu/nasm (Windows)
       run: |
@@ -90,18 +95,14 @@ jobs:
     - name: Test dev version
       run:
          qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
     - name: Test dev version (smp)
       run:
          qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
       timeout-minutes: 20
-      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
     - name: Test release version
       run:
          qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
     - name: Test release version (smp)
       run:
          qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
       timeout-minutes: 20
-      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
