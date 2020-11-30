@@ -92,7 +92,7 @@ fn main() {
 The final step is building the application as follows:
 
 ```sh
-cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
 ```
 (You can set an easy alias for this in the `.cargo/config` file. Take a look at the [demo](https://github.com/hermitcore/rusty-demo/blob/master/.cargo/config))
 
@@ -114,7 +114,7 @@ cargo install uhyve
 Afterwards, your are able to start RustyHermit applications within our hypervisor:
 
 ```sh
-uhyve target/x86_64-unknown-hermit/debug/rusty_demo
+uhyve target/x86_64-unknown-hermit/debug/hello_world
 ```
 
 More details can be found in the [uhyve README](https://github.com/hermitcore/uhyve).
