@@ -385,7 +385,10 @@ const ROW_SIZE: usize = 512;
 
 pub fn test_matmul_strassen() -> Result<(), ()> {
 	let ncpus = num_cpus::get();
-	let pool = rayon::ThreadPoolBuilder::new().num_threads(ncpus).build().unwrap();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
 	let n = ROW_SIZE * ROW_SIZE;
 	let x = vec![1f32; n];
 	let y = vec![2f32; n];

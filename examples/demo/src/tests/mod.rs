@@ -221,7 +221,10 @@ pub fn threading() -> Result<(), ()> {
 
 pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
 	let ncpus = num_cpus::get();
-	let pool = rayon::ThreadPoolBuilder::new().num_threads(ncpus).build().unwrap();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
 	let matrix = matrix_setup(size_x, size_y);
 
 	let now = Instant::now();
