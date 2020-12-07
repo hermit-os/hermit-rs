@@ -81,7 +81,8 @@ pub fn pi_sequential(num_steps: u64) -> Result<(), ()> {
 	}
 }
 
-pub fn pi_parallel(nthreads: u64, num_steps: u64) -> Result<(), ()> {
+pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
+	let nthreads = num_cpus::get() as u64;
 	let step = 1.0 / num_steps as f64;
 	let mut sum = 0.0 as f64;
 
@@ -219,10 +220,12 @@ pub fn threading() -> Result<(), ()> {
 }
 
 pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new().num_threads(ncpus).build().unwrap();
 	let matrix = matrix_setup(size_x, size_y);
 
 	let now = Instant::now();
-	let (iterations, res) = laplace::compute(matrix, size_x, size_y);
+	let (iterations, res) = pool.install(|| laplace::compute(matrix, size_x, size_y));
 	println!(
 		"Time to solve {} s, iterations {}, residuum {}",
 		now.elapsed().as_secs_f64(),

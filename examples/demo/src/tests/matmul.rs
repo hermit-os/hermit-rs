@@ -384,13 +384,15 @@ fn timed_matmul<F: FnOnce(&[f32], &[f32], &mut [f32])>(size: usize, f: F, name: 
 const ROW_SIZE: usize = 512;
 
 pub fn test_matmul_strassen() -> Result<(), ()> {
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new().num_threads(ncpus).build().unwrap();
 	let n = ROW_SIZE * ROW_SIZE;
 	let x = vec![1f32; n];
 	let y = vec![2f32; n];
 	let mut z = vec![0f32; n];
 
 	let now = Instant::now();
-	matmul_strassen(&x, &y, &mut z);
+	pool.install(|| matmul_strassen(&x, &y, &mut z));
 	println!("Time to multiply matrix {} s", now.elapsed().as_secs_f64(),);
 
 	Ok(())

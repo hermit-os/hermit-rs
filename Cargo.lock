@@ -251,7 +251,7 @@ dependencies = [
 
 [[package]]
 name = "hermit-sys"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "aarch64",
  "lazy_static",
@@ -671,6 +671,7 @@ version = "0.1.0"
 dependencies = [
  "aarch64",
  "hermit-sys",
+ "num_cpus",
  "rayon",
  "syscalls",
 ]
