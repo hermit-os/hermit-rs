@@ -1,5 +1,6 @@
 #[cfg(target_arch = "aarch64")]
 use aarch64::regs::*;
+use rayon::prelude::*;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
@@ -82,33 +83,25 @@ pub fn pi_sequential(num_steps: u64) -> Result<(), ()> {
 }
 
 pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
-	let nthreads = num_cpus::get() as u64;
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
 	let step = 1.0 / num_steps as f64;
-	let mut sum = 0.0 as f64;
 
-	let threads: Vec<_> = (0..nthreads)
-		.map(|tid| {
-			thread::spawn(move || {
-				let mut partial_sum = 0 as f64;
-				let start = (num_steps / nthreads) * tid;
-				let end = (num_steps / nthreads) * (tid + 1);
-
-				for i in start..end {
-					let x = (i as f64 + 0.5) * step;
-					partial_sum += 4.0 / (1.0 + x * x);
-				}
-
-				partial_sum
+	let sum: f64 = pool.install(|| {
+		(0..num_steps)
+			.into_par_iter()
+			.map(|i| {
+				let x = (i as f64 + 0.5) * step;
+				4.0 / (1.0 + x * x)
 			})
-		})
-		.collect();
-
-	for t in threads {
-		sum += t.join().unwrap();
-	}
+			.sum()
+	});
 
 	let mypi = sum * (1.0 / num_steps as f64);
-	println!("Pi: {} (with {} threads)", mypi, nthreads);
+	println!("Pi: {} (with {} threads)", mypi, ncpus);
 
 	if (mypi - PI).abs() < 0.00001 {
 		Ok(())
