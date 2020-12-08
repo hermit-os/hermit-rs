@@ -1,0 +1,61 @@
+variables:
+   IMAGE: rust
+   GIT_SUBMODULE_STRATEGY: normal
+
+ stages:
+   - prepare
+   - build
+   - test
+
+# Stage: prepare
+ ##############################################################################
+
+ docker:
+   stage: prepare
+   script:
+     - docker build --no-cache -t ${IMAGE} .
+   tags:
+     - shell
+     - linux
+
+ # Stage build
+ ##############################################################################
+ build:
+   stage: build
+   script:
+     - cargo install uhyve
+     - cargo build
+     - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
+   image: ${IMAGE}
+   cache:
+     paths:
+       - target/x86_64-unknown-hermit/debug/rusty_demo
+       - target/x86_64-unknown-hermit/release/rusty_demo
+     key: build
+   artifacts:
+     paths:
+       - target/x86_64-unknown-hermit/debug/rusty_demo
+       - target/x86_64-unknown-hermit/release/rusty_demo
+   tags:
+     - docker
+
+ # Stage: test
+
+ #test:cargo:
+ #  stage: test
+ #  script: 
+ #    - cargo test --target x86_64-unknown-linux-gnu
+ #  image: ${IMAGE}
+ #  tags:
+ #    - docker
+
+ test:qemu:
+    stage: test
+    script:
+      - cd loader
+      - make
+      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd ../target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd ../target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
+    image: ${IMAGE}
+    tags:
+      - docker
