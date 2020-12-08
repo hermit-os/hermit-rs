@@ -19,45 +19,26 @@ mod matmul;
 
 pub use matmul::test_matmul_strassen;
 
-#[cfg(target_arch = "x86_64")]
-#[inline]
-fn get_timestamp() -> u64 {
-	unsafe {
-		let mut _aux = 0;
-		let value = core::arch::x86_64::__rdtscp(&mut _aux);
-		core::arch::x86_64::_mm_lfence();
-		value
-	}
-}
-
-#[cfg(target_arch = "aarch64")]
-#[inline]
-fn get_timestamp() -> u64 {
-	CNTPCT_EL0.get()
-}
-
 pub fn thread_creation() -> Result<(), ()> {
 	const N: usize = 10;
 
 	// cache warmup
-	let _ = get_timestamp();
 	{
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
 
-	let start = get_timestamp();
+	let now = Instant::now();
 	for _ in 0..N {
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
-	let end = get_timestamp();
 
 	println!(
-		"Time to create and to join a thread: {} ticks",
-		(end - start) / N as u64
+		"Time to create and to join a thread: {} ms",
+		now.elapsed().as_secs_f64() * 1000.0f64 / f64::from(N as i32)
 	);
 
 	Ok(())
@@ -184,7 +165,7 @@ pub fn hello() -> Result<(), ()> {
 }
 
 pub fn arithmetic() -> Result<(), ()> {
-	let x = (get_timestamp() % 10) as f64 * 3.41f64;
+	let x = ((std::thread::current().id().as_u64().get() * 3) % 10) as f64 * 3.41f64;
 	let y: f64 = x.exp();
 	let z: f64 = y.log(E);
 
