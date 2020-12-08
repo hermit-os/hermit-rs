@@ -146,6 +146,16 @@ pub extern "C" fn log(x: f64) -> f64 {
 }
 
 #[no_mangle]
+pub extern "C" fn log10(x: f64) -> f64 {
+	libm::log10(x)
+}
+
+#[no_mangle]
+pub extern "C" fn log10f(x: f32) -> f32 {
+	libm::log10f(x)
+}
+
+#[no_mangle]
 pub extern "C" fn logf(x: f32) -> f32 {
 	libm::logf(x)
 }
@@ -203,4 +213,14 @@ pub extern "C" fn tanhf(n: f32) -> f32 {
 #[no_mangle]
 pub extern "C" fn round(x: f64) -> f64 {
 	libm::round(x)
+}
+
+#[no_mangle]
+pub extern "C" fn pow(x: f64, y: f64) -> f64 {
+	libm::pow(x, y)
+}
+
+#[no_mangle]
+pub extern "C" fn powf(x: f32, y: f32) -> f32 {
+	libm::powf(x, y)
 }
