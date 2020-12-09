@@ -248,14 +248,18 @@ pub extern "C" fn fmodf(x: f32, y: f32) -> f32 {
 #[no_mangle]
 pub extern "C" fn frexp(arg: f64, exp: *mut i32) -> f64 {
 	let (mantissa, exponent) = libm::frexp(arg);
-	unsafe { *exp = exponent; }
+	unsafe {
+		*exp = exponent;
+	}
 	mantissa
 }
 
 #[no_mangle]
 pub extern "C" fn frexpf(arg: f32, exp: *mut i32) -> f32 {
 	let (mantissa, exponent) = libm::frexpf(arg);
-	unsafe { *exp = exponent; }
+	unsafe {
+		*exp = exponent;
+	}
 	mantissa
 }
 
@@ -332,14 +336,18 @@ pub extern "C" fn lgammaf(x: f32) -> f32 {
 #[no_mangle]
 pub extern "C" fn lgamma_r(x: f64, signp: *mut i32) -> f64 {
 	let (lgamma, r) = libm::lgamma_r(x);
-	unsafe { *signp = r; }
+	unsafe {
+		*signp = r;
+	}
 	lgamma
 }
 
 #[no_mangle]
 pub extern "C" fn lgammaf_r(x: f32, signp: *mut i32) -> f32 {
 	let (lgamma, r) = libm::lgammaf_r(x);
-	unsafe { *signp = r; }
+	unsafe {
+		*signp = r;
+	}
 	lgamma
 }
 
@@ -386,14 +394,18 @@ pub extern "C" fn log1pf(n: f32) -> f32 {
 #[no_mangle]
 pub extern "C" fn modf(x: f64, integer: *mut f64) -> f64 {
 	let (frac_part, int_part) = libm::modf(x);
-	unsafe { *integer = int_part; }
+	unsafe {
+		*integer = int_part;
+	}
 	frac_part
 }
 
 #[no_mangle]
 pub extern "C" fn modff(x: f32, integer: *mut f32) -> f32 {
 	let (frac_part, int_part) = libm::modff(x);
-	unsafe { *integer = int_part; }
+	unsafe {
+		*integer = int_part;
+	}
 	frac_part
 }
 
@@ -430,14 +442,18 @@ pub extern "C" fn remainderf(x: f32, y: f32) -> f32 {
 #[no_mangle]
 pub extern "C" fn remquo(x: f64, y: f64, quotient: *mut i32) -> f64 {
 	let (rem, quo) = libm::remquo(x, y);
-	unsafe { *quotient = quo; }
+	unsafe {
+		*quotient = quo;
+	}
 	rem
 }
 
 #[no_mangle]
 pub extern "C" fn remquof(x: f32, y: f32, quotient: *mut i32) -> f32 {
 	let (rem, quo) = libm::remquof(x, y);
-	unsafe { *quotient = quo; }
+	unsafe {
+		*quotient = quo;
+	}
 	rem
 }
 
