@@ -272,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "hermit-sys"
-version = "0.1.17"
+version = "0.1.18"
 dependencies = [
  "aarch64",
  "lazy_static",
