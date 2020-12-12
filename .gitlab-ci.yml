@@ -1,61 +1,45 @@
+stages:
+- prepare
+- build
+
 variables:
-   IMAGE: rust
-   GIT_SUBMODULE_STRATEGY: normal
+  DOCKER_FILE: Dockerfile
+  DOCKER_TAG: latest
+  DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
 
- stages:
-   - prepare
-   - build
-   - test
 
-# Stage: prepare
- ##############################################################################
+.prepare:docker: &prepare_docker
+  stage: prepare
+  image:
+    name: quay.io/buildah/stable
+  variables:
+    _BUILDAH_STARTED_IN_USERNS: ""
+    BUILDAH_ISOLATION: chroot
+    BUILDAH_LAYERS: "true"
+  before_script:
+  - buildah version
+  - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+  - buildah bud -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+  - buildah push ${DOCKER_IMAGE}:${DOCKER_TAG} docker://${DOCKER_IMAGE}:${DOCKER_TAG}
+  after_script:
+  - buildah logout "${CI_REGISTRY}"
+  tags:
+  - builder
 
- docker:
-   stage: prepare
-   script:
-     - docker build --no-cache -t ${IMAGE} .
-   tags:
-     - shell
-     - linux
+prepare:docker:
+  <<: *prepare_docker
 
- # Stage build
- ##############################################################################
- build:
-   stage: build
-   script:
-     - cargo install uhyve
-     - cargo build
-     - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
-   image: ${IMAGE}
-   cache:
-     paths:
-       - target/x86_64-unknown-hermit/debug/rusty_demo
-       - target/x86_64-unknown-hermit/release/rusty_demo
-     key: build
-   artifacts:
-     paths:
-       - target/x86_64-unknown-hermit/debug/rusty_demo
-       - target/x86_64-unknown-hermit/release/rusty_demo
-   tags:
-     - docker
+prepare:docker:eduos:
+  <<: *prepare_docker
+  variables:
+    DOCKER_FILE: Dockerfile.hermit
+    DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/hermit
 
- # Stage: test
-
- #test:cargo:
- #  stage: test
- #  script: 
- #    - cargo test --target x86_64-unknown-linux-gnu
- #  image: ${IMAGE}
- #  tags:
- #    - docker
-
- test:qemu:
-    stage: test
-    script:
-      - cd loader
-      - make
-      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd ../target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd ../target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-    image: ${IMAGE}
-    tags:
-      - docker
+test:
+  stage: build
+  image: ${CI_REGISTRY_IMAGE}
+  script:
+  - kvm-ok
+  tags:
+  - privileged

@@ -1,0 +1,12 @@
+FROM rust:alpine
+
+RUN apk add --no-cache git musl-dev
+
+RUN rustup toolchain install nightly --component \
+    rust-src \
+    llvm-tools-preview \
+    rustfmt \
+    clippy \
+    && rustup default nightly
+
+RUN cargo install uhyve
