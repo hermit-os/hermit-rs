@@ -103,19 +103,19 @@ pub fn read_file() -> Result<(), std::io::Error> {
 
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
-		let mut file = File::create("/tmp/foo.txt")?;
+		let mut file = File::create("foo.txt")?;
 		file.write_all(b"Hello, world!")?;
 	}
 
 	let contents = {
-		let mut file = File::open("/tmp/foo.txt")?;
+		let mut file = File::open("foo.txt")?;
 		let mut contents = String::new();
 		file.read_to_string(&mut contents)?;
 		contents
 	};
 
 	// delete temporary file
-	std::fs::remove_file("/tmp/foo.txt")?;
+	std::fs::remove_file("foo.txt")?;
 
 	if contents == "Hello, world!" {
 		Ok(())
