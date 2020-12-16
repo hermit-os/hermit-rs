@@ -46,6 +46,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("--release");
 	}
 
+	cmd.arg("--no-default-features");
+	cmd.arg("--features");
+	#[cfg(feature = "smp")]
+	cmd.arg("pci,acpi,smp");
+	#[cfg(not(feature = "smp"))]
+	cmd.arg("pci,acpi");
+
 	#[cfg(feature = "instrument")]
 	cmd.env("RUSTFLAGS", "-Z instrument-mcount");
 	// if instrument is not set, ensure that instrument is not in environment variables!

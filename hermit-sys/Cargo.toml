@@ -14,11 +14,13 @@ edition = "2018"
 documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
+default = ["smp"]
 # controlls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
 trace = []
 # only for internal usage, please don't use it
 with_submodule = []
+smp = []
 
 [build-dependencies]
 walkdir = "2"
