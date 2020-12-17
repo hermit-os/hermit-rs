@@ -43,7 +43,7 @@ debug:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - cargo build --target x86_64-unknown-hermit
+  - cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
   tags:
   - privileged
 
@@ -51,6 +51,6 @@ release:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - RUSTFLAGS="-Clinker-plugin-lto" cargo build --target x86_64-unknown-hermit --release
+  - RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --release
   tags:
   - privileged
