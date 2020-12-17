@@ -36,22 +36,36 @@ test:
   stage: test
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - kvm-ok
+    - kvm-ok
   tags:
-  - privileged
+    - privileged
 
 debug:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - cargo build
+    - cargo build
+  cache:
+    paths:
+      - target/x86_64-unknown-hermit/debug/rusty_demo
+    key: build
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit/debug/rusty_demo
   tags:
-  - privileged
+    - privileged
 
 release:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
+  cache:
+    paths:
+      - target/x86_64-unknown-hermit/debug/rusty_demo
+    key: build
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit/debug/rusty_demo
   tags:
-  - privileged
+    - privileged
