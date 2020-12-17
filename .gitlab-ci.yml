@@ -30,7 +30,7 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
-test:kvm
+test:kvm:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
@@ -38,7 +38,7 @@ test:kvm
   tags:
   - privileged
 
-test:uhyve_debug
+test:uhyve_debug:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
