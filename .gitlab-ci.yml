@@ -1,0 +1,39 @@
+stages:
+- prepare
+- build
+
+variables:
+  DOCKER_FILE: Dockerfile
+  DOCKER_TAG: latest
+  DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
+
+
+.prepare:docker: &prepare_docker
+  stage: prepare
+  image:
+    name: quay.io/buildah/stable
+  variables:
+    _BUILDAH_STARTED_IN_USERNS: ""
+    BUILDAH_ISOLATION: chroot
+    BUILDAH_LAYERS: "true"
+  before_script:
+  - buildah version
+  - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+  script:
+  - buildah bud -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+  - buildah push ${DOCKER_IMAGE}:${DOCKER_TAG} docker://${DOCKER_IMAGE}:${DOCKER_TAG}
+  after_script:
+  - buildah logout "${CI_REGISTRY}"
+  tags:
+  - builder
+
+prepare:docker:
+  <<: *prepare_docker
+
+test:
+  stage: build
+  image: ${CI_REGISTRY_IMAGE}
+  script:
+  - kvm-ok
+  tags:
+  - privileged
