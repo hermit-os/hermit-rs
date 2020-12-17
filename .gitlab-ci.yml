@@ -1,6 +1,7 @@
 stages:
 - prepare
 - build
+- test
 
 variables:
   DOCKER_FILE: Dockerfile
