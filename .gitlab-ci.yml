@@ -30,12 +30,6 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
-prepare:docker:eduos:
-  <<: *prepare_docker
-  variables:
-    DOCKER_FILE: Dockerfile.hermit
-    DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}/hermit
-
 test:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
