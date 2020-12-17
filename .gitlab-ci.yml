@@ -30,20 +30,26 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
-test:kvm:
-  stage: build
+test:
+  stage: test
   image: ${CI_REGISTRY_IMAGE}
   script:
   - kvm-ok
   tags:
   - privileged
 
-test:uhyve_debug:
+debug:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-  - cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-  - uhyve -v target/x86_64-unknown-hermit/debug/rusty_demo
-  - uhyve -v -c 2 target/x86_64-unknown-hermit/debug/rusty_demo
+  - cargo build --target x86_64-unknown-hermit
+  tags:
+  - privileged
+
+release:
+  stage: build
+  image: ${CI_REGISTRY_IMAGE}
+  script:
+  - RUSTFLAGS="-Clinker-plugin-lto" cargo build --target x86_64-unknown-hermit --release
   tags:
   - privileged
