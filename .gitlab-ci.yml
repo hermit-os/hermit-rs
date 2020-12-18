@@ -75,7 +75,7 @@ qemu:
    stage: test
    image: ${CI_REGISTRY_IMAGE}
    script:
-     - lspcu
+     - lscpu
      - cd loader
      - cargo build -Z build-std=core,alloc --build-std-features compiler-builtins-mem --target x86_64-unknown-hermit-loader.json
      - cargo build -Z build-std=core,alloc --build-std-features compiler-builtins-mem --target x86_64-unknown-hermit-loader.json --release
