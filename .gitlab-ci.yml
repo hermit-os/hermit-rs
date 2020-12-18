@@ -75,8 +75,8 @@ qemu:
    image: ${CI_REGISTRY_IMAGE}
    script:
      - cd loader
-     - cargo build -Z build-std=core,alloc --target x86_64-unknown-hermit-loader.json
-     - cargo build -Z build-std=core,alloc --target x86_64-unknown-hermit-loader.json --release
+     - cargo build -Z build-std=core,alloc --build-std-features compiler-builtins-mem --target x86_64-unknown-hermit-loader.json
+     - cargo build -Z build-std=core,alloc --build-std-features compiler-builtins-mem --target x86_64-unknown-hermit-loader.json --release
      - cd ..
      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu host -enable-kvm
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu host -enable-kvm
