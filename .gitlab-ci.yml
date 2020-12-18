@@ -44,8 +44,8 @@ build:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-    - cargo build
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
+    - cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem,compiler-builtins-asm --target x86_64-unknown-hermit
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem,compiler-builtins-asm --release
   cache:
     paths:
       - target
