@@ -1,4 +1,4 @@
-name: Build and test (KVM)
+name: Tests with KVM support
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    name: Test
+    name: Test 
     runs-on: [self-hosted]
     - name: Show OS infos
       run: |
