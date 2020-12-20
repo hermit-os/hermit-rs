@@ -1,0 +1,19 @@
+name: Build and test (KVM)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+  schedule:
+    - cron: '0 0 * * 6'
+
+jobs:
+  build:
+    name: Test
+    runs-on: [self-hosted]
+    - name: Show OS infos
+      run: |
+          uname -a
