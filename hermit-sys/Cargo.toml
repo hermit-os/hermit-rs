@@ -14,6 +14,7 @@ edition = "2018"
 documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
+default = ["fsgsbase"]
 # controlls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
 trace = []
