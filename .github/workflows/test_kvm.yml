@@ -18,6 +18,6 @@ jobs:
     - name: Show OS infos
       run: |
           uname -a
-    - name: Show KVM status
-      run: |
-          kvm-ok
+    #- name: Show KVM status
+    #  run: |
+    #      kvm-ok
