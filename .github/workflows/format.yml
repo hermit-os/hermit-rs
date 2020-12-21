@@ -2,6 +2,7 @@ name: Format check
 
 on:
   pull_request:
+     - master
   push:
     branches:
       - master
