@@ -48,10 +48,15 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.arg("--no-default-features");
 	cmd.arg("--features");
+  cmd.arg("pci,acpi");
+  #[cfg(feature = "smp")]
+  cmd.arg("--features");
 	#[cfg(feature = "smp")]
-	cmd.arg("pci,acpi,smp");
-	#[cfg(not(feature = "smp"))]
-	cmd.arg("pci,acpi");
+	cmd.arg("smp");
+	#[cfg(feature = "fsgs_base")]
+  cmd.arg("--features");
+  #[cfg(feature = "fsgs_base")]
+	cmd.arg("pci,acpi,fsgs_base");
 
 	#[cfg(feature = "instrument")]
 	cmd.env("RUSTFLAGS", "-Z instrument-mcount");

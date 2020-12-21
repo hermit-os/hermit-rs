@@ -18,6 +18,7 @@ default = ["smp"]
 # controlls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
 trace = []
+fsgsbase = []
 # only for internal usage, please don't use it
 with_submodule = []
 smp = []
