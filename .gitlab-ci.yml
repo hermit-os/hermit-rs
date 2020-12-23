@@ -36,8 +36,8 @@ build:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-    - cargo build
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build --release
+    - cargo build -p rusty_demo
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --release
   cache:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo

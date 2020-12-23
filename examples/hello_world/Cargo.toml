@@ -5,8 +5,10 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2018"
 publish = false
 
-[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
-hermit-sys = { path = "../../hermit-sys", default-features = false, features = ["with_submodule"] }
+[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
+path = "../../hermit-sys"
+default-features = false
+features = ["pci", "acpi", "with_submodule"]
 
 [profile.release]
 opt-level = 3
