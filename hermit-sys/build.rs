@@ -46,23 +46,41 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("--release");
 	}
 
+	// disable all default features
 	cmd.arg("--no-default-features");
-	cmd.arg("--features");
+
+	// do we have to enable PCI support?
+	#[cfg(feature = "pci")]
+	{
+		cmd.arg("--features");
+		cmd.arg("pci");
+	}
+
+	// do we have to enable acpi support?
+	#[cfg(feature = "acpi")]
+	{
+		cmd.arg("--features");
+		cmd.arg("acpi");
+	}
+
+	// do we have to enable FSGSBASE support
 	#[cfg(feature = "fsgs_base")]
-	cmd.arg("pci,acpi,fsgs_base");
-	#[cfg(not(feature = "fsgs_base"))]
-	cmd.arg("pci,acpi");
+	{
+		cmd.arg("--features");
+		cmd.arg("fsgs_base");
+	}
 
 	#[cfg(feature = "instrument")]
-	cmd.env("RUSTFLAGS", "-Z instrument-mcount");
-	// if instrument is not set, ensure that instrument is not in environment variables!
-	#[cfg(not(feature = "instrument"))]
-	cmd.env(
-		"RUSTFLAGS",
-		env::var("RUSTFLAGS")
-			.unwrap_or_else(|_| "".into())
-			.replace("-Z instrument-mcount", ""),
-	);
+	{
+		cmd.env("RUSTFLAGS", "-Z instrument-mcount");
+		// if instrument is not set, ensure that instrument is not in environment variables!
+		cmd.env(
+			"RUSTFLAGS",
+			env::var("RUSTFLAGS")
+				.unwrap_or_else(|_| "".into())
+				.replace("-Z instrument-mcount", ""),
+		);
+	}
 
 	let output = cmd.output().expect("Unable to build kernel");
 	let stdout = std::string::String::from_utf8(output.stdout);
