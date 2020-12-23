@@ -2,11 +2,13 @@
 members = [
     "hermit-abi",
     "hermit-sys",
+    "benches/netbench",
     "benches/micro",
     "examples/hello_world",
+    "examples/httpd",
     "examples/demo",
 ]
-exclude = ["target", "loader", "libhermit-rs", "benches/netbench", "examples/httpd"]
+exclude = ["target", "loader", "libhermit-rs"]
 
 [profile.release]
 opt-level = 3
