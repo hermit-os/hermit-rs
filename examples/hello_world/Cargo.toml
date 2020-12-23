@@ -8,13 +8,13 @@ publish = false
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["pci", "acpi", "with_submodule"]
+features = ["with_submodule"]
 
 [profile.release]
 opt-level = 3
 debug = false
 rpath = false
-lto = false
+lto = true
 debug-assertions = false
 
 [profile.dev]
