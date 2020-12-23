@@ -9,8 +9,10 @@ publish = false
 rayon = "1.5.0"
 num_cpus = "1.13"
 
-[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
-hermit-sys = { path = "../../hermit-sys", default-features = false, features = ["with_submodule"] }
+[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
+path = "../../hermit-sys"
+default-features = false
+features = ["pci", "acpi", "with_submodule"]
 
 [target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
 version = "0.*"
