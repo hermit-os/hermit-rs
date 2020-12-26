@@ -111,6 +111,7 @@ image:
    dependencies:
      - build:httpd
    image: ${CI_REGISTRY_IMAGE}
+   script:
      - cd loader
      - make release=1
    tags:
