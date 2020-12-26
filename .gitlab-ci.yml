@@ -112,6 +112,29 @@ create_image:
    script:
      - cd loader
      - make release=1
+     - cd ..
+     - qemu-img create -f qcow2 disk.qcow2 1G
+     - qemu-nbd -c /dev/nbd0 -f raw disk.qcow2
+     - echo ';' | sfdisk /dev/nbd0
+     - mkfs.ext2 /dev/nbd0p1
+     - mount /dev/nbd0p1 /mnt/
+     - grub-install --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/nbd0
+     - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
+     - cp loader/target/x86_64-unknown-hermit/release/rusty_loader /mnt/boot
+     - |
+       cat << EOF > /mnt/boot/grub.cfg
+         default=0
+         timeout=0
+
+         menuentry "httpd" {
+            multiboot /boot/rusty_loader -uart=io:0x3f8
+	        module /boot/httpd
+	        boot
+         }
+         EOF
+     - umount /mnt
+     - qemu-nbd -d /dev/nbd0
+     - ls -la
    tags:
      - privileged
    cache:
