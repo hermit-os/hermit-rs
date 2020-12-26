@@ -40,9 +40,8 @@ build_demo:
     - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --release
   cache:
     paths:
-      - target/x86_64-unknown-hermit/debug/rusty_demo
-      - target/x86_64-unknown-hermit/release/rusty_demo
-    key: build-cache-demo
+      - /root/.cargo/registry
+    key: build-cache
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo
@@ -56,9 +55,8 @@ build_httpd:
     - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --release
   cache:
     paths:
-      - target/x86_64-unknown-hermit/debug/httpd
-      - target/x86_64-unknown-hermit/release/httpd
-    key: build-cache-httpd
+      - /root/.cargo/registry
+    key: build-cache
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/httpd
@@ -79,10 +77,9 @@ uhyve:
    tags:
      - privileged
    cache:
-     key: build-cache-demo
+     key: build-cache
      paths:
-        - target/x86_64-unknown-hermit/debug/rusty_demo
-        - target/x86_64-unknown-hermit/release/rusty_demo
+        - /root/.cargo/registry
 
 qemu:
    stage: test
@@ -103,7 +100,6 @@ qemu:
    tags:
      - privileged
    cache:
-     key: build-cache-demo
+     key: build-cache
      paths:
-        - target/x86_64-unknown-hermit/debug/rusty_demo
-        - target/x86_64-unknown-hermit/release/rusty_demo
+        - /root/.cargo/registry
