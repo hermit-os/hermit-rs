@@ -70,7 +70,6 @@ uhyve:
    script:
      - lscpu
      - kvm-ok
-     - ls /dev
      - uhyve -v -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
      - uhyve -v -c 2 target/x86_64-unknown-hermit/debug/rusty_demo
      - uhyve -v -c 1 target/x86_64-unknown-hermit/release/rusty_demo
@@ -90,7 +89,6 @@ qemu:
    script:
      - lscpu
      - kvm-ok
-     - ls /dev
      - cd loader
      - make
      - make release=1
@@ -106,7 +104,7 @@ qemu:
      paths:
         - /root/.cargo/registry
 
-image:
+create_image:
    stage: test
    dependencies:
      - build:httpd
