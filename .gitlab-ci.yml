@@ -32,7 +32,7 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
-build_demo:
+build:demo:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
@@ -47,7 +47,7 @@ build_demo:
       - target/x86_64-unknown-hermit/debug/rusty_demo
       - target/x86_64-unknown-hermit/release/rusty_demo
 
-build_httpd:
+build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
@@ -64,7 +64,8 @@ build_httpd:
 
 uhyve:
    stage: test
-   needs: [build_demo]
+   dependencies:
+     - build:demo
    image: ${CI_REGISTRY_IMAGE}
    script:
      - lscpu
@@ -83,7 +84,8 @@ uhyve:
 
 qemu:
    stage: test
-   needs: [build_demo]
+   dependencies:
+     - build:demo
    image: ${CI_REGISTRY_IMAGE}
    script:
      - lscpu
@@ -97,6 +99,20 @@ qemu:
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu host -enable-kvm
      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu host -enable-kvm
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu host -enable-kvm
+   tags:
+     - privileged
+   cache:
+     key: build-cache
+     paths:
+        - /root/.cargo/registry
+
+image:
+   stage: test
+   dependencies:
+     - build:httpd
+   image: ${CI_REGISTRY_IMAGE}
+     - cd loader
+     - make release=1
    tags:
      - privileged
    cache:
