@@ -117,6 +117,7 @@ test:image:
      - qemu-nbd -c /dev/nbd0 -f raw disk.raw
      - echo ';' | sfdisk /dev/nbd0
      - mknod -m 660 /dev/nbd0p1 b 43 1
+     - chown root:disk /dev/nbd0p1
      - ls -la /dev
      - mkfs.ext2 /dev/nbd0p1
      - mount /dev/nbd0p1 /mnt/
