@@ -122,16 +122,15 @@ create_image:
      - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
      - cp loader/target/x86_64-unknown-hermit/release/rusty_loader /mnt/boot
      - |
-       cat << EOF > /mnt/boot/grub.cfg
-         default=0
-         timeout=0
-
-         menuentry "httpd" {
-            multiboot /boot/rusty_loader -uart=io:0x3f8
-	        module /boot/httpd
-	        boot
-         }
-         EOF
+       cat > /mnt/boot/grub.cfg << EOF
+       default=0
+       timeout=0
+       menuentry "httpd" {
+         multiboot /boot/rusty_loader -uart=io:0x3f8
+	     module /boot/httpd
+	     boot
+       }
+       EOF
      - umount /mnt
      - qemu-nbd -d /dev/nbd0
      - ls -la
