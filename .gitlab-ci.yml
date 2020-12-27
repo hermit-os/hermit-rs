@@ -121,7 +121,7 @@ test:image:
      - mknod /dev/nbd0p1 b 43 1
      - mkfs.ext2 /dev/nbd0p1
      - mount /dev/nbd0p1 /mnt/
-     - grub-install --verbose --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/nbd0
+     - grub-install --verbose --recheck --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/nbd0
      - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
      - cp loader/target/x86_64-unknown-hermit/release/rusty_loader /mnt/boot
      - |
