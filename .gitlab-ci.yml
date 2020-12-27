@@ -115,8 +115,8 @@ test:image:
      - cd loader
      - make release=1
      - cd ..
-     - qemu-img create -f qcow2 disk.qcow2 1G
-     - qemu-nbd -c /dev/nbd0 -f qcow2 disk.qcow2
+     - qemu-img create -f raw disk.raw 256M
+     - qemu-nbd -c /dev/nbd0 -f raw disk.raw
      - echo ';' | sfdisk /dev/nbd0
      - mknod /dev/nbd0p1 b 43 1
      - mkfs.ext2 /dev/nbd0p1
@@ -140,7 +140,7 @@ test:image:
      - privileged
    artifacts:
     paths:
-      - disk.qcow2
+      - disk.raw
    cache:
      key: cargo-cache
      paths:
