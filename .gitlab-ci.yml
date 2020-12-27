@@ -10,7 +10,6 @@ variables:
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
   GIT_SUBMODULE_STRATEGY: normal
 
-
 .prepare:docker: &prepare_docker
   stage: prepare
   image:
@@ -104,7 +103,6 @@ test:qemu:
      key: cargo-cache
      paths:
         - /root/.cargo
-     policy: pull
 
 test:image:
    stage: test
