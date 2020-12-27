@@ -2,6 +2,7 @@ stages:
 - prepare
 - build
 - test
+- deploy
 
 variables:
   DOCKER_FILE: Dockerfile
@@ -62,7 +63,7 @@ build:httpd:
       - target/x86_64-unknown-hermit/debug/httpd
       - target/x86_64-unknown-hermit/release/httpd
 
-uhyve:
+test:uhyve:
    stage: test
    dependencies:
      - build:demo
@@ -81,7 +82,7 @@ uhyve:
      paths:
         - /root/.cargo/registry
 
-qemu:
+test:qemu:
    stage: test
    dependencies:
      - build:demo
@@ -104,7 +105,7 @@ qemu:
      paths:
         - /root/.cargo/registry
 
-create_image:
+test:image:
    stage: test
    dependencies:
      - build:httpd
@@ -114,7 +115,7 @@ create_image:
      - make release=1
      - cd ..
      - qemu-img create -f qcow2 disk.qcow2 1G
-     - qemu-nbd -c /dev/nbd0 -f raw disk.qcow2
+     - qemu-nbd -c /dev/nbd0 -f qcow2 disk.qcow2
      - echo ';' | sfdisk /dev/nbd0
      - mkfs.ext2 /dev/nbd0p1
      - mount /dev/nbd0p1 /mnt/
@@ -136,7 +137,28 @@ create_image:
      - ls -la
    tags:
      - privileged
+   artifacts:
+    paths:
+      - disk.qcow2
    cache:
      key: build-cache
      paths:
         - /root/.cargo/registry
+
+deploy:image:
+  stage: deploy
+  dependencies:
+    - test:image
+  variables:
+    KUBECONFIG: /root/.kube/config
+  environment:
+    name: production
+  image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
+  before_script:
+    - mkdir -p $(dirname ${KUBECONFIG})
+    - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
+    - kubectl cluster-info
+    - kubectl version
+    - helm version
+  script:
+    - echo -n "Hello"
