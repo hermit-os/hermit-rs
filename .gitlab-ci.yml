@@ -117,6 +117,7 @@ test:image:
      - qemu-img create -f qcow2 disk.qcow2 1G
      - qemu-nbd -c /dev/nbd0 -f qcow2 disk.qcow2
      - echo ';' | sfdisk /dev/nbd0
+     - mknod /dev/nbd0p1 b 43 1
      - mkfs.ext2 /dev/nbd0p1
      - mount /dev/nbd0p1 /mnt/
      - grub-install --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/nbd0
