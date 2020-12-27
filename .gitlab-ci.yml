@@ -127,8 +127,8 @@ create_image:
        timeout=0
        menuentry "httpd" {
          multiboot /boot/rusty_loader -uart=io:0x3f8
-	     module /boot/httpd
-	     boot
+         module /boot/httpd
+         boot
        }
        EOF
      - umount /mnt
