@@ -163,3 +163,6 @@ deploy:image:
     - helm version
   script:
     - echo -n "Hello"
+  only:
+    refs:
+      - master
