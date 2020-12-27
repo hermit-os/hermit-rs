@@ -141,7 +141,10 @@ test:image:
    artifacts:
     paths:
       - disk.qcow2
-   cache: {}
+   key: cargo-cache
+     paths:
+        - /root/.cargo
+     policy: pull
 
 deploy:image:
   stage: deploy
