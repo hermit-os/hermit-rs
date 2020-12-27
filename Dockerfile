@@ -3,7 +3,7 @@ FROM ubuntu:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get -y install cpu-checker util-linux apt-transport-https curl wget binutils build-essential gcc libtool bsdmainutils pkg-config libssl-dev git qemu-kvm qemu-system-x86 nasm seabios qemu-utils fdisk nbdkit nbdfuse
+    apt-get -y install cpu-checker util-linux apt-transport-https curl wget binutils build-essential gcc libtool bsdmainutils pkg-config libssl-dev git qemu-kvm qemu-system-x86 nasm seabios qemu-utils fdisk grub-pc
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly --profile minimal
