@@ -146,6 +146,9 @@ test:image:
      paths:
         - /root/.cargo
      policy: pull
+  only:
+    refs:
+      - master
 
 deploy:image:
   stage: deploy
