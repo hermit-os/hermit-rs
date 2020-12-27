@@ -41,7 +41,7 @@ build:demo:
     - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --release
   cache:
     paths:
-      - /root/.cargo/registry
+      - /root/.cargo
     key: build-cache
   artifacts:
     paths:
@@ -56,7 +56,7 @@ build:httpd:
     - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --release
   cache:
     paths:
-      - /root/.cargo/registry
+      - /root/.cargo
     key: build-cache
   artifacts:
     paths:
@@ -80,7 +80,7 @@ test:uhyve:
    cache:
      key: build-cache
      paths:
-        - /root/.cargo/registry
+        - /root/.cargo
 
 test:qemu:
    stage: test
@@ -103,7 +103,7 @@ test:qemu:
    cache:
      key: build-cache
      paths:
-        - /root/.cargo/registry
+        - /root/.cargo
 
 test:image:
    stage: test
@@ -144,7 +144,7 @@ test:image:
    cache:
      key: build-cache
      paths:
-        - /root/.cargo/registry
+        - /root/.cargo
 
 deploy:image:
   stage: deploy
