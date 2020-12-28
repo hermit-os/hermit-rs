@@ -104,7 +104,7 @@ test:image:
      - cd ..
      - dd if=/dev/zero of=disk.img bs=1k count=1M
      - echo ';' | sfdisk disk.img
-     - mkfs.ext2 disk.img
+     - mkfs.ext2 -F -E offset=1048576 disk.img
      - kpartx -a -v disk.raw
      - ls -l /dev/mapper
      - mount /dev/mapper/loop0p1 /mnt/
