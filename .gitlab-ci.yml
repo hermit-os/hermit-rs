@@ -99,6 +99,7 @@ test:image:
      - echo ';' | sfdisk disk.img
      - mkfs.ext2 -F -E offset=1048576 disk.img
      - kpartx -a -v disk.img
+     - losetup -j ${PWD}/disk.img | awk '{sub/:/,"",$1); print $1}'
      - ls -l /dev/mapper
      - mount /dev/mapper/loop0p1 /mnt/
      - grub-install --recheck --target=i386-pc --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/loop0
