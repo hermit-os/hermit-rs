@@ -127,26 +127,26 @@ test:image:
      refs:
         - master
 
-# deploy:image:
-#   stage: deploy
-#   dependencies:
-#     - test:image
-#   variables:
-#     KUBECONFIG: /root/.kube/config
-#   environment:
-#     name: production
-#   image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
-#   before_script:
-#     - mkdir -p $(dirname ${KUBECONFIG})
-#     - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
-#     - kubectl cluster-info
-#     - kubectl version
-#     - helm version
-#   script:
-#     - echo -n "Hello"
-#   only:
-#     refs:
-#       - master
+deploy:image:
+  stage: deploy
+  dependencies:
+    - test:image
+  variables:
+    KUBECONFIG: /root/.kube/config
+  environment:
+    name: production
+  image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
+  before_script:
+    - mkdir -p $(dirname ${KUBECONFIG})
+    - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
+    - kubectl cluster-info
+    - kubectl version
+    - helm version
+  script:
+    - echo -n "Hello"
+  only:
+    refs:
+      - master
 
 # deploy:docker:
 #   stage: deploy
