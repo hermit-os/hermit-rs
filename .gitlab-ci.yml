@@ -105,7 +105,7 @@ test:image:
      - dd if=/dev/zero of=disk.img bs=1k count=1M
      - echo ';' | sfdisk disk.img
      - mkfs.ext2 -F -E offset=1048576 disk.img
-     - kpartx -a -v disk.raw
+     - kpartx -a -v disk.img
      - ls -l /dev/mapper
      - mount /dev/mapper/loop0p1 /mnt/
      - grub-install --recheck --target=i386-pc --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/mapper/loop0
@@ -123,11 +123,12 @@ test:image:
        EOF
      - umount /mnt
      - kpartx -d disk.img
+     - gzip -9 disk.img
    tags:
      - privileged
    artifacts:
     paths:
-      - disk.img
+      - disk.img.gz
    only:
      refs:
         - master
