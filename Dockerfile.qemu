@@ -18,4 +18,4 @@ RUN chmod a+r /home/$USER/*
 EXPOSE 9975
 USER $USER
 
-ENTRYPOINT ["qemu-system-x86_64", "-cpu", "qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand", "-display", "none", "-smp", "1", "-m", "256", "-serial", "stdio", "-kernel", "/home/hermit/rusty-loader", "-netdev", "tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=off", "-device", "virtio-net-pci,netdev=net0,disable-legacy=on", "-initrd", "/home/hermit/httpd"]
+ENTRYPOINT ["qemu-system-x86_64", "-cpu", "host", "-enable-kvm" "-display", "none", "-smp", "1", "-m", "256", "-serial", "stdio", "-kernel", "/home/hermit/rusty-loader", "-netdev", "tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=off", "-device", "virtio-net-pci,netdev=net0,disable-legacy=on", "-initrd", "/home/hermit/httpd"]
