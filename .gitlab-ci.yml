@@ -100,8 +100,9 @@ test:image:
      - mkfs.ext2 -F -E offset=1048576 disk.img
      - kpartx -a -v disk.img
      - LOOP_DEVICE=$(losetup -j ${PWD}/disk.img | awk '{sub(/:/,"",$1); print $1}')
+     - LOOP_NAME=$(basename ${LOOP_DEVICE})
      - ls -l /dev/mapper
-     - mount ${LOOP_DEVICE}p1 /mnt/
+     - mount /dev/mapper/${LOOP_NAME}p1 /mnt/
      - grub-install --recheck --target=i386-pc --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" ${LOOP_DEVICE}
      - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
      - cp loader/target/x86_64-unknown-hermit/release/rusty_loader /mnt/boot
