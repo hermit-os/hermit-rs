@@ -175,6 +175,6 @@ deploy:docker:
   tags:
     - builder
   cache: {}
-  onyl:
+  only:
     refs:
       - master
