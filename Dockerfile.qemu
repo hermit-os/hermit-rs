@@ -1,0 +1,21 @@
+FROM ubuntu:latest
+
+RUN apt-get update && \
+    apt-get -y install qemu-kvm qemu-system-x86 seabios iproute2 && \
+    apt-get clean
+
+RUN ip tuntap add tap10 mode tap
+RUN ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
+RUN ip link set dev tap10 up
+
+# add user for our web service
+ENV USER=hermit
+RUN useradd -ms /bin/bash $USER
+COPY target/x86_64-unknown-hermit/release/httpd /home/$USER/
+COPY loader/target/x86_64-unknown-hermit/release/rusty_loader /home/$USER/
+RUN chmod a+r /home/$USER/*
+
+EXPOSE 9975
+USER $USER
+
+ENTRYPOINT ["qemu-system-x86_64", "-cpu", "qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand", "-display", "none", "-smp", "1", "-m", "256", "-serial", "stdio", "-kernel", "/home/hermit/rusty-loader", "-netdev", "tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=off", "-device", "virtio-net-pci,netdev=net0,disable-legacy=on", "-initrd", "/home/hermit/httpd"]
