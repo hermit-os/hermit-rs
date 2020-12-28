@@ -102,15 +102,13 @@ test:image:
      - cd loader
      - make release=1
      - cd ..
-     - qemu-img create -f raw disk.raw 256M
-     - qemu-nbd -c /dev/nbd0 -f raw disk.raw
-     - echo ';' | sfdisk /dev/nbd0
-     - mknod -m 660 /dev/nbd0p1 b 43 1
-     - chown root:disk /dev/nbd0p1
-     - ls -la /dev
-     - mkfs.ext2 /dev/nbd0p1
-     - mount /dev/nbd0p1 /mnt/
-     - grub-install --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/nbd0
+     - dd if=/dev/zero of=disk.img bs=1k count=1M
+     - echo ';' | sfdisk disk.img
+     - mkfs.ext2 disk.img
+     - kpartx -a -v disk.raw
+     - ls -l /dev/mapper
+     - mount /dev/mapper/loop0p1 /mnt/
+     - grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" /dev/mapper/loop0
      - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
      - cp loader/target/x86_64-unknown-hermit/release/rusty_loader /mnt/boot
      - |
@@ -124,12 +122,12 @@ test:image:
        }
        EOF
      - umount /mnt
-     - qemu-nbd -d /dev/nbd0
+     - kpartx -d disk.img
    tags:
      - privileged
    artifacts:
     paths:
-      - disk.raw
+      - disk.img
    only:
      refs:
         - master
