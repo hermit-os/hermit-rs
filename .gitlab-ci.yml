@@ -10,12 +10,6 @@ variables:
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
   GIT_SUBMODULE_STRATEGY: normal
 
-# This folder is cached between builds
-# http://docs.gitlab.com/ee/ci/yaml/README.html#cache
-cache:
-  paths:
-    - /root/.cargo/
-
 .prepare:docker: &prepare_docker
   stage: prepare
   image:
@@ -34,7 +28,6 @@ cache:
   - buildah logout "${CI_REGISTRY}"
   tags:
   - builder
-  cache: {}
 
 prepare:docker:
   <<: *prepare_docker
@@ -150,7 +143,6 @@ deploy:image:
     - helm version
   script:
     - echo -n "Hello"
-  cache: {}
   only:
     refs:
       - master
@@ -175,7 +167,6 @@ deploy:docker:
     - buildah logout "${CI_REGISTRY}"
   tags:
     - builder
-  cache: {}
   only:
     refs:
       - master
