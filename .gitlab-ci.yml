@@ -133,7 +133,7 @@ deploy:image:
     - test:image
   variables:
     KUBECONFIG: /root/.kube/config
-    KUBEVIRT_VERSION: v0.35.0
+    KUBEVIRT_VERSION: v0.36.0
   environment:
     name: production
   image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
@@ -143,7 +143,7 @@ deploy:image:
     - kubectl cluster-info
     - kubectl version
     - helm version
-    - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-x86_64
+    - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64
     - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-x86_64
     - mv virtctl-${KUBEVIRT_VERSION}-linux-x86_64 /usr/bin/virtctl
   script:
