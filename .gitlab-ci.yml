@@ -144,8 +144,8 @@ deploy:image:
     - kubectl version
     - helm version
     - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64
-    - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-x86_64
-    - mv virtctl-${KUBEVIRT_VERSION}-linux-x86_64 /usr/bin/virtctl
+    - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
+    - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
   script:
     - echo -n "Hello"
   only:
