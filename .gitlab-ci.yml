@@ -133,7 +133,7 @@ deploy:image:
     - test:image
   variables:
     KUBECONFIG: /root/.kube/config
-    KUBEVIRT_VERSION: v0.36.0
+    KUBEVIRT_VERSION: v0.35.0
   environment:
     name: production
   image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
