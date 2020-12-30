@@ -42,7 +42,7 @@ jobs:
          rust-version: ${{ matrix.rust }}
          components: ${{ matrix.components || '' }}
          targets: ${{ matrix.targets || '' }}
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
          submodules: true
     - name: Check Cargo availability
