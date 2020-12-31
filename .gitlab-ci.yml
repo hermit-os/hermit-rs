@@ -96,7 +96,7 @@ test:image:
      - make release=1
      - cd ..
      - dd if=/dev/zero of=disk.img bs=1k count=1M
-     - echo ';' | sfdisk disk.img
+     - echo ',,,*;' | sfdisk disk.img
      - mkfs.ext2 -F -E offset=1048576 disk.img
      - kpartx -a -v disk.img
      - LOOP_DEVICE=$(losetup -j ${PWD}/disk.img | awk '{sub(/:/,"",$1); print $1}')
