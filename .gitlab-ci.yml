@@ -2,13 +2,13 @@ stages:
 - prepare
 - build
 - test
+- deploy
 
 variables:
   DOCKER_FILE: Dockerfile
   DOCKER_TAG: latest
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
   GIT_SUBMODULE_STRATEGY: normal
-
 
 .prepare:docker: &prepare_docker
   stage: prepare
@@ -32,24 +32,30 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
-build:
+build:demo:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
     - cargo build -p rusty_demo
     - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --release
-  cache:
-    paths:
-      - target/x86_64-unknown-hermit/debug/rusty_demo
-      - target/x86_64-unknown-hermit/release/rusty_demo
-    key: build-cache
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo
       - target/x86_64-unknown-hermit/release/rusty_demo
 
-uhyve:
+build:httpd:
+  stage: build
+  image: ${CI_REGISTRY_IMAGE}
+  script:
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --release
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit/release/httpd
+
+test:uhyve:
    stage: test
+   dependencies:
+     - build:demo
    image: ${CI_REGISTRY_IMAGE}
    script:
      - lscpu
@@ -60,14 +66,11 @@ uhyve:
      - uhyve -v -c 2 target/x86_64-unknown-hermit/release/rusty_demo
    tags:
      - privileged
-   cache:
-     key: build-cache
-     paths:
-        - target/x86_64-unknown-hermit/debug/rusty_demo
-        - target/x86_64-unknown-hermit/release/rusty_demo
 
-qemu:
+test:qemu:
    stage: test
+   dependencies:
+     - build:demo
    image: ${CI_REGISTRY_IMAGE}
    script:
      - lscpu
@@ -82,8 +85,93 @@ qemu:
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu host -enable-kvm
    tags:
      - privileged
-   cache:
-     key: build-cache
-     paths:
-        - target/x86_64-unknown-hermit/debug/rusty_demo
-        - target/x86_64-unknown-hermit/release/rusty_demo
+
+test:image:
+   stage: test
+   dependencies:
+     - build:httpd
+   image: ${CI_REGISTRY_IMAGE}
+   script:
+     - cd loader
+     - make release=1
+     - cd ..
+     - dd if=/dev/zero of=disk.img bs=1k count=1M
+     - echo ',,,*;' | sfdisk disk.img
+     - mkfs.ext2 -F -E offset=1048576 disk.img
+     - kpartx -a -v disk.img
+     - LOOP_DEVICE=$(losetup -j ${PWD}/disk.img | awk '{sub(/:/,"",$1); print $1}')
+     - LOOP_NAME=$(basename ${LOOP_DEVICE})
+     - mount /dev/mapper/${LOOP_NAME}p1 /mnt/
+     - grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" ${LOOP_DEVICE}
+     - cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
+     - cp loader/target/x86_64-unknown-hermit-loader/release/rusty-loader /mnt/boot/loader
+     - |
+       cat > /mnt/boot/grub/grub.cfg << EOF
+       default=0
+       timeout=0
+       menuentry "httpd" {
+         multiboot --quirk-bad-kludge /boot/loader
+         module /boot/httpd
+         boot
+       }
+       EOF
+     - umount /mnt
+     - kpartx -d disk.img
+     - gzip -9 disk.img
+   tags:
+     - privileged
+   artifacts:
+    paths:
+      - disk.img.gz
+   only:
+     refs:
+        - master
+
+deploy:image:
+  stage: deploy
+  dependencies:
+    - test:image
+  variables:
+    KUBECONFIG: /root/.kube/config
+    KUBEVIRT_VERSION: v0.36.0
+  environment:
+    name: production
+  image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
+  before_script:
+    - mkdir -p $(dirname ${KUBECONFIG})
+    - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
+    - kubectl cluster-info
+    - kubectl version
+    - helm version
+    - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64
+    - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
+    - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
+  script:
+    - echo -n "Hello"
+  only:
+    refs:
+      - master
+
+# deploy:docker:
+#   stage: deploy
+#   dependencies:
+#     - build:httpd
+#   image:
+#     name: quay.io/buildah/stable
+#   variables:
+#     _BUILDAH_STARTED_IN_USERNS: ""
+#     BUILDAH_ISOLATION: chroot
+#     BUILDAH_LAYERS: "true"
+#   before_script:
+#     - buildah version
+#     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+#   script:
+#     - buildah bud -f Dockerfile.qemu -t httpd:latest .
+#     - buildah push httpd:latest docker://httpd:latest
+#   after_script:
+#     - buildah logout "${CI_REGISTRY}"
+#   tags:
+#     - builder
+#   only:
+#     refs:
+#       - master

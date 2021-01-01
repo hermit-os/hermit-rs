@@ -14,7 +14,7 @@ features = ["pci", "acpi", "smp", "with_submodule"]
 opt-level = 3
 debug = false
 rpath = false
-lto = false
+lto = true
 debug-assertions = false
 
 [profile.dev]

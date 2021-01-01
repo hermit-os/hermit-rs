@@ -31,6 +31,6 @@ jobs:
           components: ${{ matrix.components || '' }}
           targets: ${{ matrix.targets || '' }}
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Check Formatting
         run: cargo fmt -- --check
