@@ -110,7 +110,7 @@ test:image:
        default=0
        timeout=0
        menuentry "httpd" {
-         multiboot /boot/loader -uart=io:0x3f8
+         multiboot --quirk-bad-kludge /boot/loader
          module /boot/httpd
          boot
        }
