@@ -215,12 +215,16 @@ fn memset_rust(n: usize) {
 pub fn bench_mem() -> Result<(), ()> {
 	memcpy_builtin(4096);
 	memcpy_builtin(1048576);
+	memcpy_builtin(16 * 1048576);
 	memset_builtin(4096);
 	memset_builtin(1048576);
+	memset_builtin(16 * 1048576);
 	memcpy_rust(4096);
 	memcpy_rust(1048576);
+	memcpy_rust(16 * 1048576);
 	memset_rust(4096);
 	memset_rust(1048576);
+	memset_rust(16 * 1048576);
 
 	Ok(())
 }
