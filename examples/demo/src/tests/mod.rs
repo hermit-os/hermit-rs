@@ -1,5 +1,6 @@
 #[cfg(target_arch = "aarch64")]
 use aarch64::regs::*;
+use rayon::prelude::*;
 use std::env;
 use std::f64::consts::{E, PI};
 use std::fs::File;
@@ -18,45 +19,26 @@ mod matmul;
 
 pub use matmul::test_matmul_strassen;
 
-#[cfg(target_arch = "x86_64")]
-#[inline]
-fn get_timestamp() -> u64 {
-	unsafe {
-		let mut _aux = 0;
-		let value = core::arch::x86_64::__rdtscp(&mut _aux);
-		core::arch::x86_64::_mm_lfence();
-		value
-	}
-}
-
-#[cfg(target_arch = "aarch64")]
-#[inline]
-fn get_timestamp() -> u64 {
-	CNTPCT_EL0.get()
-}
-
 pub fn thread_creation() -> Result<(), ()> {
 	const N: usize = 10;
 
 	// cache warmup
-	let _ = get_timestamp();
 	{
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
 
-	let start = get_timestamp();
+	let now = Instant::now();
 	for _ in 0..N {
 		let builder = thread::Builder::new();
 		let child = builder.spawn(|| {}).unwrap();
 		let _ = child.join();
 	}
-	let end = get_timestamp();
 
 	println!(
-		"Time to create and to join a thread: {} ticks",
-		(end - start) / N as u64
+		"Time to create and to join a thread: {} ms",
+		now.elapsed().as_secs_f64() * 1000.0f64 / f64::from(N as i32)
 	);
 
 	Ok(())
@@ -81,33 +63,26 @@ pub fn pi_sequential(num_steps: u64) -> Result<(), ()> {
 	}
 }
 
-pub fn pi_parallel(nthreads: u64, num_steps: u64) -> Result<(), ()> {
+pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
 	let step = 1.0 / num_steps as f64;
-	let mut sum = 0.0 as f64;
 
-	let threads: Vec<_> = (0..nthreads)
-		.map(|tid| {
-			thread::spawn(move || {
-				let mut partial_sum = 0 as f64;
-				let start = (num_steps / nthreads) * tid;
-				let end = (num_steps / nthreads) * (tid + 1);
-
-				for i in start..end {
-					let x = (i as f64 + 0.5) * step;
-					partial_sum += 4.0 / (1.0 + x * x);
-				}
-
-				partial_sum
+	let sum: f64 = pool.install(|| {
+		(0..num_steps)
+			.into_par_iter()
+			.map(|i| {
+				let x = (i as f64 + 0.5) * step;
+				4.0 / (1.0 + x * x)
 			})
-		})
-		.collect();
-
-	for t in threads {
-		sum += t.join().unwrap();
-	}
+			.sum()
+	});
 
 	let mypi = sum * (1.0 / num_steps as f64);
-	println!("Pi: {} (with {} threads)", mypi, nthreads);
+	println!("Pi: {} (with {} threads)", mypi, ncpus);
 
 	if (mypi - PI).abs() < 0.00001 {
 		Ok(())
@@ -128,19 +103,19 @@ pub fn read_file() -> Result<(), std::io::Error> {
 
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
-		let mut file = File::create("/tmp/foo.txt")?;
+		let mut file = File::create("foo.txt")?;
 		file.write_all(b"Hello, world!")?;
 	}
 
 	let contents = {
-		let mut file = File::open("/tmp/foo.txt")?;
+		let mut file = File::open("foo.txt")?;
 		let mut contents = String::new();
 		file.read_to_string(&mut contents)?;
 		contents
 	};
 
 	// delete temporary file
-	std::fs::remove_file("/tmp/foo.txt")?;
+	std::fs::remove_file("foo.txt")?;
 
 	if contents == "Hello, world!" {
 		Ok(())
@@ -190,7 +165,7 @@ pub fn hello() -> Result<(), ()> {
 }
 
 pub fn arithmetic() -> Result<(), ()> {
-	let x = (get_timestamp() % 10) as f64 * 3.41f64;
+	let x = ((std::thread::current().id().as_u64().get() * 3) % 10) as f64 * 3.41f64;
 	let y: f64 = x.exp();
 	let z: f64 = y.log(E);
 
@@ -219,10 +194,15 @@ pub fn threading() -> Result<(), ()> {
 }
 
 pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
 	let matrix = matrix_setup(size_x, size_y);
 
 	let now = Instant::now();
-	let (iterations, res) = laplace::compute(matrix, size_x, size_y);
+	let (iterations, res) = pool.install(|| laplace::compute(matrix, size_x, size_y));
 	println!(
 		"Time to solve {} s, iterations {}, residuum {}",
 		now.elapsed().as_secs_f64(),

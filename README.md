@@ -2,8 +2,6 @@
 
 # RustyHermit - A Rust-based, lightweight unikernel
 
-[![Build Status](https://travis-ci.com/hermitcore/rusty-hermit.svg?branch=master)](https://travis-ci.com/hermitcore/rusty-hermit)
-![Actions Status](https://github.com/hermitcore/rusty-hermit/workflows/Test/badge.svg)
 [![Slack Status](https://matrix.osbyexample.com:3008/badge.svg)](https://matrix.osbyexample.com:3008)
 
 [RustyHermit](http://www.hermitcore.org) is a [unikernel](http://unikernel.org) targeting a scalable and predictable runtime for high-performance and cloud computing.
@@ -92,7 +90,7 @@ fn main() {
 The final step is building the application as follows:
 
 ```sh
-cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
 ```
 (You can set an easy alias for this in the `.cargo/config` file. Take a look at the [demo](https://github.com/hermitcore/rusty-demo/blob/master/.cargo/config))
 
@@ -114,7 +112,7 @@ cargo install uhyve
 Afterwards, your are able to start RustyHermit applications within our hypervisor:
 
 ```sh
-uhyve target/x86_64-unknown-hermit/debug/rusty_demo
+uhyve target/x86_64-unknown-hermit/debug/hello_world
 ```
 
 More details can be found in the [uhyve README](https://github.com/hermitcore/uhyve).
@@ -226,26 +224,6 @@ $ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr \
         -device virtio-net-pci,netdev=net0,disable-legacy=on
 ```
 
-### Using virtio-fs
-
-The Kernel has rudimentary support for the virtio-fs shared file system. Currently only files, no folders are supported. To use it, you have to run a virtio-fs daemon and start qemu as described in [Standalone virtio-fs usage](https://virtio-fs.gitlab.io/howto-qemu.html):
-
-```bash
-# start virtiofsd in the background
-$ sudo virtiofsd --thread-pool-size=1 --socket-path=/tmp/vhostqemu -o source=$(pwd)/SHARED_DIRECTORY
-# give non-root-users access to the socket
-$ sudo chmod 777 /tmp/vhostqemu
-# start qemu with virtio-fs device.
-# you might want to change the socket (/tmp/vhostqemu) and virtiofs tag (currently myfs)
-$ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr -enable-kvm -display none -smp 1 -m 1G -serial stdio \
-        -kernel path_to_loader/rusty-loader \
-        -initrd path_to_app/app \
-        -chardev socket,id=char0,path=/tmp/vhostqemu \
-        -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs \
-        -object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on \
-        -numa node,memdev=mem
-```
-
 You can now access the files in SHARED_DIRECTORY under the virtiofs tag like `/myfs/testfile`.
 
 
@@ -260,21 +238,9 @@ If you are interested to build C/C++, Go, and Fortran applications on top of a R
 * Virtio support (partly available)
 * Network support (partly available)
 
-## Troubleshooting
+## Wiki
 
-### command failed with the error message `linker `rust-lld` not found`
-
-The path to the *llvm-tools* is not set.
-On Linux, it is typically installed at *${HOME}/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin*.
-```sh
-PATH=${HOME}/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin:$PATH cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-```
-Otherwise, the linker can be replaced by *lld* as follows:
-
-```sh
-RUSTFLAGS="-C linker=lld" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-```
-
+Please use the [Wiki](https://github.com/hermitcore/rusty-hermit/wiki) to get further information and configuration options.
 
 ## Credits
 

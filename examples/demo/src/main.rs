@@ -7,9 +7,11 @@
 
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![feature(thread_id_value)]
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
+extern crate num_cpus;
 extern crate rayon;
 #[cfg(target_os = "linux")]
 #[macro_use]
@@ -66,7 +68,7 @@ fn main() {
 	println!(
 		"Test {} ... {}",
 		stringify!(pi_parallel),
-		test_result(pi_parallel(2, 5000000))
+		test_result(pi_parallel(5000000))
 	);
 	println!(
 		"Test {} ... {}",
