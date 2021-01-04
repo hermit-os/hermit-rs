@@ -7,7 +7,7 @@ extern crate rust_tcp_io_perf;
 
 use rust_tcp_io_perf::config;
 use rust_tcp_io_perf::connection;
-use std::io::Write;
+use std::io::{self, Write};
 
 fn main() {
 	let args = config::parse_config();
@@ -24,9 +24,15 @@ fn main() {
 		let buf = vec![0; n_bytes];
 
 		for _i in 0..n_rounds {
-			match stream.write_all(&buf) {
-				Ok(_) => {}
-				Err(err) => panic!("crazy stuff happened while sending {}", err),
+			let mut pos = 0;
+
+			while pos < buf.len() {
+				let bytes_written = match stream.write(&buf[pos..]) {
+					Ok(len) => len,
+					Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => 0,
+					Err(e) => panic!("encountered IO error: {}", e),
+				};
+				pos += bytes_written;
 			}
 		}
 		stream.flush().expect("Unexpected behaviour");
