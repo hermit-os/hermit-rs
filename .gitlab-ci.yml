@@ -148,7 +148,7 @@ deploy:image:
     - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
   script:
     - gzip -d disk.img.gz
-    - virtctl image-upload dv httpd --no-create --image-path=./disk.img
+    #- virtctl image-upload dv httpd --no-create --image-path=./disk.img --uploadproxy-url=https://cdi-uploadproxy.k8s.eonerc.rwth-aachen.de
   only:
     refs:
       - master
