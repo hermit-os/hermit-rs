@@ -13,8 +13,10 @@ clap = "2"
 core_affinity = "0.5.10"
 hdrhist = "^0.5.0"
 
-[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies]
-hermit-sys = { path = "../../hermit-sys", default-features = false, features = ["smoltcp", "with_submodule"]}
+[target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
+path = "../../hermit-sys"
+default-features = false
+features = ["pci", "acpi", "smoltcp", "with_submodule"]
 
 [features]
 default = ["smp"]
