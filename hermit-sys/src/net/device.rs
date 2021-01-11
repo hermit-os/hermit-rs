@@ -20,8 +20,8 @@ extern "Rust" {
 	fn sys_get_mtu() -> Result<u16, ()>;
 	fn sys_get_tx_buffer(len: usize) -> Result<(*mut u8, usize), ()>;
 	fn sys_send_tx_buffer(handle: usize, len: usize) -> Result<(), ()>;
-	fn sys_receive_rx_buffer() -> Result<&'static mut [u8], ()>;
-	fn sys_rx_buffer_consumed() -> Result<(), ()>;
+	fn sys_receive_rx_buffer() -> Result<(&'static mut [u8], usize), ()>;
+	fn sys_rx_buffer_consumed(handle: usize) -> Result<(), ()>;
 	fn sys_free_tx_buffer(handle: usize);
 }
 
@@ -123,7 +123,7 @@ impl<'a> Device<'a> for HermitNet {
 
 	fn receive(&'a mut self) -> Option<(Self::RxToken, Self::TxToken)> {
 		match unsafe { sys_receive_rx_buffer() } {
-			Ok(buffer) => Some((RxToken::new(buffer), TxToken::new())),
+			Ok((buffer, handle)) => Some((RxToken::new(buffer, handle), TxToken::new())),
 			_ => None,
 		}
 	}
@@ -137,11 +137,12 @@ impl<'a> Device<'a> for HermitNet {
 #[doc(hidden)]
 pub struct RxToken {
 	buffer: &'static mut [u8],
+	handle: usize,
 }
 
 impl RxToken {
-	pub fn new(buffer: &'static mut [u8]) -> Self {
-		Self { buffer }
+	pub fn new(buffer: &'static mut [u8], handle: usize) -> Self {
+		Self { buffer, handle }
 	}
 }
 
@@ -152,7 +153,7 @@ impl phy::RxToken for RxToken {
 		F: FnOnce(&mut [u8]) -> smoltcp::Result<R>,
 	{
 		let result = f(self.buffer);
-		if unsafe { sys_rx_buffer_consumed().is_ok() } {
+		if unsafe { sys_rx_buffer_consumed(self.handle).is_ok() } {
 			result
 		} else {
 			Err(smoltcp::Error::Exhausted)

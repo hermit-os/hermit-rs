@@ -1,6 +1,5 @@
 [unstable]
 build-std = ["std", "core", "alloc", "panic_abort"]
-build-std-features = ["compiler-builtins-mem", "compiler-builtins-asm"]
 
 [build]
 target = "x86_64-unknown-hermit"
