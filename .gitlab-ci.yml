@@ -156,7 +156,7 @@ deploy:image:
 deploy:docker:
    stage: deploy
    dependencies:
-     - build:httpd
+     - test:image
    image:
      name: quay.io/buildah/stable
    variables:
