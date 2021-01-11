@@ -117,12 +117,12 @@ test:image:
        EOF
      - umount /mnt
      - kpartx -d disk.img
-     - gzip -9 disk.img
+     - qemu-img convert -f raw -O qcow2 disk.img disk.qcow2
    tags:
      - privileged
    artifacts:
     paths:
-      - disk.img.gz
+      - disk.qcow2
    only:
      refs:
         - master
@@ -147,7 +147,7 @@ deploy:image:
     - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
     - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
   script:
-    - gzip -d disk.img.gz
+    - echo "Hello World"
     #- virtctl image-upload dv httpd --no-create --image-path=./disk.img --uploadproxy-url=https://cdi-uploadproxy.k8s.eonerc.rwth-aachen.de
   only:
     refs:
