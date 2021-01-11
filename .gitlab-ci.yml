@@ -168,12 +168,12 @@ deploy:docker:
      - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
    script:
      - |
-       cat << END > Dockerfile
+       cat << END > ${DOCKER_FILE}
        FROM scratch
        ADD disk.qcow2 /disk/
        END
-     - buildah bud -f Dockerfile -t httpd:latest .
-     - buildah push httpd:latest docker://httpd:latest
+     - buildah bud -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
+     - buildah push ${DOCKER_IMAGE}/httpd:latest docker://${DOCKER_IMAGE}/httpd:latest
    after_script:
      - buildah logout "${CI_REGISTRY}"
    tags:
