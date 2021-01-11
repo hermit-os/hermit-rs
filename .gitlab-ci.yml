@@ -153,26 +153,31 @@ deploy:image:
     refs:
       - master
 
-# deploy:docker:
-#   stage: deploy
-#   dependencies:
-#     - build:httpd
-#   image:
-#     name: quay.io/buildah/stable
-#   variables:
-#     _BUILDAH_STARTED_IN_USERNS: ""
-#     BUILDAH_ISOLATION: chroot
-#     BUILDAH_LAYERS: "true"
-#   before_script:
-#     - buildah version
-#     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-#   script:
-#     - buildah bud -f Dockerfile.qemu -t httpd:latest .
-#     - buildah push httpd:latest docker://httpd:latest
-#   after_script:
-#     - buildah logout "${CI_REGISTRY}"
-#   tags:
-#     - builder
-#   only:
-#     refs:
-#       - master
+deploy:docker:
+   stage: deploy
+   dependencies:
+     - build:httpd
+   image:
+     name: quay.io/buildah/stable
+   variables:
+     _BUILDAH_STARTED_IN_USERNS: ""
+     BUILDAH_ISOLATION: chroot
+     BUILDAH_LAYERS: "true"
+   before_script:
+     - buildah version
+     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+   script:
+     - |
+       cat << END > Dockerfile
+       FROM scratch
+       ADD disk.qcow2 /disk/
+       END
+     - buildah bud -f Dockerfile -t httpd:latest .
+     - buildah push httpd:latest docker://httpd:latest
+   after_script:
+     - buildah logout "${CI_REGISTRY}"
+   tags:
+     - builder
+   only:
+     refs:
+       - master
