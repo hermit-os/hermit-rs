@@ -21,6 +21,7 @@ trace = []
 fsgsbase = []
 pci = []
 acpi = []
+vga = []
 # only for internal usage, please don't use it
 with_submodule = []
 
