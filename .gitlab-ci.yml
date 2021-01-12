@@ -2,6 +2,7 @@ stages:
 - prepare
 - build
 - test
+- predeploy
 - deploy
 
 variables:
@@ -47,7 +48,7 @@ build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --release
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --no-default-features --features vga,pci,acpi,smoltcp,with_submodule --release
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/release/httpd
@@ -127,34 +128,34 @@ test:image:
      refs:
         - master
 
-deploy:image:
-  stage: deploy
-  dependencies:
-    - test:image
-  variables:
-    KUBECONFIG: /root/.kube/config
-    KUBEVIRT_VERSION: v0.36.0
-  environment:
-    name: production
-  image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
-  before_script:
-    - mkdir -p $(dirname ${KUBECONFIG})
-    - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
-    - kubectl cluster-info
-    - kubectl version
-    - helm version
-    - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64
-    - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
-    - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
-  script:
-    - echo "Hello World"
-    #- virtctl image-upload dv httpd --no-create --image-path=./disk.img --uploadproxy-url=https://cdi-uploadproxy.k8s.eonerc.rwth-aachen.de
-  only:
-    refs:
-      - master
+# deploy:image:
+#   stage: deploy
+#   dependencies:
+#     - test:image
+#   variables:
+#     KUBECONFIG: /root/.kube/config
+#     KUBEVIRT_VERSION: v0.36.0
+#   environment:
+#     name: production
+#   image: registry.git.rwth-aachen.de/acs/internal/cloud/kubernetes/deployment:2
+#   before_script:
+#     - mkdir -p $(dirname ${KUBECONFIG})
+#     - echo "${KUBECONFIG_ENCODED}" | base64 -d > ${KUBECONFIG}
+#     - kubectl cluster-info
+#     - kubectl version
+#     - helm version
+#     - wget https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64
+#     - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
+#     - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
+#   script:
+#     - echo "Hello World"
+#     #- virtctl image-upload dv httpd --no-create --image-path=./disk.img --uploadproxy-url=https://cdi-uploadproxy.k8s.eonerc.rwth-aachen.de
+#   only:
+#     refs:
+#       - master
 
 deploy:docker:
-   stage: deploy
+   stage: predeploy
    dependencies:
      - test:image
    image:
