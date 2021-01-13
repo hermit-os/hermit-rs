@@ -14,12 +14,16 @@ use std::task::{Context, Poll};
 
 use std::u16;
 
+#[cfg(feature = "dhcpv4")]
+use smoltcp::dhcp::Dhcpv4Client;
 use smoltcp::phy::Device;
 #[cfg(feature = "trace")]
 use smoltcp::phy::EthernetTracer;
 use smoltcp::socket::{SocketHandle, SocketSet, TcpSocket, TcpSocketBuffer, TcpState};
 use smoltcp::time::{Duration, Instant};
 use smoltcp::wire::IpAddress;
+#[cfg(feature = "dhcpv4")]
+use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
 
 use crate::net::device::HermitNet;
 
@@ -88,6 +92,10 @@ pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
 	pub sockets: SocketSet<'static, 'static, 'static>,
 	pub wait_for: BTreeMap<Handle, WaitFor>,
+	#[cfg(feature = "dhcpv4")]
+	dhcp: Dhcpv4Client,
+	#[cfg(feature = "dhcpv4")]
+	prev_cidr: Ipv4Cidr,
 }
 
 impl<T> NetworkInterface<T>
@@ -103,6 +111,50 @@ where
 		{
 			// just to make progress
 		}
+		#[cfg(feature = "dhcpv4")]
+		let config = self
+			.dhcp
+			.poll(&mut self.iface, &mut self.sockets, timestamp)
+			.unwrap_or_else(|e| {
+				debug!("DHCP: {:?}", e);
+				None
+			});
+		#[cfg(feature = "dhcpv4")]
+		config.map(|config| {
+			debug!("DHCP config: {:?}", config);
+			if let Some(cidr) = config.address {
+				if cidr != self.prev_cidr && !cidr.address().is_unspecified() {
+					self.iface.update_ip_addrs(|addrs| {
+						addrs.iter_mut().next().map(|addr| {
+							*addr = IpCidr::Ipv4(cidr);
+						});
+					});
+					self.prev_cidr = cidr;
+					info!("Assigned a new IPv4 address: {}", cidr);
+				}
+			}
+
+			config.router.map(|router| {
+				self.iface
+					.routes_mut()
+					.add_default_ipv4_route(router)
+					.unwrap()
+			});
+			self.iface.routes_mut().update(|routes_map| {
+				routes_map
+					.get(&IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0))
+					.map(|default_route| {
+						info!("Default gateway: {}", default_route.via_router);
+					});
+			});
+
+			if config.dns_servers.iter().any(|s| s.is_some()) {
+				info!("DNS servers:");
+				for dns_server in config.dns_servers.iter().filter_map(|s| *s) {
+					info!("- {}", dns_server);
+				}
+			}
+		});
 
 		let mut vec = Vec::new();
 		let values: Vec<(Handle, WaitFor)> = self

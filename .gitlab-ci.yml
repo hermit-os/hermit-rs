@@ -2,6 +2,7 @@ stages:
 - prepare
 - build
 - test
+- predeploy
 - deploy
 
 variables:
@@ -47,7 +48,7 @@ build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p httpd --release
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build --manifest-path examples/httpd/Cargo.toml --features vga,dhcpv4 --release
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/release/httpd
@@ -117,20 +118,49 @@ test:image:
        EOF
      - umount /mnt
      - kpartx -d disk.img
-     - gzip -9 disk.img
+     - qemu-img convert -f raw -O qcow2 disk.img disk.qcow2
    tags:
      - privileged
    artifacts:
     paths:
-      - disk.img.gz
+      - disk.qcow2
    only:
      refs:
         - master
 
-deploy:image:
+deploy:docker:
+   stage: predeploy
+   dependencies:
+     - test:image
+   image:
+     name: quay.io/buildah/stable
+   variables:
+     _BUILDAH_STARTED_IN_USERNS: ""
+     BUILDAH_ISOLATION: chroot
+     BUILDAH_LAYERS: "true"
+   before_script:
+     - buildah version
+     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+   script:
+     - |
+       cat << END > ${DOCKER_FILE}
+       FROM scratch
+       ADD disk.qcow2 /disk/
+       END
+     - buildah bud -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
+     - buildah push ${DOCKER_IMAGE}/httpd:latest docker://${DOCKER_IMAGE}/httpd:latest
+   after_script:
+     - buildah logout "${CI_REGISTRY}"
+   tags:
+     - builder
+   only:
+     refs:
+       - master
+
+deploy:httpd:
   stage: deploy
   dependencies:
-    - test:image
+    - deploy:docker
   variables:
     KUBECONFIG: /root/.kube/config
     KUBEVIRT_VERSION: v0.36.0
@@ -147,32 +177,9 @@ deploy:image:
     - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
     - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
   script:
-    - gzip -d disk.img.gz
-    #- virtctl image-upload dv httpd --no-create --image-path=./disk.img --uploadproxy-url=https://cdi-uploadproxy.k8s.eonerc.rwth-aachen.de
+    - kubectl delete -f k8s/httpd.yml || true 
+    - sleep 10
+    - kubectl apply -f k8s/httpd.yml
   only:
     refs:
       - master
-
-# deploy:docker:
-#   stage: deploy
-#   dependencies:
-#     - build:httpd
-#   image:
-#     name: quay.io/buildah/stable
-#   variables:
-#     _BUILDAH_STARTED_IN_USERNS: ""
-#     BUILDAH_ISOLATION: chroot
-#     BUILDAH_LAYERS: "true"
-#   before_script:
-#     - buildah version
-#     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
-#   script:
-#     - buildah bud -f Dockerfile.qemu -t httpd:latest .
-#     - buildah push httpd:latest docker://httpd:latest
-#   after_script:
-#     - buildah logout "${CI_REGISTRY}"
-#   tags:
-#     - builder
-#   only:
-#     refs:
-#       - master

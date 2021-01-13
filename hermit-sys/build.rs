@@ -78,6 +78,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("smp");
   }
 
+	// do we have to enable VGA support
+	#[cfg(feature = "vga")]
+	{
+		cmd.arg("--features");
+		cmd.arg("vga");
+	}
+
 	#[cfg(feature = "instrument")]
 	{
 		cmd.env("RUSTFLAGS", "-Z instrument-mcount");

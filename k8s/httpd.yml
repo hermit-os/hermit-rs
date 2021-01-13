@@ -1,0 +1,73 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstance
+metadata:
+  name: hermit-httpd
+  namespace: rusty-demo
+  labels:
+    app: rusty-httpd
+spec:
+  terminationGracePeriodSeconds: 0
+  domain:
+    cpu:
+      cores: 1
+      model: qemu64
+    resources:
+      requests:
+        memory: 128M
+    devices:
+      disks:
+      - name: containerdisk
+        disk: {}
+      interfaces:
+      - name: default
+        bridge: {} # connect through a bridge
+        model: rtl8139
+        ports:
+        - name: http
+          port: 9975
+          protocol: TCP
+  networks:
+  - name: default
+    pod: {}
+  volumes:
+  - name: containerdisk
+    containerDisk:
+      image: registry.git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/httpd:latest
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hermit-httpd
+  namespace: rusty-demo
+  labels:
+    app: rusty-httpd
+spec:
+  type: NodePort
+  selector:
+    app: rusty-httpd
+  ports:
+  - port: 9975
+    protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hermit-httpd
+  namespace: rusty-demo
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    eonerc.rwth-aachen.de/description: "Rusty HTTPD"
+spec:
+  tls:
+    - hosts:
+      - rusty-hermit.k8s.eonerc.rwth-aachen.de
+      secretName: letsencrypt-prod-rusty-hermit
+  rules:
+  - host: rusty-hermit.k8s.eonerc.rwth-aachen.de
+    http:
+      paths:
+      - backend:
+          serviceName: hermit-httpd
+          servicePort: 9975
+        path: /
