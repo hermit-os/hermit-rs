@@ -18,6 +18,10 @@ path = "../../hermit-sys"
 default-features = false
 features = ["pci", "acpi", "smoltcp", "with_submodule"]
 
+[features]
+vga = ["hermit-sys/vga"]
+dhcpv4 = ["hermit-sys/dhcpv4"]
+
 [[bin]]
 name = "server-bw"
 path = "src/rust-tcp-bw/server.rs"
