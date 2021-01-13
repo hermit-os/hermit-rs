@@ -4,7 +4,7 @@ metadata:
   name: hermit-httpd
   namespace: rusty-demo
   labels:
-    app: httpd
+    app: rusty-httpd
 spec:
   terminationGracePeriodSeconds: 0
   domain:
@@ -37,15 +37,37 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: hermit-httpd-backend
+  name: hermit-httpd
   namespace: rusty-demo
   labels:
-    app: httpd
+    app: rusty-httpd
 spec:
   type: NodePort
   selector:
-    app: httpd
-    tier: web
+    app: rusty-httpd
   ports:
   - port: 9975
-    targetPort: 9975
+    protocol: TCP
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hermit-httpd
+  namespace: rusty-demo
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    eonerc.rwth-aachen.de/description: "Rusty HTTPD"
+spec:
+  tls:
+    - hosts:
+      - rusty-hermit.k8s.eonerc.rwth-aachen.de
+      secretName: letsencrypt-prod-rusty-hermit
+  rules:
+  - host: rusty-hermit.k8s.eonerc.rwth-aachen.de
+    http:
+      paths:
+      - backend:
+          serviceName: hermit-httpd
+          servicePort: 9975
+        path: /
