@@ -18,11 +18,10 @@ use smoltcp::socket::SocketSet;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::socket::{RawPacketMetadata, RawSocketBuffer};
 use smoltcp::time::Instant;
+#[cfg(not(feature = "dhcpv4"))]
+use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::Ipv4Cidr;
-#[cfg(not(feature = "dhcpv4"))]
-use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
-#[cfg(feature = "dhcpv4")]
 use smoltcp::wire::{EthernetAddress, IpCidr, Ipv4Address};
 
 use crate::net::NetworkInterface;
