@@ -1,0 +1,51 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstance
+metadata:
+  name: hermit-httpd
+  namespace: rusty-demo
+  labels:
+    app: httpd
+spec:
+  terminationGracePeriodSeconds: 0
+  domain:
+    cpu:
+      cores: 1
+      model: qemu64
+    resources:
+      requests:
+        memory: 128M
+    devices:
+      disks:
+      - name: containerdisk
+        disk: {}
+      interfaces:
+      - name: default
+        bridge: {} # connect through a bridge
+        model: rtl8139
+        ports:
+        - name: http
+          port: 9975
+          protocol: TCP
+  networks:
+  - name: default
+    pod: {}
+  volumes:
+  - name: containerdisk
+    containerDisk:
+      image: registry.git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/httpd:latest
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hermit-httpd-backend
+  namespace: rusty-demo
+  labels:
+    app: httpd
+spec:
+  type: NodePort
+  selector:
+    app: httpd
+    tier: web
+  ports:
+  - port: 9975
+    targetPort: 9975
