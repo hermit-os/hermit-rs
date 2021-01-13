@@ -177,8 +177,9 @@ deploy:httpd:
     - chmod a+rx virtctl-${KUBEVIRT_VERSION}-linux-amd64
     - mv virtctl-${KUBEVIRT_VERSION}-linux-amd64 /usr/bin/virtctl
   script:
-    - kubectl apply -f k8s/httpd.yml
-    - virtctl restart hermit-httpd
+    - echo "Hello World"
+    #- kubectl apply -f k8s/httpd.yml
+    #- virtctl restart hermit-httpd
   only:
     refs:
       - master
