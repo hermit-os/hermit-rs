@@ -6,6 +6,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
+ascii = "1.0"
 tiny_http = { git = "https://github.com/hermitcore/tiny-http.git" }
 
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
