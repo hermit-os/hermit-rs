@@ -123,7 +123,7 @@ where
 		config.map(|config| {
 			debug!("DHCP config: {:?}", config);
 			if let Some(cidr) = config.address {
-				if cidr != self.prev_cidr {
+				if cidr != self.prev_cidr && !cidr.address().is_unspecified() {
 					self.iface.update_ip_addrs(|addrs| {
 						addrs.iter_mut().next().map(|addr| {
 							*addr = IpCidr::Ipv4(cidr);
