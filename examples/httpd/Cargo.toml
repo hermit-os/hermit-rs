@@ -15,6 +15,7 @@ features = ["pci", "acpi", "smoltcp", "with_submodule"]
 
 [features]
 vga = ["hermit-sys/vga"]
+dhcpv4 = ["hermit-sys/dhcpv4"]
 
 [profile.release]
 opt-level = 3

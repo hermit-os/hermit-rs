@@ -22,6 +22,7 @@ fsgsbase = []
 pci = []
 acpi = []
 vga = []
+dhcpv4 = ["smoltcp/proto-dhcpv4"]
 # only for internal usage, please don't use it
 with_submodule = []
 
