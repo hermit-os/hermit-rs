@@ -1,17 +1,29 @@
+#[cfg(not(feature = "dhcpv4"))]
 include!(concat!(env!("OUT_DIR"), "/constants.rs"));
 
 use std::collections::BTreeMap;
+#[cfg(not(feature = "dhcpv4"))]
 use std::convert::TryInto;
+#[cfg(not(feature = "dhcpv4"))]
 use std::net::Ipv4Addr;
 use std::slice;
 
+#[cfg(feature = "dhcpv4")]
+use smoltcp::dhcp::Dhcpv4Client;
 use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
 #[cfg(feature = "trace")]
 use smoltcp::phy::EthernetTracer;
 use smoltcp::phy::{self, Device, DeviceCapabilities};
 use smoltcp::socket::SocketSet;
+#[cfg(feature = "dhcpv4")]
+use smoltcp::socket::{RawPacketMetadata, RawSocketBuffer};
 use smoltcp::time::Instant;
+#[cfg(feature = "dhcpv4")]
+use smoltcp::wire::Ipv4Cidr;
+#[cfg(not(feature = "dhcpv4"))]
 use smoltcp::wire::{EthernetAddress, IpAddress, IpCidr, Ipv4Address};
+#[cfg(feature = "dhcpv4")]
+use smoltcp::wire::{EthernetAddress, IpCidr, Ipv4Address};
 
 use crate::net::NetworkInterface;
 
@@ -39,6 +51,58 @@ impl HermitNet {
 }
 
 impl NetworkInterface<HermitNet> {
+	#[cfg(feature = "dhcpv4")]
+	pub fn new() -> Option<Self> {
+		let mtu = match unsafe { sys_get_mtu() } {
+			Ok(mtu) => mtu,
+			Err(_) => {
+				return None;
+			}
+		};
+		let device = HermitNet::new(mtu);
+		#[cfg(feature = "trace")]
+		let device = EthernetTracer::new(device, |_timestamp, printer| {
+			trace!("{}", printer);
+		});
+
+		let mac: [u8; 6] = match unsafe { sys_get_mac_address() } {
+			Ok(mac) => mac,
+			Err(_) => {
+				return None;
+			}
+		};
+
+		let neighbor_cache = NeighborCache::new(BTreeMap::new());
+		let ethernet_addr = EthernetAddress([mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]]);
+		let ip_addrs = [IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0)];
+		let routes = Routes::new(BTreeMap::new());
+
+		info!("MAC address {}", ethernet_addr);
+		info!("MTU: {} bytes", mtu);
+
+		let mut sockets = SocketSet::new(vec![]);
+		let dhcp_rx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 900]);
+		let dhcp_tx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 600]);
+		let dhcp = Dhcpv4Client::new(&mut sockets, dhcp_rx_buffer, dhcp_tx_buffer, Instant::now());
+		let prev_cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
+
+		let iface = EthernetInterfaceBuilder::new(device)
+			.ethernet_addr(ethernet_addr)
+			.neighbor_cache(neighbor_cache)
+			.ip_addrs(ip_addrs)
+			.routes(routes)
+			.finalize();
+
+		Some(Self {
+			iface,
+			sockets: sockets,
+			wait_for: BTreeMap::new(),
+			dhcp,
+			prev_cidr,
+		})
+	}
+
+	#[cfg(not(feature = "dhcpv4"))]
 	pub fn new() -> Option<Self> {
 		let mtu = match unsafe { sys_get_mtu() } {
 			Ok(mtu) => mtu,
