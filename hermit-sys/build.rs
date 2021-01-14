@@ -64,11 +64,18 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("acpi");
 	}
 
-	// do we have to enable FSGSBASE support
+	// do we have to enable FSGSBASE support?
 	#[cfg(feature = "fsgs_base")]
 	{
 		cmd.arg("--features");
 		cmd.arg("fsgs_base");
+	}
+
+	// do we support multi-processor systems?
+	#[cfg(feature = "smp")]
+	{
+		cmd.arg("--features");
+		cmd.arg("smp");
 	}
 
 	// do we have to enable VGA support

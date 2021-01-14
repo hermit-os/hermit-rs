@@ -21,6 +21,8 @@ default-features = false
 syscalls = { version = "0.2", default-features = false }
 
 [features]
+default = ["smp"]
+smp = ["hermit-sys/smp"]
 vga = ["hermit-sys/vga"]
 
 [profile.release]
