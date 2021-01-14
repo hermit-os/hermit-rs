@@ -22,7 +22,7 @@ spec:
           model: qemu64
         resources:
           requests:
-            memory: 128M
+            memory: 64M
         devices:
           disks:
           - name: containerdisk
