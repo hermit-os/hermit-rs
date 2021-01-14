@@ -1,8 +1,7 @@
 //! `hermit-abi` is small interface to call functions from the unikernel
 //! [RustyHermit](https://github.com/hermitcore/libhermit-rs).
 
-#![cfg_attr(feature = "rustc-dep-of-std", no_std)]
-#![feature(const_raw_ptr_to_usize_cast)]
+#![no_std]
 extern crate libc;
 
 pub mod tcplistener;
