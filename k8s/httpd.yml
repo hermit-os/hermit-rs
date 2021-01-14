@@ -16,6 +16,8 @@ spec:
         app: rusty-httpd
     spec:
       terminationGracePeriodSeconds: 0
+      nodeSelector:
+        kvm: "true"
       domain:
         cpu:
           cores: 1
