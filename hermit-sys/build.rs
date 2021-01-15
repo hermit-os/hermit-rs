@@ -57,6 +57,12 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("pci");
 	}
 
+	#[cfg(feature = "pci_ids")]
+	{
+		cmd.arg("--features");
+		cmd.arg("pci_ids");
+	}
+
 	// do we have to enable acpi support?
 	#[cfg(feature = "acpi")]
 	{

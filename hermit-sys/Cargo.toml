@@ -14,12 +14,13 @@ edition = "2018"
 documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
-default = ["pci", "acpi", "smp", "fsgsbase"]
+default = ["pci", "pci_ids", "acpi", "smp", "fsgsbase"]
 # controlls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
 trace = []
 fsgsbase = []
 pci = []
+pci_ids = []
 acpi = []
 vga = []
 dhcpv4 = ["smoltcp/proto-dhcpv4"]
