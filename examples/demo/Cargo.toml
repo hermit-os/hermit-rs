@@ -13,6 +13,10 @@ path = "src/main.rs"
 name = "pi_sequential"
 path = "src/pi_sequential.rs"
 
+[[bin]]
+name = "matrix_multiplcation"
+path = "src/matrix_multiplication.rs"
+
 [dependencies]
 rayon = "1.5.0"
 num_cpus = "1.13"
