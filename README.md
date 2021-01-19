@@ -35,16 +35,17 @@ Rust applications that use the Rust runtime and do not directly use OS services 
 
 The Rust toolchain can be installed from the [official webpage](https://www.rust-lang.org/).
 RustyHermit currently requires the **nightly versions** of the toolchain.
+
 ```sh
-$ rustup default nightly
+rustup default nightly
 ```
 
 Further requirements are the source code of the Rust runtime,  [cargo-download](https://crates.io/crates/cargo-download), and llvm-tools:
 
 ```sh
-$ cargo install cargo-download
-$ rustup component add rust-src
-$ rustup component add llvm-tools-preview
+cargo install cargo-download
+rustup component add rust-src
+rustup component add llvm-tools-preview
 ```
 
 ## Building your own applications
@@ -92,6 +93,7 @@ The final step is building the application as follows:
 ```sh
 cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
 ```
+
 (You can set an easy alias for this in the `.cargo/config` file. Take a look at the [demo](https://github.com/hermitcore/rusty-demo/blob/master/.cargo/config))
 
 The resulting "hypervisor-ready" binary then can be found in `target/x86_64-unknown-hermit/debug`.
@@ -126,16 +128,16 @@ To build the loader, the assembler [nasm](https://www.nasm.us) is required.
 After the installation, the loader can be build as follows.
 
 ```bash
-$ git clone https://github.com/hermitcore/rusty-loader.git
-$ cd rusty-loader
-$ make
+git clone https://github.com/hermitcore/rusty-loader.git
+cd rusty-loader
+make
 ```
 
 Afterwards, the loader is stored in `target/x86_64-unknown-hermit-loader/debug/` as `rusty-loader`.
 As final step, the unikernel application `app` can be booted with following command:
 
 ```bash
-$ qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio  -kernel path_to_loader/rusty-loader -initrd path_to_app/app -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr
+qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio  -kernel path_to_loader/rusty-loader -initrd path_to_app/app -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr
 ```
 
 It is important to enable the processor features _fsgsbase_ and _rdtscp_ because it is a prerequisite to boot RustyHermit.
@@ -151,6 +153,7 @@ qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 You are not happy with `Hello World` yet?
 
 ### Link Time Optimization (LTO)
+
 To enable *Link Time Optimization* (LTO), please extend the release configuration in *Cargo.toml* as follows:
 
 ```toml
@@ -176,7 +179,7 @@ If the environment variable is not set, or the name doesn't match, then LevelFil
 For instance, the following command build RustyHermit with debug messages:
 
 ```sh
-$ HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
 ```
 
 ### Network support
@@ -186,13 +189,14 @@ host system. For instance, the following command establish the tap device
 `tap10` on Linux:
 
 ```bash
-$ sudo ip tuntap add tap10 mode tap
-$ sudo ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
-$ sudo ip link set dev tap10 up
-$ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap10/proxy_arp'
+sudo ip tuntap add tap10 mode tap
+sudo ip addr add 10.0.5.1/24 broadcast 10.0.5.255 dev tap10
+sudo ip link set dev tap10 up
+sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap10/proxy_arp'
 ```
 
 Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
+
 ```toml
 # Cargo.toml
 
@@ -209,7 +213,7 @@ The default configuration could be overloaded at compile time by the environment
 For instance, the following command sets the IP address to `10.0.5.100`.
 
 ```sh
-$ HERMIT_IP="10.0.5.100" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+HERMIT_IP="10.0.5.100" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
 ```
 
 Currently, RustyHermit does only support network interfaces through [virtio](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net).
@@ -226,11 +230,9 @@ $ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr \
 
 You can now access the files in SHARED_DIRECTORY under the virtiofs tag like `/myfs/testfile`.
 
-
 ## Use RustyHermit for C/C++, Go, and Fortran applications
 
 If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating systen, please take a look at [https://github.com/hermitcore/hermit-playground](https://github.com/hermitcore/hermit-playground).
-
 
 ## Missing features
 
@@ -256,7 +258,6 @@ RustyHermit is derived from following tutorials and software distributions:
 
 HermitCore's Emoji is provided for free by [EmojiOne](https://www.gfxmag.com/crab-emoji-vector-icon/).
 
-
 ## License
 
 Licensed under either of
@@ -265,7 +266,6 @@ Licensed under either of
 * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
-
 
 ## Contribution
 
