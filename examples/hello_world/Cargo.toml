@@ -10,6 +10,10 @@ path = "../../hermit-sys"
 default-features = false
 features = ["with_submodule"]
 
+[dependencies.rftrace-frontend]
+version = "0.1.0"
+optional = true
+
 [features]
 default = ["pci", "acpi"]
 vga = ["hermit-sys/vga"]
@@ -17,7 +21,7 @@ pci = ["hermit-sys/pci"]
 acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
-instrument = ["hermit-sys/instrument"]
+instrument = ["hermit-sys/instrument", "rftrace-frontend"]
 
 [profile.release]
 opt-level = 3

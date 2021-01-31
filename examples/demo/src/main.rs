@@ -13,12 +13,16 @@
 extern crate hermit_sys;
 extern crate num_cpus;
 extern crate rayon;
+#[cfg(feature = "instrument")]
+extern crate rftrace_frontend;
 #[cfg(target_os = "linux")]
 #[macro_use]
 extern crate syscalls;
 
 mod tests;
 
+#[cfg(feature = "instrument")]
+use rftrace_frontend::Events;
 use tests::*;
 
 fn test_result<T>(result: Result<(), T>) -> &'static str {
@@ -29,6 +33,11 @@ fn test_result<T>(result: Result<(), T>) -> &'static str {
 }
 
 fn main() {
+	#[cfg(feature = "instrument")]
+	let events = rftrace_frontend::init(1000000, true);
+	#[cfg(feature = "instrument")]
+	rftrace_frontend::enable();
+
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
 	println!(
 		"Test {} ... {}",
@@ -85,4 +94,8 @@ fn main() {
 		stringify!(thread_creation),
 		test_result(thread_creation())
 	);
+
+	#[cfg(feature = "instrument")]
+	rftrace_frontend::dump_full_uftrace(events, "trace", "rusty_demo", false)
+		.expect("Saving trace failed");
 }

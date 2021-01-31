@@ -11,12 +11,16 @@
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
+#[cfg(feature = "instrument")]
+extern crate rftrace_frontend;
 #[cfg(target_os = "linux")]
 #[macro_use]
 extern crate syscalls;
 
 mod tests;
 
+#[cfg(feature = "instrument")]
+use rftrace_frontend::Events;
 use tests::*;
 
 fn test_result<T>(result: Result<(), T>) -> &'static str {
@@ -27,9 +31,18 @@ fn test_result<T>(result: Result<(), T>) -> &'static str {
 }
 
 fn main() {
+	#[cfg(feature = "instrument")]
+	let events = rftrace_frontend::init(1000000, true);
+	#[cfg(feature = "instrument")]
+	rftrace_frontend::enable();
+
 	println!(
 		"Test {} ... {}",
 		stringify!(pi_sequential),
 		test_result(pi_sequential(5000000))
 	);
+
+	#[cfg(feature = "instrument")]
+	rftrace_frontend::dump_full_uftrace(events, "trace", "pi_sequential", false)
+		.expect("Saving trace failed");
 }
