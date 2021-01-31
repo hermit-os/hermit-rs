@@ -27,7 +27,6 @@ acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
 smoltcp = ["hermit-sys/smoltcp"]
-instrument = ["hermit-sys/instrument"]
 
 [[bin]]
 name = "server-bw"
