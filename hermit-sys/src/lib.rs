@@ -2,6 +2,8 @@
 extern crate aarch64;
 #[macro_use]
 extern crate log;
+#[cfg(feature = "instrument")]
+extern crate rftrace;
 #[cfg(feature = "smoltcp")]
 extern crate smoltcp;
 #[cfg(target_arch = "x86_64")]

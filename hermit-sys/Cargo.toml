@@ -57,4 +57,3 @@ features = ["std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-
 version = "0.1.0"
 optional = true
 features = ["autokernel", "buildcore", "interruptsafe"]
-
