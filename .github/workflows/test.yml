@@ -76,6 +76,7 @@ jobs:
       run:
          cargo build -p rusty_demo -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
     - name: Building release version (LTO)
+      run:
          cargo build -p rusty_demo --profile release-lto -Z unstable-options -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
       env:
          RUSTFLAGS: -Clinker-plugin-lto
