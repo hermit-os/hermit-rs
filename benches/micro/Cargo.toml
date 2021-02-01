@@ -1,3 +1,4 @@
+cargo-features = ["named-profiles"]
 [package]
 name = "micro_benchmarks"
 version = "0.1.0"
@@ -34,6 +35,10 @@ debug = false
 rpath = false
 lto = false
 debug-assertions = false
+
+[profile.release-lto]
+inherits = "release"
+lto = "thin"
 
 [profile.dev]
 opt-level = 1      # controls the `--opt-level` the compiler builds with

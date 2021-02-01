@@ -1,3 +1,4 @@
+cargo-features = ["named-profiles"]
 [package]
 name = "httpd"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
@@ -28,8 +29,12 @@ smoltcp = ["hermit-sys/smoltcp"]
 opt-level = 3
 debug = false
 rpath = false
-lto = true
+lto = false
 debug-assertions = false
+
+[profile.release-lto]
+inherits = "release"
+lto = "thin"
 
 [profile.dev]
 opt-level = 1      # controls the `--opt-level` the compiler builds with
