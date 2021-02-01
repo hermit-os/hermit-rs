@@ -39,10 +39,12 @@ build:demo:
   script:
     - cargo build -p rusty_demo
     - cargo build -p rusty_demo --release
+    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --profile release-lto -Z unstable-options
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo
       - target/x86_64-unknown-hermit/release/rusty_demo
+      - target/x86_64-unknown-hermit/release-lto/rusty_demo
 
 build:httpd:
   stage: build
@@ -66,6 +68,8 @@ test:uhyve:
      - uhyve -v -c 2 target/x86_64-unknown-hermit/debug/rusty_demo
      - uhyve -v -c 1 target/x86_64-unknown-hermit/release/rusty_demo
      - uhyve -v -c 2 target/x86_64-unknown-hermit/release/rusty_demo
+     - uhyve -v -c 1 target/x86_64-unknown-hermit/release-lto/rusty_demo
+     - uhyve -v -c 2 target/x86_64-unknown-hermit/release-lto/rusty_demo
    tags:
      - privileged
 
@@ -85,6 +89,8 @@ test:qemu:
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
+     - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release-lto/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
+     - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release-lto/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
    tags:
      - privileged
 
