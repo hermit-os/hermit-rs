@@ -43,7 +43,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		None => src_dir.join("target"),
 	};
 
-	if profile == "release" {
+	if profile == "release" || profile == "release-lto" {
 		cmd.arg("--release");
 	}
 
