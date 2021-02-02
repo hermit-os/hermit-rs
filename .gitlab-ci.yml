@@ -10,6 +10,7 @@ variables:
   DOCKER_TAG: latest
   DOCKER_IMAGE: ${CI_REGISTRY_IMAGE}
   GIT_SUBMODULE_STRATEGY: normal
+  FF_GITLAB_REGISTRY_HELPER_IMAGE: 1
 
 .prepare:docker: &prepare_docker
   stage: prepare
