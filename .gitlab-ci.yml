@@ -33,6 +33,15 @@ variables:
 prepare:docker:
   <<: *prepare_docker
 
+build:instrument:
+  stage: build
+  image: ${CI_REGISTRY_IMAGE}
+  script:
+    - RUSTFLAGS="-Z instrument-mcount" cargo build -p rusty_demo --release --features=instrument
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit/release/matrix_multiplcation
+
 build:demo:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
@@ -54,6 +63,19 @@ build:httpd:
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/release/httpd
+
+test:instrument:
+   stage: test
+   dependencies:
+     - build:instrument
+   image: ${CI_REGISTRY_IMAGE}
+   script:
+     - lscpu
+     - kvm-ok
+     - cargo install uhyve
+     - uhyve -v -c 1 target/x86_64-unknown-hermit/release/matrix_multiplcation
+   tags:
+     - privileged
 
 test:uhyve:
    stage: test
