@@ -87,10 +87,10 @@ pub enum WaitForResult {
 
 pub struct NetworkInterface<T: for<'a> Device<'a>> {
 	#[cfg(feature = "trace")]
-	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, EthernetTracer<T>>,
+	pub iface: smoltcp::iface::EthernetInterface<'static, EthernetTracer<T>>,
 	#[cfg(not(feature = "trace"))]
-	pub iface: smoltcp::iface::EthernetInterface<'static, 'static, 'static, T>,
-	pub sockets: SocketSet<'static, 'static, 'static>,
+	pub iface: smoltcp::iface::EthernetInterface<'static, T>,
+	pub sockets: SocketSet<'static>,
 	pub wait_for: BTreeMap<Handle, WaitFor>,
 	#[cfg(feature = "dhcpv4")]
 	dhcp: Dhcpv4Client,
