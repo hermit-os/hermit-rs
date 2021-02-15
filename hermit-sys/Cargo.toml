@@ -46,7 +46,7 @@ version = "0.*"
 default-features = false
 
 [dependencies.smoltcp]
-version = "0.6.0"
+version = "0.7.0"
 optional = true
 default-features = false
 features = ["std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6"]
