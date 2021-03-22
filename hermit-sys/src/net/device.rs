@@ -7,6 +7,7 @@ use std::convert::TryInto;
 #[cfg(not(feature = "dhcpv4"))]
 use std::net::Ipv4Addr;
 use std::slice;
+use std::sync::Mutex;
 
 #[cfg(feature = "dhcpv4")]
 use smoltcp::dhcp::Dhcpv4Client;
@@ -24,7 +25,8 @@ use smoltcp::wire::IpAddress;
 use smoltcp::wire::Ipv4Cidr;
 use smoltcp::wire::{EthernetAddress, IpCidr, Ipv4Address};
 
-use crate::net::NetworkInterface;
+use crate::net::waker::WakerRegistration;
+use crate::net::{NetworkInterface, NetworkState};
 
 extern "Rust" {
 	fn sys_get_mac_address() -> Result<[u8; 6], ()>;
@@ -39,23 +41,23 @@ extern "Rust" {
 /// Data type to determine the mac address
 #[derive(Debug, Copy, Clone)]
 #[repr(C)]
-pub struct HermitNet {
+pub(crate) struct HermitNet {
 	pub mtu: u16,
 }
 
 impl HermitNet {
-	pub fn new(mtu: u16) -> Self {
+	pub(crate) const fn new(mtu: u16) -> Self {
 		Self { mtu }
 	}
 }
 
 impl NetworkInterface<HermitNet> {
 	#[cfg(feature = "dhcpv4")]
-	pub fn new() -> Option<Self> {
+	pub(crate) fn new() -> NetworkState {
 		let mtu = match unsafe { sys_get_mtu() } {
 			Ok(mtu) => mtu,
 			Err(_) => {
-				return None;
+				return NetworkState::InitializationFailed;
 			}
 		};
 		let device = HermitNet::new(mtu);
@@ -67,7 +69,7 @@ impl NetworkInterface<HermitNet> {
 		let mac: [u8; 6] = match unsafe { sys_get_mac_address() } {
 			Ok(mac) => mac,
 			Err(_) => {
-				return None;
+				return NetworkState::InitializationFailed;
 			}
 		};
 
@@ -92,21 +94,21 @@ impl NetworkInterface<HermitNet> {
 			.routes(routes)
 			.finalize();
 
-		Some(Self {
+		NetworkState::Initialized(Mutex::new(Self {
 			iface,
 			sockets: sockets,
-			wait_for: BTreeMap::new(),
 			dhcp,
 			prev_cidr,
-		})
+			waker: WakerRegistration::new(),
+		}))
 	}
 
 	#[cfg(not(feature = "dhcpv4"))]
-	pub fn new() -> Option<Self> {
+	pub(crate) fn new() -> NetworkState {
 		let mtu = match unsafe { sys_get_mtu() } {
 			Ok(mtu) => mtu,
 			Err(_) => {
-				return None;
+				return NetworkState::InitializationFailed;
 			}
 		};
 		let device = HermitNet::new(mtu);
@@ -118,7 +120,7 @@ impl NetworkInterface<HermitNet> {
 		let mac: [u8; 6] = match unsafe { sys_get_mac_address() } {
 			Ok(mac) => mac,
 			Err(_) => {
-				return None;
+				return NetworkState::InitializationFailed;
 			}
 		};
 		let myip: Ipv4Addr = HERMIT_IP.parse().expect("Unable to parse IPv4 address");
@@ -166,11 +168,11 @@ impl NetworkInterface<HermitNet> {
 			.routes(routes)
 			.finalize();
 
-		Some(Self {
+		NetworkState::Initialized(Mutex::new(Self {
 			iface,
 			sockets: SocketSet::new(vec![]),
-			wait_for: BTreeMap::new(),
-		})
+			waker: WakerRegistration::new(),
+		}))
 	}
 }
 
@@ -198,13 +200,13 @@ impl<'a> Device<'a> for HermitNet {
 }
 
 #[doc(hidden)]
-pub struct RxToken {
+pub(crate) struct RxToken {
 	buffer: &'static mut [u8],
 	handle: usize,
 }
 
 impl RxToken {
-	pub fn new(buffer: &'static mut [u8], handle: usize) -> Self {
+	pub(crate) fn new(buffer: &'static mut [u8], handle: usize) -> Self {
 		Self { buffer, handle }
 	}
 }
@@ -225,10 +227,10 @@ impl phy::RxToken for RxToken {
 }
 
 #[doc(hidden)]
-pub struct TxToken;
+pub(crate) struct TxToken;
 
 impl TxToken {
-	pub fn new() -> Self {
+	pub(crate) fn new() -> Self {
 		Self {}
 	}
 }
