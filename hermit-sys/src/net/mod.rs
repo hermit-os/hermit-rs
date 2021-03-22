@@ -1,16 +1,16 @@
+pub mod device;
+mod executor;
+mod waker;
+
 #[cfg(target_arch = "aarch64")]
 use aarch64::regs::*;
+use futures::task::{Context, Poll};
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
-use std::collections::BTreeMap;
 use std::convert::TryInto;
-use std::future::Future;
-use std::mem::MaybeUninit;
-use std::pin::Pin;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
-use std::task::{Context, Poll};
 
 use std::u16;
 
@@ -24,20 +24,19 @@ use smoltcp::time::{Duration, Instant};
 use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
+use smoltcp::Error;
 
 use crate::net::device::HermitNet;
+use crate::net::executor::{block_on, spawn};
+use crate::net::waker::WakerRegistration;
 
-pub mod device;
-
-lazy_static! {
-	static ref NIC: Mutex<Option<NetworkInterface<HermitNet>>> =
-		Mutex::new(NetworkInterface::<HermitNet>::new());
+pub(crate) enum NetworkState {
+	Missing,
+	InitializationFailed,
+	Initialized(Mutex<NetworkInterface<HermitNet>>),
 }
 
-extern "Rust" {
-	fn sys_netwait(handle: Handle, millis: Option<u64>);
-	fn sys_netwait_and_wakeup(handles: &[Handle], millis: Option<u64>);
-}
+static mut NIC: NetworkState = NetworkState::Missing;
 
 extern "C" {
 	fn sys_yield();
@@ -48,6 +47,7 @@ extern "C" {
 		prio: u8,
 		selector: isize,
 	) -> i32;
+	fn sys_netwait();
 }
 
 pub type Handle = SocketHandle;
@@ -58,52 +58,37 @@ const DEFAULT_KEEP_ALIVE_INTERVAL: u64 = 75000;
 
 static LOCAL_ENDPOINT: AtomicU16 = AtomicU16::new(0);
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum WriteFailed {
-	CanSendFailed,
-	InternalError,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum ReadFailed {
-	CanRecvFailed,
-	InternalError,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum WaitFor {
-	Establish,
-	IsActive,
-	Read,
-	Write,
-	Close,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum WaitForResult {
-	Ok,
-	Failed,
-}
-
-pub struct NetworkInterface<T: for<'a> Device<'a>> {
+pub(crate) struct NetworkInterface<T: for<'a> Device<'a>> {
 	#[cfg(feature = "trace")]
 	pub iface: smoltcp::iface::EthernetInterface<'static, EthernetTracer<T>>,
 	#[cfg(not(feature = "trace"))]
 	pub iface: smoltcp::iface::EthernetInterface<'static, T>,
 	pub sockets: SocketSet<'static>,
-	pub wait_for: BTreeMap<Handle, WaitFor>,
 	#[cfg(feature = "dhcpv4")]
 	dhcp: Dhcpv4Client,
 	#[cfg(feature = "dhcpv4")]
 	prev_cidr: Ipv4Cidr,
+	waker: WakerRegistration,
 }
 
 impl<T> NetworkInterface<T>
 where
 	T: for<'a> Device<'a>,
 {
-	pub fn poll(&mut self) -> (std::option::Option<Duration>, Vec<Handle>) {
-		let timestamp = Instant::now();
+	pub(crate) fn create_handle(&mut self) -> Result<Handle, ()> {
+		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
+		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
+		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
+		let tcp_handle = self.sockets.add(tcp_socket);
+
+		Ok(tcp_handle)
+	}
+
+	pub(crate) fn wake(&mut self) {
+		self.waker.wake()
+	}
+
+	pub(crate) fn poll_common(&mut self, timestamp: Instant) {
 		while self
 			.iface
 			.poll(&mut self.sockets, timestamp)
@@ -130,7 +115,7 @@ where
 						});
 					});
 					self.prev_cidr = cidr;
-					info!("Assigned a new IPv4 address: {}", cidr);
+					debug!("Assigned a new IPv4 address: {}", cidr);
 				}
 			}
 
@@ -144,267 +129,211 @@ where
 				routes_map
 					.get(&IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0))
 					.map(|default_route| {
-						info!("Default gateway: {}", default_route.via_router);
+						debug!("Default gateway: {}", default_route.via_router);
 					});
 			});
 
 			if config.dns_servers.iter().any(|s| s.is_some()) {
-				info!("DNS servers:");
+				debug!("DNS servers:");
 				for dns_server in config.dns_servers.iter().filter_map(|s| *s) {
-					info!("- {}", dns_server);
+					debug!("- {}", dns_server);
 				}
 			}
 		});
-
-		let mut vec = Vec::new();
-		let values: Vec<(Handle, WaitFor)> = self
-			.wait_for
-			.iter()
-			.map(|(handle, wait)| (*handle, *wait))
-			.collect();
-		for (handle, wait) in values {
-			if self.check_handle(handle, wait).is_some() {
-				vec.push(handle);
-			}
-		}
-
-		let delay = self.iface.poll_delay(&self.sockets, timestamp);
-
-		(delay, vec)
 	}
 
-	pub fn poll_handle(&mut self, handle: Handle) -> Option<WaitForResult> {
-		let timestamp = Instant::now();
-		while self
-			.iface
-			.poll(&mut self.sockets, timestamp)
-			.unwrap_or(true)
-		{
-			// just to make progress
-		}
+	pub(crate) fn poll(&mut self, cx: &mut Context<'_>, timestamp: Instant) {
+		self.waker.register(cx.waker());
+		self.poll_common(timestamp);
+	}
 
-		if let Some(wait) = self.wait_for.get(&handle) {
-			let wait = *wait;
-			self.check_handle(handle, wait)
-		} else {
-			None
+	pub(crate) fn poll_delay(&mut self, timestamp: Instant) -> Option<Duration> {
+		self.iface.poll_delay(&self.sockets, timestamp)
+	}
+}
+
+pub(crate) struct AsyncSocket(Handle);
+
+impl AsyncSocket {
+	pub(crate) fn new() -> Self {
+		match unsafe { &mut NIC } {
+			NetworkState::Initialized(nic) => {
+				AsyncSocket(nic.lock().unwrap().create_handle().unwrap())
+			}
+			_ => {
+				panic!("Network isn't initialized!");
+			}
 		}
 	}
 
-	fn check_handle(&mut self, handle: Handle, wait: WaitFor) -> Option<WaitForResult> {
-		let socket = self.sockets.get::<TcpSocket>(handle);
-		match wait {
-			// a thread is trying to establish a connection
-			WaitFor::Establish => match socket.state() {
-				TcpState::Established => Some(WaitForResult::Ok),
-				TcpState::FinWait1
-				| TcpState::FinWait2
-				| TcpState::Closing
-				| TcpState::TimeWait
-				| TcpState::LastAck
-				| TcpState::Closed => Some(WaitForResult::Failed),
-				_ => None,
-			},
-			// a thread wants to read data
-			WaitFor::Read => {
-				if socket.can_recv() {
-					Some(WaitForResult::Ok)
-				} else if !socket.may_recv() {
-					Some(WaitForResult::Failed)
+	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
+		let mut guard = match unsafe { &mut NIC } {
+			NetworkState::Initialized(nic) => nic.lock().unwrap(),
+			_ => {
+				panic!("Network isn't initialized!");
+			}
+		};
+		let res = {
+			let mut s = guard.sockets.get::<TcpSocket>(self.0);
+			f(&mut *s)
+		};
+		guard.wake();
+		res
+	}
+
+	pub(crate) async fn connect(&self, ip: &[u8], port: u16) -> Result<Handle, Error> {
+		let address = IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| Error::Illegal)?)
+			.map_err(|_| Error::Illegal)?;
+
+		futures::future::poll_fn(|_| {
+			self.with(|s| {
+				Poll::Ready(s.connect(
+					(address, port),
+					LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
+				))
+			})
+		})
+		.await
+		.map_err(|_| Error::Illegal)?;
+
+		futures::future::poll_fn(|cx| {
+			self.with(|s| match s.state() {
+				TcpState::Closed | TcpState::TimeWait => Poll::Ready(Err(Error::Unaddressable)),
+				TcpState::Listen => Poll::Ready(Err(Error::Illegal)),
+				TcpState::SynSent | TcpState::SynReceived => {
+					s.register_send_waker(cx.waker());
+					Poll::Pending
+				}
+				_ => Poll::Ready(Ok(self.0)),
+			})
+		})
+		.await
+	}
+
+	pub(crate) async fn accept(&self, port: u16) -> Result<(IpAddress, u16), Error> {
+		self.with(|s| s.listen(port).map_err(|_| Error::Illegal))?;
+
+		futures::future::poll_fn(|cx| {
+			self.with(|s| {
+				if s.is_active() {
+					Poll::Ready(Ok(()))
 				} else {
-					match socket.state() {
-						TcpState::FinWait1
-						| TcpState::FinWait2
+					match s.state() {
+						TcpState::Closed
 						| TcpState::Closing
-						| TcpState::Closed => Some(WaitForResult::Failed),
-						_ => None,
+						| TcpState::FinWait1
+						| TcpState::FinWait2 => Poll::Ready(Err(Error::Illegal)),
+						_ => {
+							s.register_recv_waker(cx.waker());
+							Poll::Pending
+						}
 					}
 				}
+			})
+		})
+		.await?;
+
+		match unsafe { &mut NIC } {
+			NetworkState::Initialized(nic) => {
+				let mut guard = nic.lock().unwrap();
+				let mut socket = guard.sockets.get::<TcpSocket>(self.0);
+				socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
+				let endpoint = socket.remote_endpoint();
+
+				Ok((endpoint.addr, endpoint.port))
 			}
-			// a thread wants to write data
-			WaitFor::Write => {
-				if socket.can_send() {
-					Some(WaitForResult::Ok)
-				} else {
-					match socket.state() {
-						TcpState::FinWait1
-						| TcpState::FinWait2
-						| TcpState::Closing
-						| TcpState::Closed => Some(WaitForResult::Failed),
-						_ => None,
-					}
-				}
-			}
-			// a thread is waiting for acknowledge
-			WaitFor::Close => match socket.state() {
+			_ => Err(Error::Illegal),
+		}
+	}
+
+	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
+		futures::future::poll_fn(|cx| {
+			self.with(|s| match s.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
 				| TcpState::Closed
 				| TcpState::Closing
-				| TcpState::TimeWait => Some(WaitForResult::Ok),
-				_ => None,
-			},
-			// a thread is waiting for an active connection
-			WaitFor::IsActive => {
-				if socket.is_active() {
-					Some(WaitForResult::Ok)
-				} else {
-					match socket.state() {
-						TcpState::FinWait1
-						| TcpState::FinWait2
-						| TcpState::Closing
-						| TcpState::Closed => Some(WaitForResult::Failed),
-						_ => None,
+				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+				_ => {
+					if s.can_recv() {
+						Poll::Ready(s.recv_slice(buffer))
+					} else if !s.may_recv() {
+						Poll::Ready(Err(Error::Illegal))
+					} else {
+						s.register_recv_waker(cx.waker());
+						Poll::Pending
 					}
 				}
-			}
-		}
+			})
+		})
+		.await
+		.map_err(|_| Error::Illegal)
 	}
 
-	pub fn connect(&mut self, ip: &[u8], port: u16) -> Result<Handle, ()> {
-		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
-		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
-		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
-		let tcp_handle = self.sockets.add(tcp_socket);
-		let address =
-			IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| ())?).map_err(|_| ())?;
-
-		// request a connection
-		let mut socket = self.sockets.get::<TcpSocket>(tcp_handle);
-		socket
-			.connect(
-				(address, port),
-				LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
-			)
-			.map_err(|_| ())?;
-
-		Ok(tcp_handle)
-	}
-
-	pub fn accept(&mut self, port: u16) -> Result<Handle, ()> {
-		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
-		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
-		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
-		let tcp_handle = self.sockets.add(tcp_socket);
-
-		// request a connection
-		let mut socket = self.sockets.get::<TcpSocket>(tcp_handle);
-		socket.listen(port).map_err(|_| ())?;
-
-		Ok(tcp_handle)
-	}
-
-	pub fn close(&mut self, handle: Handle) -> Result<(), ()> {
-		let timestamp = Instant::now();
-		while self
-			.iface
-			.poll(&mut self.sockets, timestamp)
-			.unwrap_or(true)
-		{
-			// just to be sure that everything is sent
-		}
-
-		let mut socket = self.sockets.get::<TcpSocket>(handle);
-		socket.close();
-
-		Ok(())
-	}
-
-	pub fn read(&mut self, handle: Handle, buffer: &mut [u8]) -> Result<usize, ReadFailed> {
-		let mut socket = self.sockets.get::<TcpSocket>(handle);
-		if socket.can_recv() {
-			let len = socket
-				.recv_slice(buffer)
-				.map_err(|_| ReadFailed::InternalError)?;
-
-			Ok(len)
-		} else {
-			Err(ReadFailed::CanRecvFailed)
-		}
-	}
-
-	pub fn write(&mut self, handle: Handle, buffer: &[u8]) -> Result<usize, WriteFailed> {
-		let mut socket = self.sockets.get::<TcpSocket>(handle);
-		if !socket.may_recv() {
-			return Ok(0);
-		} else if !socket.can_send() {
-			return Err(WriteFailed::CanSendFailed);
-		}
-
-		socket
-			.send_slice(buffer)
-			.map_err(|_| WriteFailed::InternalError)
-	}
-}
-
-struct AsyncSocket(Handle);
-
-impl Future for AsyncSocket {
-	type Output = WaitForResult;
-
-	fn poll(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Self::Output> {
-		let mut guard = NIC.lock().unwrap();
-		let nic = guard.as_mut().unwrap();
-
-		if let Some(result) = nic.poll_handle(self.0) {
-			Poll::Ready(result)
-		} else {
-			Poll::Pending
-		}
-	}
-}
-
-async fn socket_wait(handle: Handle) -> WaitForResult {
-	AsyncSocket(handle).await
-}
-
-fn wait_for_result(handle: Handle, timeout: Option<u64>, polling: bool) -> WaitForResult {
-	let start = std::time::Instant::now();
-	let mut task = Box::pin(socket_wait(handle));
-
-	// I can do this because I know that the AsyncSocket primitive and
-	// never use the context argument.
-	// Fixme: This is UB
-	let v = MaybeUninit::uninit();
-	let mut ctx: Context = unsafe { v.assume_init() };
-
-	loop {
-		match task.as_mut().poll(&mut ctx) {
-			Poll::Ready(res) => {
-				return res;
-			}
-			Poll::Pending => {
-				if let Some(t) = timeout {
-					if u128::from(t) < std::time::Instant::now().duration_since(start).as_millis() {
-						return WaitForResult::Failed;
+	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
+		futures::future::poll_fn(|cx| {
+			self.with(|s| match s.state() {
+				TcpState::FinWait1
+				| TcpState::FinWait2
+				| TcpState::Closed
+				| TcpState::Closing
+				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+				_ => {
+					if !s.may_recv() {
+						Poll::Ready(Ok(0))
+					} else if s.can_send() {
+						Poll::Ready(s.send_slice(buffer).map_err(|_| Error::Illegal))
+					} else {
+						s.register_send_waker(cx.waker());
+						Poll::Pending
 					}
 				}
+			})
+		})
+		.await
+	}
 
-				let new_timeout = if polling { Some(0) } else { timeout };
-				unsafe {
-					sys_netwait(handle, new_timeout);
+	pub(crate) async fn close(&self) -> Result<(), Error> {
+		futures::future::poll_fn(|cx| {
+			self.with(|s| match s.state() {
+				TcpState::FinWait1
+				| TcpState::FinWait2
+				| TcpState::Closed
+				| TcpState::Closing
+				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+				_ => {
+					if s.send_queue() > 0 {
+						s.register_send_waker(cx.waker());
+						Poll::Pending
+					} else {
+						s.close();
+						Poll::Ready(Ok(()))
+					}
 				}
-			}
-		}
+			})
+		})
+		.await?;
+
+		futures::future::poll_fn(|cx| {
+			self.with(|s| match s.state() {
+				TcpState::FinWait1
+				| TcpState::FinWait2
+				| TcpState::Closed
+				| TcpState::Closing
+				| TcpState::TimeWait => Poll::Ready(Ok(())),
+				_ => {
+					s.register_send_waker(cx.waker());
+					Poll::Pending
+				}
+			})
+		})
+		.await
 	}
 }
 
-#[no_mangle]
-extern "C" fn uhyve_thread(_: usize) {
-	loop {
-		let mut guard = NIC.lock().unwrap();
-		if let Some(iface) = guard.as_mut() {
-			let (delay, handles) = iface.poll();
-			// release lock
-			drop(guard);
-
-			unsafe {
-				sys_netwait_and_wakeup(handles.as_slice(), delay.map(|s| s.millis()));
-			}
-		} else {
-			warn!("Ethernet interface not available");
-			return;
-		}
+impl From<Handle> for AsyncSocket {
+	fn from(handle: Handle) -> Self {
+		AsyncSocket(handle)
 	}
 }
 
@@ -420,21 +349,74 @@ fn start_endpoint() -> u16 {
 	(CNTPCT_EL0.get() % (u16::MAX as u64)).try_into().unwrap()
 }
 
-pub fn network_init() -> Result<(), ()> {
+pub(crate) fn network_poll(cx: &mut Context<'_>, timestamp: Instant) {
+	match unsafe { &mut NIC } {
+		NetworkState::Initialized(nic) => nic.lock().unwrap().poll(cx, timestamp),
+		_ => (),
+	}
+}
+
+pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
+	match unsafe { &mut NIC } {
+		NetworkState::Initialized(nic) => nic.lock().unwrap().poll_delay(timestamp),
+		_ => None,
+	}
+}
+
+pub(crate) async fn network_run() {
+	futures::future::poll_fn(|cx| match unsafe { &mut NIC } {
+		NetworkState::Initialized(nic) => {
+			nic.lock().unwrap().poll(cx, Instant::now());
+			Poll::Pending
+		}
+		_ => Poll::Ready(()),
+	})
+	.await
+}
+
+extern "C" fn nic_thread(_: usize) {
+	loop {
+		unsafe {
+			sys_netwait();
+		}
+
+		trace!("Network thread checks the devices");
+
+		match unsafe { &mut NIC } {
+			NetworkState::Initialized(nic) => {
+				nic.lock().unwrap().poll_common(Instant::now());
+			}
+			_ => {}
+		}
+	}
+}
+
+pub(crate) fn network_init() -> Result<(), ()> {
 	// initialize variable, which contains the next local endpoint
 	LOCAL_ENDPOINT.store(start_endpoint(), Ordering::SeqCst);
 
-	// create thread, which manages the network stack
-	// use a higher priority to reduce the network latency
-	let mut tid: Tid = 0;
-	let ret = unsafe { sys_spawn(&mut tid, uhyve_thread, 0, 3, 0) };
-	if ret >= 0 {
-		info!("Spawn network thread with id {}", tid);
-	}
-
-	// switch to
 	unsafe {
-		sys_yield();
+		NIC = NetworkInterface::<HermitNet>::new();
+
+		match &mut NIC {
+			NetworkState::Initialized(nic) => {
+				nic.lock().unwrap().poll_common(Instant::now());
+
+				// create thread, which manages the network stack
+				// use a higher priority to reduce the network latency
+				let mut tid: Tid = 0;
+				let ret = sys_spawn(&mut tid, nic_thread, 0, 3, 0);
+				if ret >= 0 {
+					debug!("Spawn network thread with id {}", tid);
+				}
+
+				spawn(network_run()).map_err(|_| ())?;
+
+				// switch to network thread
+				sys_yield();
+			}
+			_ => {}
+		};
 	}
 
 	Ok(())
@@ -442,126 +424,30 @@ pub fn network_init() -> Result<(), ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Result<Handle, ()> {
-	let limit = match timeout {
-		Some(t) => t,
-		_ => 5000,
-	};
-	let handle = {
-		let mut guard = NIC.lock().map_err(|_| ())?;
-		let nic = guard.as_mut().ok_or(())?;
-		let handle = nic.connect(ip, port)?;
-		nic.wait_for.insert(handle, WaitFor::Establish);
-
-		handle
-	};
-
-	let result = wait_for_result(handle, Some(limit), false);
-	match result {
-		WaitForResult::Ok => {
-			let mut guard = NIC.lock().map_err(|_| ())?;
-			let nic = guard.as_mut().ok_or(())?;
-			let mut socket = nic.sockets.get::<TcpSocket>(handle);
-			socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
-
-			Ok(handle)
-		}
-		_ => Err(()),
-	}
-}
-
-fn tcp_stream_try_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ReadFailed> {
-	let mut guard = NIC.lock().map_err(|_| ReadFailed::InternalError)?;
-	let nic = guard.as_mut().ok_or(ReadFailed::InternalError)?;
-
-	nic.read(handle, buffer).map_err(|err| {
-		if let ReadFailed::CanRecvFailed = err {
-			*nic.wait_for
-				.get_mut(&handle)
-				.expect("Unable to find handle") = WaitFor::Read;
-		}
-
-		err
-	})
+	let socket = AsyncSocket::new();
+	block_on(
+		socket.connect(ip, port),
+		timeout.map(|ms| Duration::from_millis(ms)),
+	)?
+	.map_err(|_| ())
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
-	loop {
-		let result = tcp_stream_try_read(handle, buffer);
-
-		match result {
-			Ok(len) => {
-				return Ok(len);
-			}
-			Err(ReadFailed::CanRecvFailed) => {
-				// wait for tx buffers and try the send operation
-				// ToDo: Is the != here correct? seems unintuitive to return ok if result is not okay
-				//	Additionally timeout of None seems like a bad idea
-				if wait_for_result(handle, None, false) != WaitForResult::Ok {
-					return Ok(0);
-				}
-			}
-			_ => {
-				return Err(());
-			}
-		}
-	}
-}
-
-fn tcp_stream_try_write(handle: Handle, buffer: &[u8]) -> Result<usize, WriteFailed> {
-	let mut guard = NIC.lock().map_err(|_| WriteFailed::InternalError)?;
-	let nic = guard.as_mut().ok_or(WriteFailed::InternalError)?;
-
-	let len = nic.write(handle, buffer).map_err(|err| {
-		if let WriteFailed::CanSendFailed = err {
-			*nic.wait_for
-				.get_mut(&handle)
-				.expect("Unable to find handle") = WaitFor::Write;
-		}
-
-		err
-	})?;
-
-	Ok(len)
+	let socket = AsyncSocket::from(handle);
+	block_on(socket.read(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
-	loop {
-		let result = tcp_stream_try_write(handle, buffer);
-
-		match result {
-			Ok(len) => {
-				return Ok(len);
-			}
-			Err(WriteFailed::CanSendFailed) => {
-				// wait for tx buffers and try the send operation
-				if wait_for_result(handle, None, true) != WaitForResult::Ok {
-					return Err(());
-				}
-			}
-			_ => {
-				return Err(());
-			}
-		}
-	}
+	let socket = AsyncSocket::from(handle);
+	block_on(socket.write(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
-	{
-		// close connection
-		let mut guard = NIC.lock().map_err(|_| ())?;
-		let nic = guard.as_mut().ok_or(())?;
-		nic.close(handle)?;
-		*nic.wait_for
-			.get_mut(&handle)
-			.expect("Unable to find handle") = WaitFor::Close;
-	}
-
-	wait_for_result(handle, None, false);
-
-	Ok(())
+	let socket = AsyncSocket::from(handle);
+	block_on(socket.close(), None)?.map_err(|_| ())
 }
 
 //ToDo: an enum, or at least constants would be better
@@ -569,7 +455,7 @@ pub fn sys_tcp_stream_close(handle: Handle) -> Result<(), ()> {
 pub fn sys_tcp_stream_shutdown(handle: Handle, how: i32) -> Result<(), ()> {
 	match how {
 		0 /* Read */ => {
-			debug!("Shutdown::Read is not implemented");
+			trace!("Shutdown::Read is not implemented");
 			Ok(())
 		},
 		1 /* Write */ => {
@@ -632,9 +518,11 @@ pub fn sys_tcp_stream_get_tll(_handle: Handle) -> Result<u32, ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> {
-	let mut guard = NIC.lock().map_err(|_| ())?;
-	let nic = guard.as_mut().ok_or(())?;
-	let mut socket = nic.sockets.get::<TcpSocket>(handle);
+	let mut guard = match unsafe { &mut NIC } {
+		NetworkState::Initialized(nic) => nic.lock().unwrap(),
+		_ => return Err(()),
+	};
+	let mut socket = guard.sockets.get::<TcpSocket>(handle);
 	socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
 	let endpoint = socket.remote_endpoint();
 
@@ -643,26 +531,8 @@ pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> 
 
 #[no_mangle]
 pub fn sys_tcp_listener_accept(port: u16) -> Result<(Handle, IpAddress, u16), ()> {
-	let handle = {
-		let mut guard = NIC.lock().map_err(|_| ())?;
-		let nic = guard.as_mut().ok_or(())?;
-		let handle = nic.accept(port)?;
-		nic.wait_for.insert(handle, WaitFor::IsActive);
+	let socket = AsyncSocket::new();
+	let (addr, port) = block_on(socket.accept(port), None)?.map_err(|_| ())?;
 
-		handle
-	};
-
-	let result = wait_for_result(handle, None, false);
-	match result {
-		WaitForResult::Ok => {
-			let mut guard = NIC.lock().map_err(|_| ())?;
-			let nic = guard.as_mut().ok_or(())?;
-			let mut socket = nic.sockets.get::<TcpSocket>(handle);
-			socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
-			let endpoint = socket.remote_endpoint();
-
-			Ok((handle, endpoint.addr, endpoint.port))
-		}
-		_ => Err(()),
-	}
+	Ok((socket.0, addr, port))
 }
