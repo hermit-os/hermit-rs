@@ -4,7 +4,7 @@ use futures_util::pin_mut;
 use smoltcp::time::{Duration, Instant};
 use std::future::Future;
 use std::sync::{
-	atomic::{AtomicBool, AtomicUsize, Ordering},
+	atomic::{AtomicBool, Ordering},
 	Arc, Mutex,
 };
 use std::task::{Context, Poll};
@@ -33,8 +33,6 @@ lazy_static! {
 	static ref EXECUTOR: Mutex<SmoltcpExecutor> = Mutex::new(SmoltcpExecutor::new());
 }
 
-static NTHREADS_IN_EXECUTOR: ThreadsInExecutor = ThreadsInExecutor::new();
-
 struct SmoltcpExecutor {
 	pool: Vec<FutureObj<'static, ()>>,
 }
@@ -47,65 +45,6 @@ impl SmoltcpExecutor {
 	fn spawn_obj(&mut self, future: FutureObj<'static, ()>) -> Result<(), SpawnError> {
 		self.pool.push(future);
 		Ok(())
-	}
-}
-
-/// Helper struct to determine, if the network interface
-/// has to set in polling mode and to disable interrupts
-/// from the network interface.
-struct ThreadsInExecutor {
-	/// number of threads in the executor
-	nthreads: AtomicUsize,
-	/// number of blocked threads
-	blocked: AtomicUsize,
-}
-
-impl ThreadsInExecutor {
-	pub const fn new() -> Self {
-		Self {
-			nthreads: AtomicUsize::new(0),
-			blocked: AtomicUsize::new(0),
-		}
-	}
-
-	pub fn increment(&self) {
-		let old = self.nthreads.fetch_add(1, Ordering::SeqCst);
-		if old + 1 > self.blocked.load(Ordering::SeqCst) {
-			// a thread is waiting for message
-			unsafe {
-				sys_set_network_polling_mode(true);
-			}
-		}
-	}
-
-	pub fn decrement(&self) {
-		let old = self.nthreads.fetch_sub(1, Ordering::SeqCst);
-		if old - 1 <= self.blocked.load(Ordering::SeqCst) {
-			// no thread is waiting for a message
-			unsafe {
-				sys_set_network_polling_mode(false);
-			}
-		}
-	}
-
-	pub fn unblock(&self) {
-		let old = self.blocked.fetch_sub(1, Ordering::SeqCst);
-		if self.nthreads.load(Ordering::SeqCst) > old - 1 {
-			// a thread is waiting for message
-			unsafe {
-				sys_set_network_polling_mode(true);
-			}
-		}
-	}
-
-	pub fn block(&self) {
-		let old = self.blocked.fetch_add(1, Ordering::SeqCst);
-		if self.nthreads.load(Ordering::SeqCst) <= old + 1 {
-			// no thread is waiting for a message
-			unsafe {
-				sys_set_network_polling_mode(false);
-			}
-		}
 	}
 }
 
@@ -149,7 +88,9 @@ fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
 	mut f: F,
 	timeout: Option<Duration>,
 ) -> Result<T, ()> {
-	NTHREADS_IN_EXECUTOR.increment();
+	unsafe {
+		sys_set_network_polling_mode(true);
+	}
 	let start = Instant::now();
 
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
@@ -157,32 +98,38 @@ fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
 		let mut cx = Context::from_waker(&waker);
 		loop {
 			if let Poll::Ready(t) = f(&mut cx) {
-				NTHREADS_IN_EXECUTOR.decrement();
+				unsafe {
+					sys_set_network_polling_mode(false);
+				}
 				return Ok(t);
 			}
 
+			let now = Instant::now();
+
 			if let Some(duration) = timeout {
-				if Instant::now() >= start + duration {
-					NTHREADS_IN_EXECUTOR.decrement();
+				if now >= start + duration {
+					unsafe {
+						sys_set_network_polling_mode(false);
+					}
 					return Err(());
 				}
 			} else {
-				let timestamp = Instant::now();
-				let delay = network_delay(timestamp).map(|d| d.total_millis());
+				let delay = network_delay(now).map(|d| d.total_millis());
 
-				if delay.is_none() || delay.unwrap() > 200 {
+				if delay.is_none() || delay.unwrap() > 100 {
 					let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
 					if !unparked {
-						NTHREADS_IN_EXECUTOR.block();
 						unsafe {
+							sys_set_network_polling_mode(false);
 							sys_block_current_task_with_timeout(delay);
 							sys_yield();
+							sys_set_network_polling_mode(true);
 						}
-						NTHREADS_IN_EXECUTOR.unblock();
 						thread_notify.unparked.store(false, Ordering::Release);
+						network_poll(&mut cx, Instant::now());
 					}
 				} else {
-					network_poll(&mut cx, timestamp);
+					network_poll(&mut cx, now);
 				}
 			}
 		}
