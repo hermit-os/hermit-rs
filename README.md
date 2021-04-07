@@ -196,12 +196,12 @@ sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap10/proxy_arp'
 ```
 
 Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
-
+`hermi-sys` dependency has to be factored out of `[target.'cfg(target_os = "hermit")'.dependencies]` because it requires features selection for network support to work thus this snippet should be added to `Cargo.toml` 
 ```toml
 # Cargo.toml
 
-[target.'cfg(target_os = "hermit")'.dependencies]
-hermit-sys = "0.1.*"
+[target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
+version = "0.1.*"
 default-features = false
 features = ["smoltcp"]
 ```
