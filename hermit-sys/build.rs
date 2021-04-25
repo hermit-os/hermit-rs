@@ -23,7 +23,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel");
+			.arg("x86_64-unknown-none-hermitkernel");
 	} else if target.target_arch() == "aarch64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
@@ -108,7 +108,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib_location = if target.target_arch() == "x86_64" {
 		target_dir
-			.join("x86_64-unknown-hermit-kernel")
+			.join("x86_64-unknown-none-hermitkernel")
 			.join(&profile)
 			.canonicalize()
 			.unwrap() // Must exist after building
