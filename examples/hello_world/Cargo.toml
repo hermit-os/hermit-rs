@@ -23,7 +23,7 @@ instrument = ["hermit-sys/instrument"]
 opt-level = 3
 debug = false
 rpath = false
-lto = true
+lto = false
 debug-assertions = false
 
 [profile.dev]

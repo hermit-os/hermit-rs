@@ -38,7 +38,7 @@ build:demo:
   image: ${CI_REGISTRY_IMAGE}
   script:
     - cargo build -p rusty_demo
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build -p rusty_demo --release
+    - cargo build -p rusty_demo --release
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo
@@ -48,7 +48,7 @@ build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
-    - RUSTFLAGS="-Clinker-plugin-lto" cargo build --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,smoltcp,vga,dhcpv4 --release
+    - cargo build --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,smoltcp,vga,dhcpv4 --release
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/release/httpd
