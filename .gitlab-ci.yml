@@ -130,7 +130,7 @@ deploy:docker:
    dependencies:
      - test:image
    image:
-     name: quay.io/buildah/stable
+     name: docker
    variables:
      _BUILDAH_STARTED_IN_USERNS: ""
      BUILDAH_ISOLATION: chroot
