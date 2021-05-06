@@ -17,10 +17,6 @@ variables:
   stage: prepare
   image:
     name: docker
-  variables:
-    _BUILDAH_STARTED_IN_USERNS: ""
-    BUILDAH_ISOLATION: chroot
-    BUILDAH_LAYERS: "true"
   before_script:
   - docker version
   - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
@@ -140,20 +136,18 @@ deploy:docker:
      BUILDAH_ISOLATION: chroot
      BUILDAH_LAYERS: "true"
    before_script:
-     - buildah version
-     - buildah login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+     - docker version
+     - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
    script:
      - |
        cat << END > ${DOCKER_FILE}
        FROM scratch
        ADD disk.qcow2 /disk/
        END
-     - buildah bud -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
-     - buildah push ${DOCKER_IMAGE}/httpd:latest docker://${DOCKER_IMAGE}/httpd:latest
-   after_script:
-     - buildah logout "${CI_REGISTRY}"
+     - docker -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
+     - docker push ${DOCKER_IMAGE}/httpd:latest docker://${DOCKER_IMAGE}/httpd:latest
    tags:
-     - builder
+     - docker
    only:
      refs:
        - master
