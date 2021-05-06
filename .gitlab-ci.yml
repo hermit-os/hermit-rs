@@ -125,16 +125,12 @@ test:image:
      refs:
         - master
 
-deploy:docker:
+.deploy:docker: &deploy_docker
    stage: predeploy
    dependencies:
      - test:image
    image:
      name: docker
-   variables:
-     _BUILDAH_STARTED_IN_USERNS: ""
-     BUILDAH_ISOLATION: chroot
-     BUILDAH_LAYERS: "true"
    before_script:
      - docker version
      - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
@@ -151,6 +147,9 @@ deploy:docker:
    only:
      refs:
        - master
+
+deploy:docker:
+  <<: *deploy_docker
 
 deploy:httpd:
   stage: deploy
