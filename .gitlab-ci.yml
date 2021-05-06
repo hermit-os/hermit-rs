@@ -140,7 +140,7 @@ test:image:
        FROM scratch
        ADD disk.qcow2 /disk/
        END
-     - docker -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
+     - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd:latest .
      - docker push ${DOCKER_IMAGE}/httpd:latest docker://${DOCKER_IMAGE}/httpd:latest
    tags:
      - docker
