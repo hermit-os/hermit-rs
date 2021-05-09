@@ -125,7 +125,7 @@ test:demo_image:
      refs:
         - master
 
-test:http_image:
+test:httpd_image:
    stage: test
    dependencies:
      - build:httpd
@@ -169,7 +169,7 @@ test:http_image:
 .deploy:httpd_docker: &deploy_httpd_docker
    stage: predeploy
    dependencies:
-     - test:http_image
+     - test:httpd_image
    image:
      name: docker
    before_script:
@@ -191,6 +191,32 @@ test:http_image:
 
 deploy:httpd_docker:
   <<: *deploy_httpd_docker
+
+.deploy:demo_docker: &deploy_demo_docker
+   stage: predeploy
+   dependencies:
+     - test:demo_image
+   image:
+     name: docker
+   before_script:
+     - docker version
+     - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+   script:
+     - |
+       cat << END > ${DOCKER_FILE}
+       FROM scratch
+       ADD disk.qcow2 /disk/
+       END
+     - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/demo:latest .
+     - docker push ${DOCKER_IMAGE}/demo:latest
+   tags:
+     - docker
+   only:
+     refs:
+       - master
+
+deploy:demo_docker:
+  <<: *deploy_demo_docker
 
 deploy:httpd:
   stage: deploy
