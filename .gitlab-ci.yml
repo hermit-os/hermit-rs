@@ -84,7 +84,48 @@ test:qemu:
    tags:
      - privileged
 
-test:image:
+test:demo_image:
+   stage: test
+   dependencies:
+     - build:demo
+   image: ${CI_REGISTRY_IMAGE}
+   script:
+     - cd loader
+     - make release=1
+     - cd ..
+     - dd if=/dev/zero of=disk.img bs=1k count=1M
+     - echo ',,,*;' | sfdisk disk.img
+     - mkfs.ext2 -F -E offset=1048576 disk.img
+     - kpartx -a -v disk.img
+     - LOOP_DEVICE=$(losetup -j ${PWD}/disk.img | awk '{sub(/:/,"",$1); print $1}')
+     - LOOP_NAME=$(basename ${LOOP_DEVICE})
+     - mount /dev/mapper/${LOOP_NAME}p1 /mnt/
+     - grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" ${LOOP_DEVICE}
+     - cp target/x86_64-unknown-hermit/release/rusty_demo /mnt/boot/
+     - cp loader/target/x86_64-unknown-hermit-loader/release/rusty-loader /mnt/boot/loader
+     - |
+       cat > /mnt/boot/grub/grub.cfg << EOF
+       default=0
+       timeout=0
+       menuentry "demo" {
+         multiboot --quirk-bad-kludge /boot/loader
+         module /boot/rusty_demo
+         boot
+       }
+       EOF
+     - umount /mnt
+     - kpartx -d disk.img
+     - qemu-img convert -f raw -O qcow2 disk.img disk.qcow2
+   tags:
+     - privileged
+   artifacts:
+    paths:
+      - disk.qcow2
+   only:
+     refs:
+        - master
+
+test:http_image:
    stage: test
    dependencies:
      - build:httpd
@@ -125,10 +166,10 @@ test:image:
      refs:
         - master
 
-.deploy:docker: &deploy_docker
+.deploy:httpd_docker: &deploy_httpd_docker
    stage: predeploy
    dependencies:
-     - test:image
+     - test:http_image
    image:
      name: docker
    before_script:
@@ -148,13 +189,13 @@ test:image:
      refs:
        - master
 
-deploy:docker:
-  <<: *deploy_docker
+deploy:httpd_docker:
+  <<: *deploy_httpd_docker
 
 deploy:httpd:
   stage: deploy
   dependencies:
-    - deploy:docker
+    - deploy:httpd_docker
   variables:
     KUBECONFIG: /root/.kube/config
     KUBEVIRT_VERSION: v0.36.0
