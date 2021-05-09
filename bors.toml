@@ -3,7 +3,7 @@ status = [
   "Test (windows-latest, nightly)",
   "Test (ubuntu-latest, nightly)",
   "Format check (ubuntu-latest, nightly)",
-  "ci/gitlab/git.rwth-aachen.de",
+  "KVM Tests",
 ]
 delete_merged_branches = true
 timeout_sec = 7200
