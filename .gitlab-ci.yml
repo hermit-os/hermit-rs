@@ -35,19 +35,29 @@ build:demo:
   script:
     - cargo build -p rusty_demo
     - cargo build -p rusty_demo --release
+    - cd loader
+    - make
+    - make release=1
+    - cd ..
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/debug/rusty_demo
       - target/x86_64-unknown-hermit/release/rusty_demo
+      - loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader
+      - loader/target/x86_64-unknown-hermit-loader/release/rusty-loader
 
 build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
   script:
     - cargo build --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,smoltcp,vga,dhcpv4 --release
+    - cd loader
+    - make release=1
+    - cd ..
   artifacts:
     paths:
       - target/x86_64-unknown-hermit/release/httpd
+      - loader/target/x86_64-unknown-hermit-loader/release/rusty-loader
 
 test:uhyve:
    stage: test
@@ -73,10 +83,6 @@ test:qemu:
    script:
      - lscpu
      - kvm-ok
-     - cd loader
-     - make
-     - make release=1
-     - cd ..
      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
      - qemu-system-x86_64 -display none -smp 2 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
      - qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand -enable-kvm
@@ -90,9 +96,6 @@ test:httpd_image:
      - build:httpd
    image: ${CI_REGISTRY_IMAGE}
    script:
-     - cd loader
-     - make release=1
-     - cd ..
      - dd if=/dev/zero of=disk.img bs=1k count=1M
      - echo ',,,*;' | sfdisk disk.img
      - mkfs.ext2 -F -E offset=1048576 disk.img
@@ -161,9 +164,6 @@ deploy:httpd_docker:
      - docker version
      - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
    script:
-     - cd loader
-     - make release=1
-     - cd ..
      - |
        cat << END > ${DOCKER_FILE}
        FROM scratch
