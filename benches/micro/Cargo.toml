@@ -41,5 +41,5 @@ opt-level = 1      # controls the `--opt-level` the compiler builds with
 debug = true       # controls whether the compiler passes `-C debuginfo`
                    # a value of `true` is equivalent to `2`
 rpath = false      # controls whether the compiler passes `-C rpath`
-lto = false         # controls `-C lto` for binaries and staticlibs
+lto = true         # controls `-C lto` for binaries and staticlibs
 debug-assertions = true # controls whether debug assertions are enabled

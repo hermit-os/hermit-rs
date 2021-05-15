@@ -152,24 +152,6 @@ qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 
 You are not happy with `Hello World` yet?
 
-### Link Time Optimization (LTO)
-
-To enable *Link Time Optimization* (LTO), please extend the release configuration in *Cargo.toml* as follows:
-
-```toml
-# Cargo.toml
-[profile.release]
-opt-level = 3
-lto = "thin"
-```
-
-In addition, the [Linker-plugin LTO](https://doc.rust-lang.org/rustc/linker-plugin-lto.html) have to be enabled by setting the compiler flag `linker-plugin-lto`.
-In this case, the release version have to build as follows:
-
-```sh
-RUSTFLAGS="-Clinker-plugin-lto" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
-```
-
 ### Controlling kernel message verbosity
 
 RustyHermit uses the lightweight logging crate [log](https://github.com/rust-lang/log) to print kernel messages.
