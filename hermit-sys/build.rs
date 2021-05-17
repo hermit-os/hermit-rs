@@ -13,6 +13,10 @@ use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+	assert!(
+		src_dir.exists(),
+		"rusty_hermit source folder does not exist"
+	);
 	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
@@ -186,15 +190,20 @@ fn build() {
 	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 	let src_dir = out_dir.join("rusty-hermit");
 
-	let _output = Command::new("cargo")
-		.current_dir(out_dir)
-		.arg("download")
-		.arg("--output")
-		.arg(src_dir.clone().into_os_string())
-		.arg("--extract")
-		.arg("rusty-hermit")
-		.output()
-		.expect("Unable to download rusty-hermit. Please install `cargo-download`.");
+	if !src_dir.as_path().exists() {
+		let cargo_download = Command::new("cargo")
+			.current_dir(out_dir)
+			.arg("download")
+			.arg("--output")
+			.arg(src_dir.clone().into_os_string())
+			.arg("--extract")
+			.arg("rusty-hermit")
+			.output()
+			.expect("could not launch cargo download");
+		if !cargo_download.status.success() {
+			panic!("Unable to download rusty-hermit. Is `cargo-download` installed?.");
+		}
+	}
 
 	build_hermit(src_dir.as_ref(), None);
 }
