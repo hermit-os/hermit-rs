@@ -1,13 +1,13 @@
 use crate::net::{network_delay, network_poll};
 use futures::pin_mut;
-use futures::task::{waker_ref, ArcWake, FutureObj, SpawnError};
+use futures::task::{FutureObj, SpawnError};
 use smoltcp::time::{Duration, Instant};
 use std::future::Future;
 use std::sync::{
 	atomic::{AtomicBool, Ordering},
 	Arc, Mutex,
 };
-use std::task::{Context, Poll};
+use std::task::{Context, Poll, Wake};
 
 /// A thread handle type
 type Tid = u32;
@@ -70,13 +70,17 @@ impl Drop for ThreadNotify {
 	}
 }
 
-impl ArcWake for ThreadNotify {
-	fn wake_by_ref(arc_self: &Arc<Self>) {
+impl Wake for ThreadNotify {
+	fn wake(self: Arc<Self>) {
+		self.wake_by_ref()
+	}
+
+	fn wake_by_ref(self: &Arc<Self>) {
 		// Make sure the wakeup is remembered until the next `park()`.
-		let unparked = arc_self.unparked.swap(true, Ordering::Relaxed);
+		let unparked = self.unparked.swap(true, Ordering::Relaxed);
 		if !unparked {
 			unsafe {
-				sys_wakeup_task(arc_self.thread);
+				sys_wakeup_task(self.thread);
 			}
 		}
 	}
@@ -94,7 +98,7 @@ fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
 	let start = Instant::now();
 
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
-		let waker = waker_ref(thread_notify);
+		let waker = thread_notify.clone().into();
 		let mut cx = Context::from_waker(&waker);
 		loop {
 			if let Poll::Ready(t) = f(&mut cx) {
