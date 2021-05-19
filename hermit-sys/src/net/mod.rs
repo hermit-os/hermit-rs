@@ -351,13 +351,6 @@ fn start_endpoint() -> u16 {
 	(CNTPCT_EL0.get() % (u16::MAX as u64)).try_into().unwrap()
 }
 
-pub(crate) fn network_poll(cx: &mut Context<'_>, timestamp: Instant) {
-	match unsafe { &mut NIC } {
-		NetworkState::Initialized(nic) => nic.lock().unwrap().poll(cx, timestamp),
-		_ => (),
-	}
-}
-
 pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
 	match unsafe { &mut NIC } {
 		NetworkState::Initialized(nic) => nic.lock().unwrap().poll_delay(timestamp),
@@ -412,7 +405,7 @@ pub(crate) fn network_init() -> Result<(), ()> {
 					debug!("Spawn network thread with id {}", tid);
 				}
 
-				spawn(network_run());
+				spawn(network_run()).detach();
 
 				// switch to network thread
 				sys_yield();
