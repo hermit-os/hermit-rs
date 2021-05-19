@@ -1,13 +1,15 @@
-use crate::net::{network_delay, network_poll};
-use futures_lite::future::{self, FutureExt};
+/// An executor, which is run when idling on network I/O.
+use crate::net::network_delay;
+use async_task::{Runnable, Task};
+use concurrent_queue::ConcurrentQueue;
 use futures_lite::pin;
 use smoltcp::time::{Duration, Instant};
-use std::future::Future;
-use std::sync::{
-	atomic::{AtomicBool, Ordering},
-	Arc, Mutex,
+use std::sync::atomic::Ordering;
+use std::{
+	future::Future,
+	sync::{atomic::AtomicBool, Arc},
+	task::{Context, Poll, Wake},
 };
-use std::task::{Context, Poll, Wake};
 
 /// A thread handle type
 type Tid = u32;
@@ -23,28 +25,26 @@ extern "Rust" {
 	fn sys_block_current_task_with_timeout(timeout: Option<u64>);
 }
 
-thread_local! {
-	static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = {
-		Arc::new(ThreadNotify::new())
-	}
-}
-
 lazy_static! {
-	static ref EXECUTOR: Mutex<SmoltcpExecutor> = Mutex::new(SmoltcpExecutor::new());
+	static ref QUEUE: ConcurrentQueue<Runnable> = ConcurrentQueue::unbounded();
 }
 
-struct SmoltcpExecutor {
-	pool: Vec<future::Boxed<()>>,
+fn run_executor() {
+	while let Ok(runnable) = QUEUE.pop() {
+		runnable.run();
+	}
 }
 
-impl SmoltcpExecutor {
-	pub fn new() -> Self {
-		Self { pool: Vec::new() }
-	}
-
-	fn spawn_obj(&mut self, future: future::Boxed<()>) {
-		self.pool.push(future);
-	}
+/// Spawns a future on the executor.
+pub fn spawn<F, T>(future: F) -> Task<T>
+where
+	F: Future<Output = T> + Send + 'static,
+	T: Send + 'static,
+{
+	let schedule = |runnable| QUEUE.push(runnable).unwrap();
+	let (runnable, task) = async_task::spawn(future, schedule);
+	runnable.schedule();
+	task
 }
 
 struct ThreadNotify {
@@ -85,39 +85,35 @@ impl Wake for ThreadNotify {
 	}
 }
 
-// Set up and run a basic single-threaded spawner loop, invoking `f` on each
-// turn.
-fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
-	mut f: F,
-	timeout: Option<Duration>,
-) -> Result<T, ()> {
-	unsafe {
-		sys_set_network_polling_mode(true);
+/// Blocks the current thread on `f`, running the executor when idling.
+pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
+where
+	F: Future<Output = T>,
+{
+	thread_local! {
+		static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
 	}
-	let start = Instant::now();
 
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+		unsafe { sys_set_network_polling_mode(true) }
+		let start = Instant::now();
+
 		let waker = thread_notify.clone().into();
 		let mut cx = Context::from_waker(&waker);
+		pin!(future);
 		loop {
-			if let Poll::Ready(t) = f(&mut cx) {
-				unsafe {
-					sys_set_network_polling_mode(false);
-				}
+			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
+				unsafe { sys_set_network_polling_mode(false) }
 				return Ok(t);
 			}
 
-			let now = Instant::now();
-
 			if let Some(duration) = timeout {
-				if now >= start + duration {
-					unsafe {
-						sys_set_network_polling_mode(false);
-					}
+				if Instant::now() >= start + duration {
+					unsafe { sys_set_network_polling_mode(false) }
 					return Err(());
 				}
 			} else {
-				let delay = network_delay(now).map(|d| d.total_millis());
+				let delay = network_delay(Instant::now()).map(|d| d.total_millis());
 
 				if delay.is_none() || delay.unwrap() > 100 {
 					let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
@@ -129,21 +125,12 @@ fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
 							sys_set_network_polling_mode(true);
 						}
 						thread_notify.unparked.store(false, Ordering::Release);
-						network_poll(&mut cx, Instant::now());
+						run_executor()
 					}
 				} else {
-					network_poll(&mut cx, now);
+					run_executor()
 				}
 			}
 		}
 	})
-}
-
-pub fn block_on<F: Future>(f: F, timeout: Option<Duration>) -> Result<F::Output, ()> {
-	pin!(f);
-	run_until(|cx| f.as_mut().poll(cx), timeout)
-}
-
-pub fn spawn<F: Future<Output = ()> + std::marker::Send + 'static>(f: F) {
-	EXECUTOR.lock().unwrap().spawn_obj(f.boxed())
 }
