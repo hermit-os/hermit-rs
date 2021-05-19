@@ -410,7 +410,7 @@ pub(crate) fn network_init() -> Result<(), ()> {
 					debug!("Spawn network thread with id {}", tid);
 				}
 
-				spawn(network_run()).map_err(|_| ())?;
+				spawn(network_run());
 
 				// switch to network thread
 				sys_yield();

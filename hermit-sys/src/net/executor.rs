@@ -1,7 +1,6 @@
 use crate::net::{network_delay, network_poll};
 use futures::future::BoxFuture;
 use futures::pin_mut;
-use futures::task::SpawnError;
 use smoltcp::time::{Duration, Instant};
 use std::future::Future;
 use std::sync::{
@@ -43,9 +42,8 @@ impl SmoltcpExecutor {
 		Self { pool: Vec::new() }
 	}
 
-	fn spawn_obj(&mut self, future: BoxFuture<'static, ()>) -> Result<(), SpawnError> {
+	fn spawn_obj(&mut self, future: BoxFuture<'static, ()>) {
 		self.pool.push(future);
-		Ok(())
 	}
 }
 
@@ -146,6 +144,6 @@ pub fn block_on<F: Future>(f: F, timeout: Option<Duration>) -> Result<F::Output,
 	run_until(|cx| f.as_mut().poll(cx), timeout)
 }
 
-pub fn spawn<F: Future<Output = ()> + std::marker::Send + 'static>(f: F) -> Result<(), SpawnError> {
+pub fn spawn<F: Future<Output = ()> + std::marker::Send + 'static>(f: F) {
 	EXECUTOR.lock().unwrap().spawn_obj(Box::pin(f))
 }
