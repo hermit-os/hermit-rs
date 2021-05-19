@@ -8,6 +8,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![feature(test)]
+#![feature(bench_black_box)]
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
