@@ -35,7 +35,7 @@ llvm-tools = { version = "0.1" }
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2.1", default-features = false }
-futures = { version = "0.3.5" }
+futures-lite = "1.11"
 lazy_static = "1.4"
 
 [target.'cfg(target_arch = "x86_64")'.dependencies.x86]
