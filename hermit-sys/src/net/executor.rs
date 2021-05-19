@@ -1,6 +1,6 @@
 use crate::net::{network_delay, network_poll};
-use futures::future::BoxFuture;
-use futures::pin_mut;
+use futures_lite::future::{self, FutureExt};
+use futures_lite::pin;
 use smoltcp::time::{Duration, Instant};
 use std::future::Future;
 use std::sync::{
@@ -34,7 +34,7 @@ lazy_static! {
 }
 
 struct SmoltcpExecutor {
-	pool: Vec<BoxFuture<'static, ()>>,
+	pool: Vec<future::Boxed<()>>,
 }
 
 impl SmoltcpExecutor {
@@ -42,7 +42,7 @@ impl SmoltcpExecutor {
 		Self { pool: Vec::new() }
 	}
 
-	fn spawn_obj(&mut self, future: BoxFuture<'static, ()>) {
+	fn spawn_obj(&mut self, future: future::Boxed<()>) {
 		self.pool.push(future);
 	}
 }
@@ -140,10 +140,10 @@ fn run_until<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(
 }
 
 pub fn block_on<F: Future>(f: F, timeout: Option<Duration>) -> Result<F::Output, ()> {
-	pin_mut!(f);
+	pin!(f);
 	run_until(|cx| f.as_mut().poll(cx), timeout)
 }
 
 pub fn spawn<F: Future<Output = ()> + std::marker::Send + 'static>(f: F) {
-	EXECUTOR.lock().unwrap().spawn_obj(Box::pin(f))
+	EXECUTOR.lock().unwrap().spawn_obj(f.boxed())
 }
