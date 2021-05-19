@@ -370,7 +370,6 @@ version = "0.1.22"
 dependencies = [
  "aarch64",
  "futures",
- "futures-util",
  "lazy_static",
  "libm",
  "llvm-tools",
