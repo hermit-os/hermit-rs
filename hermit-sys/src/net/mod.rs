@@ -4,13 +4,13 @@ mod waker;
 
 #[cfg(target_arch = "aarch64")]
 use aarch64::regs::*;
-use futures::task::{Context, Poll};
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::convert::TryInto;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
+use std::task::{Context, Poll};
 
 use std::u16;
 
@@ -25,6 +25,8 @@ use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
 use smoltcp::Error;
+
+use futures_lite::future;
 
 use crate::net::device::HermitNet;
 use crate::net::executor::{block_on, spawn};
@@ -185,7 +187,7 @@ impl AsyncSocket {
 		let address = IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| Error::Illegal)?)
 			.map_err(|_| Error::Illegal)?;
 
-		futures::future::poll_fn(|_| {
+		future::poll_fn(|_| {
 			self.with(|s| {
 				Poll::Ready(s.connect(
 					(address, port),
@@ -196,7 +198,7 @@ impl AsyncSocket {
 		.await
 		.map_err(|_| Error::Illegal)?;
 
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| match s.state() {
 				TcpState::Closed | TcpState::TimeWait => Poll::Ready(Err(Error::Unaddressable)),
 				TcpState::Listen => Poll::Ready(Err(Error::Illegal)),
@@ -213,7 +215,7 @@ impl AsyncSocket {
 	pub(crate) async fn accept(&self, port: u16) -> Result<(IpAddress, u16), Error> {
 		self.with(|s| s.listen(port).map_err(|_| Error::Illegal))?;
 
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| {
 				if s.is_active() {
 					Poll::Ready(Ok(()))
@@ -247,7 +249,7 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| match s.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
@@ -271,7 +273,7 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| match s.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
@@ -294,7 +296,7 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn close(&self) -> Result<(), Error> {
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| match s.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
@@ -314,7 +316,7 @@ impl AsyncSocket {
 		})
 		.await?;
 
-		futures::future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|s| match s.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
@@ -364,7 +366,7 @@ pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
 }
 
 pub(crate) async fn network_run() {
-	futures::future::poll_fn(|cx| match unsafe { &mut NIC } {
+	future::poll_fn(|cx| match unsafe { &mut NIC } {
 		NetworkState::Initialized(nic) => {
 			nic.lock().unwrap().poll(cx, Instant::now());
 			Poll::Pending
