@@ -1,6 +1,6 @@
 use crate::net::{network_delay, network_poll};
+use futures::pin_mut;
 use futures::task::{waker_ref, ArcWake, FutureObj, SpawnError};
-use futures_util::pin_mut;
 use smoltcp::time::{Duration, Instant};
 use std::future::Future;
 use std::sync::{
