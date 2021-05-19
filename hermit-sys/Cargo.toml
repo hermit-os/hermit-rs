@@ -35,6 +35,8 @@ llvm-tools = { version = "0.1" }
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2.1", default-features = false }
+async-task = "4.0"
+concurrent-queue = "1.2"
 futures-lite = "1.11"
 lazy_static = "1.4"
 
