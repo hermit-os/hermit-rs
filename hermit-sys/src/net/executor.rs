@@ -13,7 +13,7 @@ use std::task::{Context, Poll, Wake};
 type Tid = u32;
 
 extern "C" {
-	fn sys_getpid() -> u32;
+	fn sys_getpid() -> Tid;
 	fn sys_yield();
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_set_network_polling_mode(value: bool);
