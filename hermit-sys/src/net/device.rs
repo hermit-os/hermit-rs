@@ -96,7 +96,7 @@ impl NetworkInterface<HermitNet> {
 
 		NetworkState::Initialized(Mutex::new(Self {
 			iface,
-			sockets: sockets,
+			sockets,
 			dhcp,
 			prev_cidr,
 			waker: WakerRegistration::new(),
