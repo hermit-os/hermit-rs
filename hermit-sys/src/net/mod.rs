@@ -187,15 +187,12 @@ impl AsyncSocket {
 		let address = IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| Error::Illegal)?)
 			.map_err(|_| Error::Illegal)?;
 
-		future::poll_fn(|_| {
-			self.with(|s| {
-				Poll::Ready(s.connect(
-					(address, port),
-					LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
-				))
-			})
+		self.with(|s| {
+			s.connect(
+				(address, port),
+				LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
+			)
 		})
-		.await
 		.map_err(|_| Error::Illegal)?;
 
 		future::poll_fn(|cx| {
