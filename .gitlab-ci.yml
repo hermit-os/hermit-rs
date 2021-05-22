@@ -32,6 +32,8 @@ prepare:docker:
 build:demo:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
+  before_script:
+    - rustup update
   script:
     - cargo build -p rusty_demo
     - cargo build -p rusty_demo --release
@@ -49,6 +51,8 @@ build:demo:
 build:httpd:
   stage: build
   image: ${CI_REGISTRY_IMAGE}
+  before_script:
+    - rustup update
   script:
     - cargo build --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,smoltcp,vga,dhcpv4 --release
     - cd loader
