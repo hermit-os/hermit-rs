@@ -90,6 +90,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	}
 
 	let mut rustflags = Vec::new();
+	rustflags.push("-Zmutable-noalias=no".to_string());
 
 	#[cfg(feature = "instrument")]
 	{
