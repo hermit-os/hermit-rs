@@ -89,8 +89,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("vga");
 	}
 
-	let mut rustflags = Vec::new();
-	rustflags.push("-Zmutable-noalias=no".to_string());
+	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
 
 	#[cfg(feature = "instrument")]
 	{
@@ -226,7 +225,7 @@ fn build() {
 #[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
 fn build() {
 	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-	let target_dir = out_dir.clone().join("target");
+	let target_dir = out_dir.join("target");
 	let src_dir = env::current_dir()
 		.unwrap()
 		.parent()

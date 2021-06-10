@@ -1,3 +1,6 @@
+#![allow(clippy::many_single_char_names)]
+#![allow(clippy::too_many_arguments)]
+
 use std::time::Instant;
 
 /// Code is derived Rayon's matmul example
