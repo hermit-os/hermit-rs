@@ -6,7 +6,7 @@ extern crate hermit_sys;
 extern crate tiny_http;
 
 fn main() {
-	let crab = vec![0xF0 as u8, 0x9F as u8, 0xA6 as u8, 0x80 as u8];
+	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];
 	let text = format!(
 		"Hello from RustyHermit {}",
 		String::from_utf8(crab).unwrap_or_default()
