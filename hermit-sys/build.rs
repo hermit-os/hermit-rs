@@ -13,6 +13,10 @@ use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+	assert!(
+		src_dir.exists(),
+		"rusty_hermit source folder does not exist"
+	);
 	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
@@ -23,7 +27,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
-			.arg("x86_64-unknown-hermit-kernel");
+			.arg("x86_64-unknown-none-hermitkernel");
 	} else if target.target_arch() == "aarch64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
@@ -91,17 +95,31 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("vga");
 	}
 
+	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
+
 	#[cfg(feature = "instrument")]
 	{
-		cmd.env("RUSTFLAGS", "-Z instrument-mcount");
-		// if instrument is not set, ensure that instrument is not in environment variables!
-		cmd.env(
-			"RUSTFLAGS",
-			env::var("RUSTFLAGS")
-				.unwrap_or_else(|_| "".into())
-				.replace("-Z instrument-mcount", ""),
-		);
+		rustflags.push("-Zinstrument-mcount".to_string());
+		// Add outer `RUSTFLAGS` to command
+		if let Ok(var) = env::var("RUSTFLAGS") {
+			rustflags.push(var);
+		}
 	}
+
+	#[cfg(not(feature = "instrument"))]
+	{
+		// If the `instrument` feature feature is not enabled,
+		// filter it from outer `RUSTFLAGS` before adding them to the command.
+		if let Ok(var) = env::var("RUSTFLAGS") {
+			let flags = var
+				.split(',')
+				.filter(|&flag| !flag.contains("instrument-mcount"))
+				.map(String::from);
+			rustflags.extend(flags);
+		}
+	}
+
+	cmd.env("RUSTFLAGS", rustflags.join(","));
 
 	let output = cmd.output().expect("Unable to build kernel");
 	let stdout = std::string::String::from_utf8(output.stdout);
@@ -114,7 +132,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib_location = if target.target_arch() == "x86_64" {
 		target_dir
-			.join("x86_64-unknown-hermit-kernel")
+			.join("x86_64-unknown-none-hermitkernel")
 			.join(&profile)
 			.canonicalize()
 			.unwrap() // Must exist after building
@@ -192,15 +210,20 @@ fn build() {
 	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 	let src_dir = out_dir.join("rusty-hermit");
 
-	let _output = Command::new("cargo")
-		.current_dir(out_dir)
-		.arg("download")
-		.arg("--output")
-		.arg(src_dir.clone().into_os_string())
-		.arg("--extract")
-		.arg("rusty-hermit")
-		.output()
-		.expect("Unable to download rusty-hermit. Please install `cargo-download`.");
+	if !src_dir.as_path().exists() {
+		let cargo_download = Command::new("cargo")
+			.current_dir(out_dir)
+			.arg("download")
+			.arg("--output")
+			.arg(src_dir.clone().into_os_string())
+			.arg("--extract")
+			.arg("rusty-hermit")
+			.output()
+			.expect("could not launch cargo download");
+		if !cargo_download.status.success() {
+			panic!("Unable to download rusty-hermit. Is `cargo-download` installed?.");
+		}
+	}
 
 	build_hermit(src_dir.as_ref(), None);
 }
@@ -208,7 +231,7 @@ fn build() {
 #[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
 fn build() {
 	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-	let target_dir = out_dir.clone().join("target");
+	let target_dir = out_dir.join("target");
 	let src_dir = env::current_dir()
 		.unwrap()
 		.parent()

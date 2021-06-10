@@ -155,7 +155,7 @@ pub fn hello() -> Result<(), ()> {
 	println!("你好，世界");
 	println!("สวัสดีชาวโลก");
 	println!("Chào thế giới");
-	let crab = vec![0xF0 as u8, 0x9F as u8, 0xA6 as u8, 0x80 as u8];
+	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];
 	println!(
 		"Crab emoji: {}",
 		String::from_utf8(crab).unwrap_or_default()

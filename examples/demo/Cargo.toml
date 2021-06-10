@@ -5,6 +5,18 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2018"
 publish = false
 
+[[bin]]
+name = "rusty_demo"
+path = "src/main.rs"
+
+[[bin]]
+name = "pi_sequential"
+path = "src/pi_sequential.rs"
+
+[[bin]]
+name = "matrix_multiplcation"
+path = "src/matrix_multiplication.rs"
+
 [dependencies]
 rayon = "1.5.0"
 num_cpus = "1.13"
@@ -12,7 +24,7 @@ num_cpus = "1.13"
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["pci", "pci_ids", "acpi", "with_submodule"]
+features = ["with_submodule"]
 
 [target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
 version = "0.*"
@@ -22,15 +34,20 @@ default-features = false
 syscalls = { version = "0.2", default-features = false }
 
 [features]
-default = ["smp"]
-smp = ["hermit-sys/smp"]
+default = ["pci", "pci_ids", "acpi", "smp"]
 vga = ["hermit-sys/vga"]
+pci = ["hermit-sys/pci"]
+pci_ids = ["hermit-sys/pci_ids"]
+acpi = ["hermit-sys/acpi"]
+fsgsbase = ["hermit-sys/fsgsbase"]
+smp = ["hermit-sys/smp"]
+instrument = ["hermit-sys/instrument"]
 
 [profile.release]
 opt-level = 3
 debug = false
 rpath = false
-lto = true
+lto = false
 debug-assertions = false
 
 [profile.dev]

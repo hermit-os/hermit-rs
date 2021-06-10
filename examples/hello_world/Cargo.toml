@@ -8,18 +8,23 @@ publish = false
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["pci", "pci_ids", "acpi", "with_submodule"]
+features = ["with_submodule"]
 
 [features]
-default = ["smp"]
-smp = ["hermit-sys/smp"]
+default = ["pci", "pci_ids", "acpi"]
 vga = ["hermit-sys/vga"]
+pci = ["hermit-sys/pci"]
+pci_ids = ["hermit-sys/pci_ids"]
+acpi = ["hermit-sys/acpi"]
+fsgsbase = ["hermit-sys/fsgsbase"]
+smp = ["hermit-sys/smp"]
+instrument = ["hermit-sys/instrument"]
 
 [profile.release]
 opt-level = 3
 debug = false
 rpath = false
-lto = true
+lto = false
 debug-assertions = false
 
 [profile.dev]
