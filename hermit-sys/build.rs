@@ -3,14 +3,11 @@ extern crate target_build_utils;
 extern crate walkdir;
 
 use std::env;
-#[cfg(feature = "mem")]
 use std::ffi::OsStr;
-#[cfg(feature = "mem")]
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-#[cfg(feature = "mem")]
 use std::process;
 use std::process::Command;
 use target_build_utils::TargetInfo;
@@ -146,10 +143,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	};
 	println!("Lib location: {}", lib_location.display());
 
+	let lib = lib_location.join("libhermit.a");
+
+	rename_symbol("rust_begin_unwind", &lib);
+	rename_symbol("rust_oom", &lib);
+
 	#[cfg(feature = "mem")]
 	{
-		let lib = lib_location.join("libhermit.a");
-
 		for symbol in ["memcpy", "memmove", "memset", "memcmp", "bcmp"] {
 			rename_symbol(symbol, &lib);
 		}
@@ -163,11 +163,10 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 }
 
-/// Kernel and user space has its own versions of memcpy, memset, etc,
+/// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
 /// Consequently, we rename the functions in the libos to avoid collisions.
 /// In addition, it provides us the offer to create a optimized version of memcpy
 /// in user space.
-#[cfg(feature = "mem")]
 fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
 	// Get access to llvm tools shipped in the llvm-tools-preview rustup component
 	let llvm_tools = match llvm_tools::LlvmTools::new() {
