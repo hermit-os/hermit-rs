@@ -191,12 +191,13 @@ fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
 	// Rename symbols
 	let arg = IntoIterator::into_iter([symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()])
 		.collect::<OsString>();
-	Command::new(llvm_objcopy)
+	let status = Command::new(llvm_objcopy)
 		.arg("--redefine-sym")
 		.arg(arg)
 		.arg(lib.as_ref())
 		.status()
-		.expect("Unable to rename symbols");
+		.expect("failed to execute llvm-objcopy");
+	assert!(status.success(), "llvm-objcopy was not sucessful");
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
