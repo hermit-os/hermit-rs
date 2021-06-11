@@ -3,10 +3,11 @@ extern crate target_build_utils;
 extern crate walkdir;
 
 use std::env;
+use std::ffi::OsStr;
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-#[cfg(feature = "mem")]
 use std::process;
 use std::process::Command;
 use target_build_utils::TargetInfo;
@@ -141,50 +142,15 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	};
 	println!("Lib location: {}", lib_location.display());
 
+	let lib = lib_location.join("libhermit.a");
+
+	rename_symbol("rust_begin_unwind", &lib);
+	rename_symbol("rust_oom", &lib);
+
 	#[cfg(feature = "mem")]
 	{
-		// Kernel and user space has its own versions of memcpy, memset, etc,
-		// Consequently, we rename the functions in the libos to avoid collisions.
-		// In addition, it provides us the offer to create a optimized version of memcpy
-		// in user space.
-
-		// get access to llvm tools shipped in the llvm-tools-preview rustup component
-		let llvm_tools = match llvm_tools::LlvmTools::new() {
-			Ok(tools) => tools,
-			Err(llvm_tools::Error::NotFound) => {
-				eprintln!("Error: llvm-tools not found");
-				eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
-				eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
-				process::exit(1);
-			}
-			Err(err) => {
-				eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
-				process::exit(1);
-			}
-		};
-
-		let lib = lib_location.join("libhermit.a");
-
-		let symbols: [&str; 5] = ["memcpy", "memmove", "memset", "memcmp", "bcmp"];
-		for symbol in symbols.iter() {
-			// determine llvm_objcopy
-			let llvm_objcopy = llvm_tools
-				.tool(&llvm_tools::exe("llvm-objcopy"))
-				.expect("llvm_objcopy not found in llvm-tools");
-
-			// rename symbols
-			let mut cmd = Command::new(llvm_objcopy);
-			cmd.arg("--redefine-sym")
-				.arg(String::from(*symbol) + &String::from("=kernel") + &String::from(*symbol))
-				.arg(lib.display().to_string());
-
-			println!("cmd {:?}", cmd);
-			let output = cmd.output().expect("Unable to rename symbols");
-			let stdout = std::string::String::from_utf8(output.stdout);
-			let stderr = std::string::String::from_utf8(output.stderr);
-			println!("Rename symbols output-status: {}", output.status);
-			println!("Rename symbols output-stdout: {}", stdout.unwrap());
-			println!("Rename symbols output-stderr: {}", stderr.unwrap());
+		for symbol in ["memcpy", "memmove", "memset", "memcmp", "bcmp"] {
+			rename_symbol(symbol, &lib);
 		}
 	}
 
@@ -194,6 +160,43 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	//HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 	// Doesn't actually rebuild atm - see: https://github.com/rust-lang/cargo/issues/8306
 	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
+}
+
+/// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
+/// Consequently, we rename the functions in the libos to avoid collisions.
+/// In addition, it provides us the offer to create a optimized version of memcpy
+/// in user space.
+fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
+	// Get access to llvm tools shipped in the llvm-tools-preview rustup component
+	let llvm_tools = match llvm_tools::LlvmTools::new() {
+		Ok(tools) => tools,
+		Err(llvm_tools::Error::NotFound) => {
+			eprintln!("Error: llvm-tools not found");
+			eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
+			eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
+			process::exit(1);
+		}
+		Err(err) => {
+			eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
+			process::exit(1);
+		}
+	};
+
+	// Retrieve path of llvm-objcopy
+	let llvm_objcopy = llvm_tools
+		.tool(&llvm_tools::exe("llvm-objcopy"))
+		.expect("llvm-objcopy not found in llvm-tools");
+
+	// Rename symbols
+	let arg = IntoIterator::into_iter([symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()])
+		.collect::<OsString>();
+	let status = Command::new(llvm_objcopy)
+		.arg("--redefine-sym")
+		.arg(arg)
+		.arg(lib.as_ref())
+		.status()
+		.expect("failed to execute llvm-objcopy");
+	assert!(status.success(), "llvm-objcopy was not sucessful");
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
