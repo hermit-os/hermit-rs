@@ -1,0 +1,25 @@
+name: Clippy
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Rustup (apply rust-toolchain.toml)
+        run: rustup show
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
