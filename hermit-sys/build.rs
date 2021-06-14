@@ -116,14 +116,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.env("RUSTFLAGS", rustflags.join(","));
 
-	let output = cmd.output().expect("Unable to build kernel");
-	let stdout = std::string::String::from_utf8(output.stdout);
-	let stderr = std::string::String::from_utf8(output.stderr);
-
-	println!("Build libhermit-rs output-status: {}", output.status);
-	println!("Build libhermit-rs output-stdout: {}", stdout.unwrap());
-	println!("Build libhermit-rs output-stderr: {}", stderr.unwrap());
-	assert!(output.status.success());
+	let status = cmd.status().expect("failed to start kernel build");
+	assert!(status.success());
 
 	let lib_location = if target.target_arch() == "x86_64" {
 		target_dir
@@ -208,18 +202,19 @@ fn build() {
 	let src_dir = out_dir.join("rusty-hermit");
 
 	if !src_dir.as_path().exists() {
-		let cargo_download = Command::new("cargo")
+		let status = Command::new("cargo")
 			.current_dir(out_dir)
 			.arg("download")
 			.arg("--output")
 			.arg(src_dir.clone().into_os_string())
 			.arg("--extract")
 			.arg("rusty-hermit")
-			.output()
-			.expect("could not launch cargo download");
-		if !cargo_download.status.success() {
-			panic!("Unable to download rusty-hermit. Is `cargo-download` installed?.");
-		}
+			.status()
+			.expect("failed to start kernel download");
+		assert!(
+			status.success(),
+			"Unable to download rusty-hermit. Is cargo-download installed?"
+		);
 	}
 
 	build_hermit(src_dir.as_ref(), None);
