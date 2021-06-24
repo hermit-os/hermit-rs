@@ -1,0 +1,43 @@
+name: KVM Test
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - trying
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  kvm_test:
+    name: KVM Test
+    runs-on: [self-hosted]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+         submodules: true
+    - name: Rustup (apply rust-toolchain.toml)
+      run: rustup show
+    - name: Build dev profile
+      run: cargo build --package rusty_demo
+    - name: Install uhyve
+      run: cargo install uhyve --locked
+    - name: Check KVM availability
+      shell: bash
+      run: |
+         lscpu
+         kvm-ok
+    - name: Test debug version
+      run: uhyve --verbose --cpus 1 target/x86_64-unknown-hermit/debug/rusty_demo
+      env:
+        RUST_LOG: debug
+    - name: Build release profile
+      run: cargo build --package rusty_demo --release
+    - name: Test release version
+      run: uhyve --verbose --cpus 1 target/x86_64-unknown-hermit/release/rusty_demo
+      env:
+        RUST_LOG: debug

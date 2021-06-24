@@ -1,106 +1,73 @@
-name: Build and test
+name: Test
 
 on:
-  pull_request:
   push:
     branches:
       - master
       - staging
       - trying
-  schedule:
-    - cron: '0 0 * * 6'
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   build:
     name: Test
     runs-on: ${{ matrix.os }}
-    # these tests based on the nightly compiler, which can be broken
-    # consequently, we continue on an error
-    #continue-on-error: true
-
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        rust: [nightly]
-        include:
-          - os: macOS-latest
-            rust: 'nightly'
-            components: 'rust-src, llvm-tools-preview'
-            targets: 'x86_64-apple-darwin'
-          - os: windows-latest
-            rust: 'nightly'
-            components: 'rust-src, llvm-tools-preview'
-            targets: 'x86_64-pc-windows-msvc'
-          - os: ubuntu-latest
-            rust: 'nightly'
-            components: 'rust-src, llvm-tools-preview'
-            targets: 'x86_64-unknown-linux-gnu'
-
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: hecrj/setup-rust-action@v1
-      with: 
-         rust-version: ${{ matrix.rust }}
-         components: ${{ matrix.components || '' }}
-         targets: ${{ matrix.targets || '' }}
-    - uses: actions/checkout@v2
-      with:
-         submodules: true
-    - name: Check Cargo availability
-      run: cargo --version
-    - name: Install qemu/nasm (apt)
-      run: sudo apt-get update --fix-missing && sudo apt-get install qemu-system-x86 nasm
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-    - name: Install qemu/nasm (macos)
-      run: |
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Rustup (apply rust-toolchain.toml)
+        run: rustup show
+      - name: Build dev profile
+        run: cargo build --package rusty_demo
+      - name: Install QEMU, NASM (ubuntu)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-system-x86 nasm
+      - name: Install QEMU, NASM (macos)
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          brew update
           brew install qemu nasm
-      if: ${{ matrix.os == 'macOS-latest' }}
-    - name: Install nasm (windows)
-      uses: crazy-max/ghaction-chocolatey@v1
-      with:
-          args: install nasm
-      if: ${{ matrix.os == 'windows-latest' }}
-    - name: Install qemu (windows)
-      uses: crazy-max/ghaction-chocolatey@v1
-      with:
-        args: install qemu --version=2020.08.14
-      if: ${{ matrix.os == 'windows-latest' }}
-    - name: Set path to qemu/nasm (Windows)
-      run: |
-          echo "C:\Program Files\qemu" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "C:\Program Files\nasm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      if: ${{ matrix.os == 'windows-latest' }}
-    - name: Building dev version
-      run:
-         cargo build -p rusty_demo -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
-    - name: Building release version
-      run:
-         cargo build -p rusty_demo -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit --release
-      #env:
-      #   RUSTFLAGS: -Clinker-plugin-lto
-    - name: Build loader (unix)
-      working-directory: loader
-      run: make
-      if: ${{ ( matrix.os == 'macOS-latest' ) || ( matrix.os == 'ubuntu-latest' ) }}
-    # Workaround since makefile doesn't work when using powershell
-    - name: Build loader (windows)
-      working-directory: loader
-      run: |
-          cargo build -Z build-std=core,alloc --target x86_64-unknown-hermit-loader.json
-          $VAR_RUSTC_SYSROOT = (rustc --print sysroot)
-          echo "Sysroot - $VAR_RUSTC_SYSROOT"
-          $LLVM_OBJCOPY = ((Get-ChildItem -Path $VAR_RUSTC_SYSROOT -Include llvm-objcopy.exe -File -Recurse -ErrorAction SilentlyContinue)).Fullname
-          echo "LLVM Objcopy - $LLVM_OBJCOPY"
-          Invoke-Expression "$LLVM_OBJCOPY --strip-debug -O elf32-i386 target/x86_64-unknown-hermit-loader/debug/rusty-loader"
-      if: ${{ matrix.os == 'windows-latest' }}
-    - name: Test dev version
-      run:
-         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/debug/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-    - name: Test release version
-      run:
-         qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel loader/target/x86_64-unknown-hermit-loader/debug/rusty-loader -initrd target/x86_64-unknown-hermit/release/rusty_demo -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand
-    - name: Build httpd with DHCP support
-      run:
-         cargo build --manifest-path examples/httpd/Cargo.toml --features dhcpv4
-    - name: Build httpd without DHCP support
-      run:
-         cargo build --manifest-path examples/httpd/Cargo.toml
+      - name: Install QEMU, NASM, GNU make (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          choco install qemu nasm make
+          echo "C:\Program Files\qemu" >> $GITHUB_PATH
+          echo "C:\Program Files\NASM" >> $GITHUB_PATH
+      - name: Build loader
+        run: |
+          sed -i.old 's/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy)/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy -o -name llvm-objcopy.exe)/g' loader/Makefile
+          make -C loader release=1
+      - name: Test dev profile
+        run: |
+          qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
+            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand \
+            -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader \
+            -initrd target/x86_64-unknown-hermit/debug/rusty_demo
+      - name: Build release profile
+        run:
+          cargo build --package rusty_demo --release
+      - name: Test release profile
+        run: |
+          qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
+            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand \
+            -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader \
+            -initrd target/x86_64-unknown-hermit/release/rusty_demo
+      - name: Build httpd with DHCP support
+        run:
+          cargo build --package httpd --features dhcpv4
+      - name: Build httpd without DHCP support
+        run:
+          cargo build --package httpd

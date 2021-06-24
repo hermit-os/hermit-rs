@@ -1,36 +1,23 @@
-name: Format check
+name: Format
 
 on:
-  pull_request:
   push:
     branches:
       - master
       - staging
       - trying
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  check:
-    name: Format check
+  format:
+    name: Format
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        rust: [nightly]
-        include:
-          - os: ubuntu-latest
-            rust: 'nightly'
-            components: 'rustfmt'
-            targets: 'x86_64-unknown-linux-gnu'
-
-
     steps:
-      - uses: hecrj/setup-rust-action@v1
-        with:
-          rust-version: ${{ matrix.rust }}
-          components: ${{ matrix.components || '' }}
-          targets: ${{ matrix.targets || '' }}
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Check Formatting
+      - uses: actions/checkout@v2
+      - name: Rustup (apply rust-toolchain.toml)
+        run: rustup show
+      - name: Format
         run: cargo fmt -- --check
