@@ -153,8 +153,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
 
-	//HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
-	// Doesn't actually rebuild atm - see: https://github.com/rust-lang/cargo/issues/8306
+	// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 }
 
