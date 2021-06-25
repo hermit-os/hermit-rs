@@ -32,7 +32,7 @@ pub fn parse_config() -> Config {
 				.short("p")
 				.long("port")
 				.value_name("port")
-				.help("port to connect to, like port 7878 if you wanna connect to 127.0.0.1:7878")
+				.help("port to connect to, like port 7878 if you want to connect to 127.0.0.1:7878")
 				.takes_value(true)
 				.default_value("7878"),
 		)
@@ -113,14 +113,14 @@ pub fn parse_config() -> Config {
 	// Don't kill machines
 	if n_bytes > 100_000_000 {
 		panic!(
-			"More than 100 MB per round is probably too much data you wanna send, \
+			"More than 100 MB per round is probably too much data you want to send, \
         you may kill one of the machines. Try with maybe 100MB but more rounds"
 		)
 	}
 
 	// Very improbable case error handling
 	if (n_bytes * 1000000) as u128 * n_rounds as u128 > u64::max_value().into() {
-		panic!("There's gonna be too much data. Make sure n_bytes * n_rounds is < u128::MAX")
+		panic!("There's going to be too much data. Make sure n_bytes * n_rounds is < u128::MAX")
 	}
 
 	Config {

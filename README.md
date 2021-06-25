@@ -214,11 +214,11 @@ You can now access the files in SHARED_DIRECTORY under the virtiofs tag like `/m
 
 ## Use RustyHermit for C/C++, Go, and Fortran applications
 
-If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating systen, please take a look at [https://github.com/hermitcore/hermit-playground](https://github.com/hermitcore/hermit-playground).
+If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating system, please take a look at [https://github.com/hermitcore/hermit-playground](https://github.com/hermitcore/hermit-playground).
 
 ## Missing features
 
-* Multikernel support (might be comming)
+* Multikernel support (might be coming)
 * Virtio support (partly available)
 * Network support (partly available)
 
