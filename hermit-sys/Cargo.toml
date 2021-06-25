@@ -15,7 +15,7 @@ documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
 default = ["pci", "acpi", "smp", "fsgsbase"]
-# controlls whether RustyHermit is build with -Z instrument-mcount
+# controls whether RustyHermit is build with -Z instrument-mcount
 instrument = ["rftrace"]
 trace = []
 fsgsbase = []

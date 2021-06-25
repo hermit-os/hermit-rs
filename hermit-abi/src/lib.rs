@@ -119,7 +119,7 @@ pub fn isatty(_fd: libc::c_int) -> bool {
 	false
 }
 
-/// intialize the network stack
+/// initialize the network stack
 pub fn network_init() -> i32 {
 	unsafe { sys_network_init() }
 }

@@ -190,7 +190,7 @@ fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
 		.arg(lib.as_ref())
 		.status()
 		.expect("failed to execute llvm-objcopy");
-	assert!(status.success(), "llvm-objcopy was not sucessful");
+	assert!(status.success(), "llvm-objcopy was not successful");
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]

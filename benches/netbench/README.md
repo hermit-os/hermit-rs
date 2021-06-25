@@ -28,13 +28,13 @@ For both programs, you can run them the same way. We will use `bw` as example. T
 #### Instructions
 
 1) Run server
-- Go on the machine where you wanna launch the server (or ssh into it)
+- Go on the machine where you want to launch the server (or ssh into it)
 - Open a terminal
 - `cd` into the inner `code` folder
-- Run `cargo run --bin server-bw --release` (or compile and run, meaning `cargo build --bin server-bw --release` and once compiled `./target/release/server-bw`). You can specify the port you wanna listen on with `-p <port_number>`.
+- Run `cargo run --bin server-bw --release` (or compile and run, meaning `cargo build --bin server-bw --release` and once compiled `./target/release/server-bw`). You can specify the port you want to listen on with `-p <port_number>`.
 
 2) Run client
-- Go on the machine where you wanna launch the client (or ssh into it)
+- Go on the machine where you want to launch the client (or ssh into it)
 - Open a terminal
 - `cd` into the inner `code` folder
 - Run `cargo run --bin client-bw --release` (or compile and run, meaning `cargo build --bin client-bw --release` and once compiled `./target/release/client-bw`). You can specify a bunch of parameters. Run the program with the `-h` option to see available params. Make sure you specify the right address and port to connect to the server, using parameters `-a <address> -p <port>`.
@@ -52,7 +52,7 @@ The config file is important because it will contain a bunch of things like mach
 
 #### Prerequisites
 
-- Make sure you can ssh into the machines you wanna use for your benchmark
+- Make sure you can ssh into the machines you want to use for your benchmark.
 - Make sure you have set up the ssh connections correctly and have the machines in your known host and have the ssh keys somewhere in your pc (or the machine you will start the script from).
 
 #### Instructions
