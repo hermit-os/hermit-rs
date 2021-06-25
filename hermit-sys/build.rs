@@ -20,7 +20,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	);
 	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
-	let mut cmd = Command::new("cargo");
+	let mut cmd = Command::new(env!("CARGO"));
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
@@ -203,7 +203,7 @@ fn build() {
 	let src_dir = out_dir.join("rusty-hermit");
 
 	if !src_dir.as_path().exists() {
-		let status = Command::new("cargo")
+		let status = Command::new(env!("CARGO"))
 			.current_dir(out_dir)
 			.arg("download")
 			.arg("--output")
