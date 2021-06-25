@@ -22,6 +22,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
 
+	cmd.env("CARGO_TERM_COLOR", "always");
+
 	if target.target_arch() == "x86_64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
