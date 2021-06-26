@@ -20,7 +20,9 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	);
 	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
-	let mut cmd = Command::new("cargo");
+	let mut cmd = Command::new(env!("CARGO"));
+
+	cmd.env("CARGO_TERM_COLOR", "always");
 
 	if target.target_arch() == "x86_64" {
 		cmd.current_dir(src_dir)
@@ -151,8 +153,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
 
-	//HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
-	// Doesn't actually rebuild atm - see: https://github.com/rust-lang/cargo/issues/8306
+	// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 }
 
@@ -202,7 +203,7 @@ fn build() {
 	let src_dir = out_dir.join("rusty-hermit");
 
 	if !src_dir.as_path().exists() {
-		let status = Command::new("cargo")
+		let status = Command::new(env!("CARGO"))
 			.current_dir(out_dir)
 			.arg("download")
 			.arg("--output")
