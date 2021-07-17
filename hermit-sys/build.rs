@@ -116,7 +116,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		}
 	}
 
-	cmd.env("RUSTFLAGS", rustflags.join(","));
+	cmd.env("RUSTFLAGS", rustflags.join(" "));
 
 	let status = cmd.status().expect("failed to start kernel build");
 	assert!(status.success());
