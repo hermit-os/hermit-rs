@@ -19,10 +19,8 @@ extern "C" {
 	fn sys_yield();
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_set_network_polling_mode(value: bool);
-}
-
-extern "Rust" {
-	fn sys_block_current_task_with_timeout(timeout: Option<u64>);
+	fn sys_block_current_task_with_timeout(timeout: u64);
+	fn sys_block_current_task();
 }
 
 lazy_static! {
@@ -112,24 +110,27 @@ where
 					unsafe { sys_set_network_polling_mode(false) }
 					return Err(());
 				}
-			} else {
-				let delay = network_delay(Instant::now()).map(|d| d.total_millis());
+			}
 
-				if delay.is_none() || delay.unwrap() > 100 {
-					let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
-					if !unparked {
-						unsafe {
-							sys_set_network_polling_mode(false);
-							sys_block_current_task_with_timeout(delay);
-							sys_yield();
-							sys_set_network_polling_mode(true);
-						}
-						thread_notify.unparked.store(false, Ordering::Release);
-						run_executor()
+			let delay = network_delay(Instant::now()).map(|d| d.total_millis());
+
+			if delay.is_none() || delay.unwrap() > 100 {
+				let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
+				if !unparked {
+					unsafe {
+						sys_set_network_polling_mode(false);
+						match delay {
+							Some(d) => sys_block_current_task_with_timeout(d),
+							None => sys_block_current_task(),
+						};
+						sys_yield();
+						sys_set_network_polling_mode(true);
 					}
-				} else {
+					thread_notify.unparked.store(false, Ordering::Release);
 					run_executor()
 				}
+			} else {
+				run_executor()
 			}
 		}
 	})
