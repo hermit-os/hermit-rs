@@ -409,11 +409,7 @@ pub(crate) fn network_init() -> Result<(), ()> {
 #[no_mangle]
 pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Result<Handle, ()> {
 	let socket = AsyncSocket::new();
-	block_on(
-		socket.connect(ip, port),
-		timeout.map(Duration::from_millis),
-	)?
-	.map_err(|_| ())
+	block_on(socket.connect(ip, port), timeout.map(Duration::from_millis))?.map_err(|_| ())
 }
 
 #[no_mangle]
