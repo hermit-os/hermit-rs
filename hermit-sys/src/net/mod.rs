@@ -372,11 +372,8 @@ extern "C" fn nic_thread(_: usize) {
 
 		trace!("Network thread checks the devices");
 
-		match unsafe { &mut NIC } {
-			NetworkState::Initialized(nic) => {
-				nic.lock().unwrap().poll_common(Instant::now());
-			}
-			_ => {}
+		if let NetworkState::Initialized(nic) = unsafe { &mut NIC } {
+			nic.lock().unwrap().poll_common(Instant::now());
 		}
 	}
 }
@@ -388,25 +385,22 @@ pub(crate) fn network_init() -> Result<(), ()> {
 	unsafe {
 		NIC = NetworkInterface::<HermitNet>::new();
 
-		match &mut NIC {
-			NetworkState::Initialized(nic) => {
-				nic.lock().unwrap().poll_common(Instant::now());
+		if let NetworkState::Initialized(nic) = &mut NIC {
+			nic.lock().unwrap().poll_common(Instant::now());
 
-				// create thread, which manages the network stack
-				// use a higher priority to reduce the network latency
-				let mut tid: Tid = 0;
-				let ret = sys_spawn(&mut tid, nic_thread, 0, 3, 0);
-				if ret >= 0 {
-					debug!("Spawn network thread with id {}", tid);
-				}
-
-				spawn(network_run()).detach();
-
-				// switch to network thread
-				sys_yield();
+			// create thread, which manages the network stack
+			// use a higher priority to reduce the network latency
+			let mut tid: Tid = 0;
+			let ret = sys_spawn(&mut tid, nic_thread, 0, 3, 0);
+			if ret >= 0 {
+				debug!("Spawn network thread with id {}", tid);
 			}
-			_ => {}
-		};
+
+			spawn(network_run()).detach();
+
+			// switch to network thread
+			sys_yield();
+		}
 	}
 
 	Ok(())
@@ -417,7 +411,7 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 	let socket = AsyncSocket::new();
 	block_on(
 		socket.connect(ip, port),
-		timeout.map(|ms| Duration::from_millis(ms)),
+		timeout.map(Duration::from_millis),
 	)?
 	.map_err(|_| ())
 }
