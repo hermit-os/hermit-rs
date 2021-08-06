@@ -18,6 +18,7 @@ extern "C" {
 	fn sys_getpid() -> Tid;
 	fn sys_yield();
 	fn sys_wakeup_task(tid: Tid);
+	fn sys_set_network_polling_mode(value: bool);
 	fn sys_block_current_task_with_timeout(timeout: u64);
 	fn sys_block_current_task();
 }
@@ -92,6 +93,7 @@ where
 	}
 
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+		unsafe { sys_set_network_polling_mode(true) }
 		let start = Instant::now();
 
 		let waker = thread_notify.clone().into();
@@ -99,11 +101,13 @@ where
 		pin!(future);
 		loop {
 			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
+				unsafe { sys_set_network_polling_mode(false) }
 				return Ok(t);
 			}
 
 			if let Some(duration) = timeout {
 				if Instant::now() >= start + duration {
+					unsafe { sys_set_network_polling_mode(false) }
 					return Err(());
 				}
 			}
@@ -114,11 +118,13 @@ where
 				let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
 				if !unparked {
 					unsafe {
+						sys_set_network_polling_mode(false);
 						match delay {
 							Some(d) => sys_block_current_task_with_timeout(d),
 							None => sys_block_current_task(),
 						};
 						sys_yield();
+						sys_set_network_polling_mode(true);
 					}
 					thread_notify.unparked.store(false, Ordering::Release);
 					run_executor()
