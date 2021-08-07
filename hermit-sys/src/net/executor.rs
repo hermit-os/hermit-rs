@@ -83,31 +83,66 @@ impl Wake for ThreadNotify {
 	}
 }
 
-/// Blocks the current thread on `f`, running the executor when idling.
-pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
+thread_local! {
+	static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
+}
+
+pub fn poll_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
 where
 	F: Future<Output = T>,
 {
-	thread_local! {
-		static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
-	}
-
+	info!("II");
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
-		unsafe { sys_set_network_polling_mode(true) }
-		let start = Instant::now();
+		unsafe {
+			sys_set_network_polling_mode(true);
+		}
 
+		let start = Instant::now();
 		let waker = thread_notify.clone().into();
 		let mut cx = Context::from_waker(&waker);
 		pin!(future);
+
 		loop {
 			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
-				unsafe { sys_set_network_polling_mode(false) }
+				unsafe {
+					sys_set_network_polling_mode(false);
+				}
+				info!("JJ");
 				return Ok(t);
 			}
 
 			if let Some(duration) = timeout {
 				if Instant::now() >= start + duration {
-					unsafe { sys_set_network_polling_mode(false) }
+					unsafe {
+						sys_set_network_polling_mode(false);
+					}
+					return Err(());
+				}
+			}
+
+			run_executor()
+		}
+	})
+}
+
+/// Blocks the current thread on `f`, running the executor when idling.
+pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
+where
+	F: Future<Output = T>,
+{
+	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+		let start = Instant::now();
+		let waker = thread_notify.clone().into();
+		let mut cx = Context::from_waker(&waker);
+		pin!(future);
+
+		loop {
+			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
+				return Ok(t);
+			}
+
+			if let Some(duration) = timeout {
+				if Instant::now() >= start + duration {
 					return Err(());
 				}
 			}
@@ -118,13 +153,11 @@ where
 				let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
 				if !unparked {
 					unsafe {
-						sys_set_network_polling_mode(false);
 						match delay {
 							Some(d) => sys_block_current_task_with_timeout(d),
 							None => sys_block_current_task(),
 						};
 						sys_yield();
-						sys_set_network_polling_mode(true);
 					}
 					thread_notify.unparked.store(false, Ordering::Release);
 					run_executor()
