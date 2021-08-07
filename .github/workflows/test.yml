@@ -43,7 +43,8 @@ jobs:
       - name: Install QEMU, NASM, GNU make (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          choco install qemu nasm make
+          choco install nasm make
+          choco install qemu --version 2021.5.5
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
       - name: Build loader
