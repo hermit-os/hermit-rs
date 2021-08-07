@@ -29,7 +29,7 @@ use smoltcp::Error;
 use futures_lite::future;
 
 use crate::net::device::HermitNet;
-use crate::net::executor::{block_on, spawn};
+use crate::net::executor::{block_on, poll_on, spawn};
 use crate::net::waker::WakerRegistration;
 
 pub(crate) enum NetworkState {
@@ -415,13 +415,13 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 #[no_mangle]
 pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
 	let socket = AsyncSocket::from(handle);
-	block_on(socket.read(buffer), None)?.map_err(|_| ())
+	poll_on(socket.read(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
 	let socket = AsyncSocket::from(handle);
-	block_on(socket.write(buffer), None)?.map_err(|_| ())
+	poll_on(socket.write(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]
