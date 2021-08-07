@@ -91,7 +91,6 @@ pub fn poll_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
 where
 	F: Future<Output = T>,
 {
-	info!("II");
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
 		unsafe {
 			sys_set_network_polling_mode(true);
@@ -107,7 +106,6 @@ where
 				unsafe {
 					sys_set_network_polling_mode(false);
 				}
-				info!("JJ");
 				return Ok(t);
 			}
 
