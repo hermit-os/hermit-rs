@@ -1,4 +1,3 @@
-#![allow(clippy::mut_mutex_lock)]
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::new_ret_no_self)]
 

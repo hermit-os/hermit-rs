@@ -7,6 +7,7 @@ use aarch64::regs::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::convert::TryInto;
+use std::ops::DerefMut;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
@@ -35,10 +36,21 @@ use crate::net::waker::WakerRegistration;
 pub(crate) enum NetworkState {
 	Missing,
 	InitializationFailed,
-	Initialized(Mutex<NetworkInterface<HermitNet>>),
+	Initialized(NetworkInterface<HermitNet>),
 }
 
-static mut NIC: NetworkState = NetworkState::Missing;
+impl NetworkState {
+	fn as_nic_mut(&mut self) -> Result<&mut NetworkInterface<HermitNet>, &'static str> {
+		match self {
+			NetworkState::Initialized(nic) => Ok(nic),
+			_ => Err("Network is not initialized!"),
+		}
+	}
+}
+
+lazy_static! {
+	static ref NIC: Mutex<NetworkState> = Mutex::new(NetworkState::Missing);
+}
 
 extern "C" {
 	fn sys_yield();
@@ -158,28 +170,24 @@ pub(crate) struct AsyncSocket(Handle);
 
 impl AsyncSocket {
 	pub(crate) fn new() -> Self {
-		match unsafe { &mut NIC } {
-			NetworkState::Initialized(nic) => {
-				AsyncSocket(nic.lock().unwrap().create_handle().unwrap())
-			}
-			_ => {
-				panic!("Network isn't initialized!");
-			}
-		}
+		let handle = NIC
+			.lock()
+			.unwrap()
+			.as_nic_mut()
+			.unwrap()
+			.create_handle()
+			.unwrap();
+		Self(handle)
 	}
 
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
-		let mut guard = match unsafe { &mut NIC } {
-			NetworkState::Initialized(nic) => nic.lock().unwrap(),
-			_ => {
-				panic!("Network isn't initialized!");
-			}
-		};
+		let mut guard = NIC.lock().unwrap();
+		let nic = guard.as_nic_mut().unwrap();
 		let res = {
-			let mut s = guard.sockets.get::<TcpSocket>(self.0);
+			let mut s = nic.sockets.get::<TcpSocket>(self.0);
 			f(&mut *s)
 		};
-		guard.wake();
+		nic.wake();
 		res
 	}
 
@@ -232,17 +240,13 @@ impl AsyncSocket {
 		})
 		.await?;
 
-		match unsafe { &mut NIC } {
-			NetworkState::Initialized(nic) => {
-				let mut guard = nic.lock().unwrap();
-				let mut socket = guard.sockets.get::<TcpSocket>(self.0);
-				socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
-				let endpoint = socket.remote_endpoint();
+		let mut guard = NIC.lock().unwrap();
+		let nic = guard.as_nic_mut().map_err(|_| Error::Illegal)?;
+		let mut socket = nic.sockets.get::<TcpSocket>(self.0);
+		socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
+		let endpoint = socket.remote_endpoint();
 
-				Ok((endpoint.addr, endpoint.port))
-			}
-			_ => Err(Error::Illegal),
-		}
+		Ok((endpoint.addr, endpoint.port))
 	}
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
@@ -347,16 +351,13 @@ fn start_endpoint() -> u16 {
 }
 
 pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
-	match unsafe { &mut NIC } {
-		NetworkState::Initialized(nic) => nic.lock().unwrap().poll_delay(timestamp),
-		_ => None,
-	}
+	NIC.lock().unwrap().as_nic_mut().ok()?.poll_delay(timestamp)
 }
 
 pub(crate) async fn network_run() {
-	future::poll_fn(|cx| match unsafe { &mut NIC } {
+	future::poll_fn(|cx| match NIC.lock().unwrap().deref_mut() {
 		NetworkState::Initialized(nic) => {
-			nic.lock().unwrap().poll(cx, Instant::now());
+			nic.poll(cx, Instant::now());
 			Poll::Pending
 		}
 		_ => Poll::Ready(()),
@@ -366,14 +367,12 @@ pub(crate) async fn network_run() {
 
 extern "C" fn nic_thread(_: usize) {
 	loop {
-		unsafe {
-			sys_netwait();
-		}
+		unsafe { sys_netwait() };
 
 		trace!("Network thread checks the devices");
 
-		if let NetworkState::Initialized(nic) = unsafe { &mut NIC } {
-			nic.lock().unwrap().poll_common(Instant::now());
+		if let NetworkState::Initialized(nic) = NIC.lock().unwrap().deref_mut() {
+			nic.poll_common(Instant::now());
 		}
 	}
 }
@@ -382,25 +381,25 @@ pub(crate) fn network_init() -> Result<(), ()> {
 	// initialize variable, which contains the next local endpoint
 	LOCAL_ENDPOINT.store(start_endpoint(), Ordering::SeqCst);
 
-	unsafe {
-		NIC = NetworkInterface::<HermitNet>::new();
+	let mut guard = NIC.lock().unwrap();
 
-		if let NetworkState::Initialized(nic) = &mut NIC {
-			nic.lock().unwrap().poll_common(Instant::now());
+	*guard = NetworkInterface::<HermitNet>::new();
 
-			// create thread, which manages the network stack
-			// use a higher priority to reduce the network latency
-			let mut tid: Tid = 0;
-			let ret = sys_spawn(&mut tid, nic_thread, 0, 3, 0);
-			if ret >= 0 {
-				debug!("Spawn network thread with id {}", tid);
-			}
+	if let NetworkState::Initialized(nic) = guard.deref_mut() {
+		nic.poll_common(Instant::now());
 
-			spawn(network_run()).detach();
-
-			// switch to network thread
-			sys_yield();
+		// create thread, which manages the network stack
+		// use a higher priority to reduce the network latency
+		let mut tid: Tid = 0;
+		let ret = unsafe { sys_spawn(&mut tid, nic_thread, 0, 3, 0) };
+		if ret >= 0 {
+			debug!("Spawn network thread with id {}", tid);
 		}
+
+		spawn(network_run()).detach();
+
+		// switch to network thread
+		unsafe { sys_yield() };
 	}
 
 	Ok(())
@@ -498,11 +497,9 @@ pub fn sys_tcp_stream_get_tll(_handle: Handle) -> Result<u32, ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> {
-	let mut guard = match unsafe { &mut NIC } {
-		NetworkState::Initialized(nic) => nic.lock().unwrap(),
-		_ => return Err(()),
-	};
-	let mut socket = guard.sockets.get::<TcpSocket>(handle);
+	let mut guard = NIC.lock().unwrap();
+	let nic = guard.as_nic_mut().map_err(drop)?;
+	let mut socket = nic.sockets.get::<TcpSocket>(handle);
 	socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
 	let endpoint = socket.remote_endpoint();
 
