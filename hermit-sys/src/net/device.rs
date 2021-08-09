@@ -7,7 +7,6 @@ use std::convert::TryInto;
 #[cfg(not(feature = "dhcpv4"))]
 use std::net::Ipv4Addr;
 use std::slice;
-use std::sync::Mutex;
 
 #[cfg(feature = "dhcpv4")]
 use smoltcp::dhcp::Dhcpv4Client;
@@ -94,13 +93,13 @@ impl NetworkInterface<HermitNet> {
 			.routes(routes)
 			.finalize();
 
-		NetworkState::Initialized(Mutex::new(Self {
+		NetworkState::Initialized(Self {
 			iface,
 			sockets,
 			dhcp,
 			prev_cidr,
 			waker: WakerRegistration::new(),
-		}))
+		})
 	}
 
 	#[cfg(not(feature = "dhcpv4"))]
@@ -168,11 +167,11 @@ impl NetworkInterface<HermitNet> {
 			.routes(routes)
 			.finalize();
 
-		NetworkState::Initialized(Mutex::new(Self {
+		NetworkState::Initialized(Self {
 			iface,
 			sockets: SocketSet::new(vec![]),
 			waker: WakerRegistration::new(),
-		}))
+		})
 	}
 }
 
