@@ -57,6 +57,11 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	// disable all default features
 	cmd.arg("--no-default-features");
 
+	if target.target_arch() == "aarch64" {
+		cmd.arg("--features");
+		cmd.arg("aarch64-qemu-stdout");
+	}
+
 	// do we have to enable PCI support?
 	#[cfg(feature = "pci")]
 	{
