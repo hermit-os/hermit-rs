@@ -39,6 +39,7 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
+          brew tap-new --no-git hermitcore/homebrew
           brew extract --version 6.0.0 qemu hermitcore/homebrew
           brew install hermitcore/homebrew/qemu@6.0.0
           brew install nasm
