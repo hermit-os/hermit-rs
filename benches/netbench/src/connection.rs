@@ -1,6 +1,6 @@
 extern crate core_affinity;
 
-use config::Config;
+use crate::config::Config;
 use std::io;
 use std::io::ErrorKind::WouldBlock;
 use std::io::{Read, Write};

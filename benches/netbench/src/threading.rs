@@ -1,4 +1,4 @@
-use config::Config;
+use crate::config::Config;
 
 pub fn setup(config: &Config) {
 	if config.p_id >= 0 {
