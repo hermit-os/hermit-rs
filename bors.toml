@@ -5,6 +5,7 @@ status = [
   "Format",
   "Clippy",
   "KVM Test",
+  "ci/gitlab/git.rwth-aachen.de",
 ]
 delete_merged_branches = true
 timeout_sec = 7200
