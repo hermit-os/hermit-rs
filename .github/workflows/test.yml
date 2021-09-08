@@ -39,15 +39,11 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
-          brew tap-new --no-git hermitcore/homebrew
-          brew extract --version 6.0.0 qemu hermitcore/homebrew
-          brew install hermitcore/homebrew/qemu@6.0.0
-          brew install nasm
+          brew install qemu nasm
       - name: Install QEMU, NASM, GNU make (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          choco install nasm make
-          choco install qemu --version 2021.5.5
+          choco install qemu nasm make
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
       - name: Build loader
@@ -57,7 +53,7 @@ jobs:
       - name: Test dev profile
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand \
+            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
             -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader \
             -initrd target/x86_64-unknown-hermit/debug/rusty_demo
       - name: Build release profile
@@ -66,7 +62,7 @@ jobs:
       - name: Test release profile
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,fxsr,rdrand \
+            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
             -kernel loader/target/x86_64-unknown-hermit-loader/release/rusty-loader \
             -initrd target/x86_64-unknown-hermit/release/rusty_demo
       - name: Build httpd with DHCP support
