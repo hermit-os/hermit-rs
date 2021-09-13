@@ -11,14 +11,12 @@ members = [
 exclude = ["target", "loader", "libhermit-rs"]
 
 [profile.release]
-opt-level = 2
 debug = false
 rpath = false
 lto = false
 debug-assertions = false
 
 [profile.dev]
-opt-level = 1      # controls the `--opt-level` the compiler builds with
 debug = true       # controls whether the compiler passes `-C debuginfo`
                    # a value of `true` is equivalent to `2`
 rpath = false      # controls whether the compiler passes `-C rpath`

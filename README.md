@@ -59,7 +59,6 @@ cd hello_world
 ```
 
 To bind the library operating system to the application, add the crate [hermit-sys](https://crates.io/crates/hermit-sys) to the dependencies in the file *Cargo.toml*.
-It is important to use at least the _optimization level 1_.
 Consequently, it is required to **extend** *Cargo.toml* with following lines:
 
 ```toml
@@ -67,12 +66,6 @@ Consequently, it is required to **extend** *Cargo.toml* with following lines:
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit-sys = "0.1.*"
-
-[profile.release]
-opt-level = 3
-
-[profile.dev]
-opt-level = 1
 ```
 
 To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.
