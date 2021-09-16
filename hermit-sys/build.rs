@@ -98,30 +98,29 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	}
 
 	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
+	let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap();
 
 	#[cfg(feature = "instrument")]
 	{
 		rustflags.push("-Zinstrument-mcount".to_string());
-		// Add outer `RUSTFLAGS` to command
-		if let Ok(var) = env::var("RUSTFLAGS") {
-			rustflags.push(var);
-		}
+		// Add outer rustflags to command
+		rustflags.push(outer_rustflags);
 	}
 
 	#[cfg(not(feature = "instrument"))]
 	{
 		// If the `instrument` feature feature is not enabled,
-		// filter it from outer `RUSTFLAGS` before adding them to the command.
-		if let Ok(var) = env::var("RUSTFLAGS") {
-			let flags = var
-				.split(',')
+		// filter it from outer rustflags before adding them to the command.
+		if !outer_rustflags.is_empty() {
+			let flags = outer_rustflags
+				.split('\x1f')
 				.filter(|&flag| !flag.contains("instrument-mcount"))
 				.map(String::from);
 			rustflags.extend(flags);
 		}
 	}
 
-	cmd.env("RUSTFLAGS", rustflags.join(" "));
+	cmd.env("CARGO_ENCODED_RUSTFLAGS", rustflags.join("\x1f"));
 
 	let status = cmd.status().expect("failed to start kernel build");
 	assert!(status.success());
