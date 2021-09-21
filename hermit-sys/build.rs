@@ -98,7 +98,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	}
 
 	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
-	let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap();
+	let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap_or_default();
 
 	#[cfg(feature = "instrument")]
 	{
