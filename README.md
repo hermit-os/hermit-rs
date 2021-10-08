@@ -108,7 +108,7 @@ RustyHermit can run within our own hypervisor [*uhyve*](https://github.com/hermi
 Please install the hypervisor as follows:
 
 ```sh
-cargo install uhyve
+cargo +nightly install uhyve --locked
 ```
 
 Afterwards, your are able to start RustyHermit applications within our hypervisor:
