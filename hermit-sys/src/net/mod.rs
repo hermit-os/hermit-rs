@@ -6,7 +6,6 @@ mod waker;
 use aarch64::regs::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
-use std::convert::TryInto;
 use std::ops::DerefMut;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
