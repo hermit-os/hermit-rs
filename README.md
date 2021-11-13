@@ -254,4 +254,4 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 RustyHermit is being developed on [GitHub](https://github.com/hermitcore/rusty-hermit).
-Create your own fork, send us a pull request, and chat with us on [Slack](https://radiant-ridge-95061.herokuapp.com)
+Create your own fork, send us a pull request, and chat with us on [Slack](https://matrix.osbyexample.com:3008)
