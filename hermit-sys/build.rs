@@ -256,7 +256,7 @@ fn configure_cargo_rerun_if_changed(src_dir: &Path) {
 
 	WalkDir::new(src_dir)
 		.into_iter()
-		.filter_entry(|e| is_not_ignored(e))
+		.filter_entry(is_not_ignored)
 		.filter_map(|v| v.ok())
 		.filter_map(|v| v.path().canonicalize().ok())
 		.for_each(|x| println!("cargo:rerun-if-changed={}", x.display()));
