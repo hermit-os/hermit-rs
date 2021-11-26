@@ -3,8 +3,6 @@ include!(concat!(env!("OUT_DIR"), "/constants.rs"));
 
 use std::collections::BTreeMap;
 #[cfg(not(feature = "dhcpv4"))]
-use std::convert::TryInto;
-#[cfg(not(feature = "dhcpv4"))]
 use std::net::Ipv4Addr;
 use std::slice;
 

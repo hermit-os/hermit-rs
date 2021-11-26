@@ -2,7 +2,7 @@
 name = "micro_benchmarks"
 version = "0.1.0"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [dependencies]

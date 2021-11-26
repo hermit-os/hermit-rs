@@ -2,7 +2,7 @@
 name = "hello_world"
 version = "0.1.0"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [target.'cfg(all(any(target_arch = "x86_64", target_arch = "aarch64"), target_os = "hermit"))'.dependencies.hermit-sys]
