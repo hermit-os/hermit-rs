@@ -125,7 +125,7 @@ It is also possible to run RustyHermit within [Qemu](https://www.qemu.org).
 RustyHermit produces 64-bit binaries, but Qemu's x86 emulation cannot boot them directly.
 Therefore, the loader [rusty-loader](https://github.com/hermitcore/rusty-loader) is required to boot the application.
 To build the loader, the assembler [nasm](https://www.nasm.us) is required.
-After the installation, the loader can be build as follows.
+After the installation, the loader can be built as follows.
 
 ```bash
 git clone https://github.com/hermitcore/rusty-loader.git
@@ -158,7 +158,7 @@ RustyHermit uses the lightweight logging crate [log](https://github.com/rust-lan
 If the environment variable `HERMIT_LOG_LEVEL_FILTER` is set at compile time to a string matching the name of a [LevelFilter](https://docs.rs/log/0.4.8/log/enum.LevelFilter.html), then that value is used for the LevelFilter.
 If the environment variable is not set, or the name doesn't match, then LevelFilter::Info is used by default, which is the same as it was before.
 
-For instance, the following command build RustyHermit with debug messages:
+For instance, the following command builds RustyHermit with debug messages:
 
 ```sh
 HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
