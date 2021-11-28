@@ -45,6 +45,3 @@ path = "src/rust-tcp-latency/server.rs"
 [[bin]]
 name = "client-latency"
 path = "src/rust-tcp-latency/client.rs"
-
-[profile.dev]
-opt-level = 1

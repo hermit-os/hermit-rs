@@ -67,9 +67,6 @@ Consequently, it is required to **extend** *Cargo.toml* with following lines:
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit-sys = "0.1.*"
-
-[profile.dev]
-opt-level = 1
 ```
 
 To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.

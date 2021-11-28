@@ -12,6 +12,3 @@ exclude = ["target", "loader", "libhermit-rs"]
 
 [profile.release]
 opt-level = 2
-
-[profile.dev]
-opt-level = 1

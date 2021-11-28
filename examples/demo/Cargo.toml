@@ -41,6 +41,3 @@ acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
 instrument = ["hermit-sys/instrument"]
-
-[profile.dev]
-opt-level = 1
