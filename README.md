@@ -68,9 +68,6 @@ Consequently, it is required to **extend** *Cargo.toml* with following lines:
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit-sys = "0.1.*"
 
-[profile.release]
-opt-level = 3
-
 [profile.dev]
 opt-level = 1
 ```
