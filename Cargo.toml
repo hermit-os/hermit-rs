@@ -9,6 +9,3 @@ members = [
     "examples/demo",
 ]
 exclude = ["target", "loader", "libhermit-rs"]
-
-[profile.release]
-opt-level = 2
