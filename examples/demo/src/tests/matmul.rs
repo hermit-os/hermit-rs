@@ -238,11 +238,7 @@ fn matmul_strassen(a: &[f32], b: &[f32], dest: &mut [f32]) {
 }
 
 fn raw_buffer(n: usize) -> Vec<f32> {
-	let mut tmp = Vec::with_capacity(n);
-	unsafe {
-		tmp.set_len(n);
-	}
-	tmp
+	vec![0.0; n]
 }
 
 fn strassen_add2_mul(a1: &[f32], a2: &[f32], b1: &[f32], b2: &[f32]) -> Vec<f32> {
