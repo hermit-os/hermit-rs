@@ -20,7 +20,15 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	);
 	let target = TargetInfo::new().expect("Could not get target info");
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
-	let mut cmd = Command::new(env!("CARGO"));
+	let mut cmd = Command::new("cargo");
+
+	cmd.env_remove("RUSTUP_TOOLCHAIN");
+	if option_env!("RUSTC_WORKSPACE_WRAPPER")
+		.unwrap_or_default()
+		.ends_with("clippy-driver")
+	{
+		cmd.env("RUSTC_WORKSPACE_WRAPPER", "clippy-driver");
+	}
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
