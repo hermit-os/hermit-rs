@@ -25,7 +25,7 @@ jobs:
     - name: Build dev profile
       run: cargo build --package rusty_demo
     - name: Install uhyve
-      run: cargo install uhyve --locked
+      run: cargo +nightly install --git https://github.com/hermitcore/uhyve.git --locked uhyve
     - name: Check KVM availability
       shell: bash
       run: |
