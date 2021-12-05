@@ -16,6 +16,8 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
+      - name: Install cargo-binutils
+        run: cargo install cargo-binutils
       - uses: actions/checkout@v2
         with:
           submodules: true

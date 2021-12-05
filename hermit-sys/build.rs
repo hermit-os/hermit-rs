@@ -1,16 +1,13 @@
-extern crate llvm_tools;
-extern crate target_build_utils;
 extern crate walkdir;
 
+use std::borrow::Cow;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process;
 use std::process::Command;
-use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
@@ -18,7 +15,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		src_dir.exists(),
 		"rusty_hermit source folder does not exist"
 	);
-	let target = TargetInfo::new().expect("Could not get target info");
+	let target_arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
 
@@ -32,14 +29,14 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
-	if target.target_arch() == "x86_64" {
+	if target_arch == "x86_64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
 			.arg("x86_64-unknown-none-hermitkernel");
-	} else if target.target_arch() == "aarch64" {
+	} else if target_arch == "aarch64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
 			.arg("-Z")
@@ -65,7 +62,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	// disable all default features
 	cmd.arg("--no-default-features");
 
-	if target.target_arch() == "aarch64" {
+	if target_arch == "aarch64" {
 		cmd.arg("--features");
 		cmd.arg("aarch64-qemu-stdout");
 	}
@@ -133,13 +130,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let status = cmd.status().expect("failed to start kernel build");
 	assert!(status.success());
 
-	let lib_location = if target.target_arch() == "x86_64" {
+	let lib_location = if target_arch == "x86_64" {
 		target_dir
 			.join("x86_64-unknown-none-hermitkernel")
 			.join(&profile)
 			.canonicalize()
 			.unwrap() // Must exist after building
-	} else if target.target_arch() == "aarch64" {
+	} else if target_arch == "aarch64" {
 		target_dir
 			.join("aarch64-unknown-hermit")
 			.join(&profile)
@@ -152,15 +149,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib = lib_location.join("libhermit.a");
 
-	rename_symbol("rust_begin_unwind", &lib);
-	rename_symbol("rust_oom", &lib);
+	let mut symbols = vec!["rust_begin_unwind", "rust_oom"];
 
-	#[cfg(feature = "mem")]
-	{
-		for symbol in ["memcpy", "memmove", "memset", "memcmp", "bcmp"] {
-			rename_symbol(symbol, &lib);
-		}
+	if target_arch == "aarch64" {
+		symbols.extend(include_str!("aarch64-duplicate-symbols").lines());
 	}
+
+	rename_symbols(symbols, &lib);
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
@@ -171,39 +166,21 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 /// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
 /// Consequently, we rename the functions in the libos to avoid collisions.
-/// In addition, it provides us the offer to create a optimized version of memcpy
-/// in user space.
-fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
-	// Get access to llvm tools shipped in the llvm-tools-preview rustup component
-	let llvm_tools = match llvm_tools::LlvmTools::new() {
-		Ok(tools) => tools,
-		Err(llvm_tools::Error::NotFound) => {
-			eprintln!("Error: llvm-tools not found");
-			eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
-			eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
-			process::exit(1);
-		}
-		Err(err) => {
-			eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
-			process::exit(1);
-		}
-	};
+fn rename_symbols(symbols: impl IntoIterator<Item = impl AsRef<OsStr>>, lib: impl AsRef<Path>) {
+	let args = symbols.into_iter().flat_map(|symbol| {
+		let option = OsStr::new("--redefine-sym");
+		let arg = [symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()]
+			.into_iter()
+			.collect::<OsString>();
+		[Cow::Borrowed(option), Cow::Owned(arg)]
+	});
 
-	// Retrieve path of llvm-objcopy
-	let llvm_objcopy = llvm_tools
-		.tool(&llvm_tools::exe("llvm-objcopy"))
-		.expect("llvm-objcopy not found in llvm-tools");
-
-	// Rename symbols
-	let arg = IntoIterator::into_iter([symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()])
-		.collect::<OsString>();
-	let status = Command::new(llvm_objcopy)
-		.arg("--redefine-sym")
-		.arg(arg)
+	let status = Command::new("rust-objcopy")
+		.args(args)
 		.arg(lib.as_ref())
 		.status()
-		.expect("failed to execute llvm-objcopy");
-	assert!(status.success(), "llvm-objcopy was not successful");
+		.expect("Failed to execute rust-objcopy. Is cargo-binutils installed?");
+	assert!(status.success(), "rust-objcopy was not successful");
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
