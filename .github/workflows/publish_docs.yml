@@ -12,6 +12,8 @@ jobs:
   publish_docs:
     runs-on: ubuntu-latest
     steps:
+      - name: Install cargo-binutils
+        run: cargo install cargo-binutils
       - name: Checkout code
         uses: actions/checkout@v2
         with:
