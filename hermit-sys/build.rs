@@ -1,6 +1,7 @@
 extern crate target_build_utils;
 extern crate walkdir;
 
+use std::borrow::Cow;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
@@ -150,8 +151,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib = lib_location.join("libhermit.a");
 
-	rename_symbol("rust_begin_unwind", &lib);
-	rename_symbol("rust_oom", &lib);
+	let symbols = vec!["rust_begin_unwind", "rust_oom"];
+	rename_symbols(symbols, &lib);
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
@@ -162,12 +163,17 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 /// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
 /// Consequently, we rename the functions in the libos to avoid collisions.
-fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
-	let arg = IntoIterator::into_iter([symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()])
-		.collect::<OsString>();
+fn rename_symbols(symbols: impl IntoIterator<Item = impl AsRef<OsStr>>, lib: impl AsRef<Path>) {
+	let args = symbols.into_iter().flat_map(|symbol| {
+		let option = OsStr::new("--redefine-sym");
+		let arg = [symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()]
+			.into_iter()
+			.collect::<OsString>();
+		[Cow::Borrowed(option), Cow::Owned(arg)]
+	});
+
 	let status = Command::new("rust-objcopy")
-		.arg("--redefine-sym")
-		.arg(arg)
+		.args(args)
 		.arg(lib.as_ref())
 		.status()
 		.expect("Failed to execute rust-objcopy. Is cargo-binutils installed?");
