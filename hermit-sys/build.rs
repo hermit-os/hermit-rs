@@ -149,7 +149,12 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	let lib = lib_location.join("libhermit.a");
 
-	let symbols = vec!["rust_begin_unwind", "rust_oom"];
+	let mut symbols = vec!["rust_begin_unwind", "rust_oom"];
+
+	if target_arch == "aarch64" {
+		symbols.extend(include_str!("aarch64-duplicate-symbols").lines());
+	}
+
 	rename_symbols(symbols, &lib);
 
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
