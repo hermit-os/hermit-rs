@@ -16,8 +16,10 @@ use syscalls::SYS_getpid;
 
 mod laplace;
 mod matmul;
+mod thread_local;
 
 pub use matmul::test_matmul_strassen;
+pub use thread_local::test_thread_local;
 
 pub fn thread_creation() -> Result<(), ()> {
 	const N: usize = 10;

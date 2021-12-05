@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![feature(thread_id_value)]
+#![feature(thread_local_const_init)]
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
@@ -23,6 +24,11 @@ fn test_result<T>(result: Result<(), T>) -> &'static str {
 
 fn main() {
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
+	println!(
+		"Test {} ... {}",
+		stringify!(test_thread_local),
+		test_result(test_thread_local())
+	);
 	println!(
 		"Test {} ... {}",
 		stringify!(arithmetic),
