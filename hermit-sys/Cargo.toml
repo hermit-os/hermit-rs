@@ -29,7 +29,6 @@ smp = []
 
 [build-dependencies]
 walkdir = "2"
-target_build_utils = "0.3"
 
 [dependencies]
 log = { version = "0.4", default-features = false }

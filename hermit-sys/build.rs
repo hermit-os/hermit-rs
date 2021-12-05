@@ -1,4 +1,3 @@
-extern crate target_build_utils;
 extern crate walkdir;
 
 use std::borrow::Cow;
@@ -9,7 +8,6 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
@@ -17,7 +15,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		src_dir.exists(),
 		"rusty_hermit source folder does not exist"
 	);
-	let target = TargetInfo::new().expect("Could not get target info");
+	let target_arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
 
@@ -31,14 +29,14 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
-	if target.target_arch() == "x86_64" {
+	if target_arch == "x86_64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
 			.arg("x86_64-unknown-none-hermitkernel");
-	} else if target.target_arch() == "aarch64" {
+	} else if target_arch == "aarch64" {
 		cmd.current_dir(src_dir)
 			.arg("build")
 			.arg("-Z")
@@ -64,7 +62,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	// disable all default features
 	cmd.arg("--no-default-features");
 
-	if target.target_arch() == "aarch64" {
+	if target_arch == "aarch64" {
 		cmd.arg("--features");
 		cmd.arg("aarch64-qemu-stdout");
 	}
@@ -132,13 +130,13 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let status = cmd.status().expect("failed to start kernel build");
 	assert!(status.success());
 
-	let lib_location = if target.target_arch() == "x86_64" {
+	let lib_location = if target_arch == "x86_64" {
 		target_dir
 			.join("x86_64-unknown-none-hermitkernel")
 			.join(&profile)
 			.canonicalize()
 			.unwrap() // Must exist after building
-	} else if target.target_arch() == "aarch64" {
+	} else if target_arch == "aarch64" {
 		target_dir
 			.join("aarch64-unknown-hermit")
 			.join(&profile)
