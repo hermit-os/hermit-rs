@@ -1,4 +1,3 @@
-extern crate llvm_tools;
 extern crate target_build_utils;
 extern crate walkdir;
 
@@ -8,7 +7,6 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process;
 use std::process::Command;
 use target_build_utils::TargetInfo;
 use walkdir::{DirEntry, WalkDir};
@@ -174,36 +172,15 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 /// In addition, it provides us the offer to create a optimized version of memcpy
 /// in user space.
 fn rename_symbol(symbol: impl AsRef<OsStr>, lib: impl AsRef<Path>) {
-	// Get access to llvm tools shipped in the llvm-tools-preview rustup component
-	let llvm_tools = match llvm_tools::LlvmTools::new() {
-		Ok(tools) => tools,
-		Err(llvm_tools::Error::NotFound) => {
-			eprintln!("Error: llvm-tools not found");
-			eprintln!("Maybe the rustup component `llvm-tools-preview` is missing?");
-			eprintln!("  Install it through: `rustup component add llvm-tools-preview`");
-			process::exit(1);
-		}
-		Err(err) => {
-			eprintln!("Failed to retrieve llvm-tools component: {:?}", err);
-			process::exit(1);
-		}
-	};
-
-	// Retrieve path of llvm-objcopy
-	let llvm_objcopy = llvm_tools
-		.tool(&llvm_tools::exe("llvm-objcopy"))
-		.expect("llvm-objcopy not found in llvm-tools");
-
-	// Rename symbols
 	let arg = IntoIterator::into_iter([symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()])
 		.collect::<OsString>();
-	let status = Command::new(llvm_objcopy)
+	let status = Command::new("rust-objcopy")
 		.arg("--redefine-sym")
 		.arg(arg)
 		.arg(lib.as_ref())
 		.status()
-		.expect("failed to execute llvm-objcopy");
-	assert!(status.success(), "llvm-objcopy was not successful");
+		.expect("Failed to execute rust-objcopy. Is cargo-binutils installed?");
+	assert!(status.success(), "rust-objcopy was not successful");
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]

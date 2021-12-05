@@ -325,7 +325,6 @@ dependencies = [
  "futures-lite",
  "lazy_static",
  "libm",
- "llvm-tools",
  "log",
  "rftrace",
  "smoltcp",
@@ -399,12 +398,6 @@ name = "libm"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7d73b3f436185384286bd8098d17ec07c9a7d2388a6599f824d8502b529702a"
-
-[[package]]
-name = "llvm-tools"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "955be5d0ca0465caf127165acb47964f911e2bc26073e865deb8be7189302faf"
 
 [[package]]
 name = "log"
