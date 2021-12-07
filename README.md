@@ -44,6 +44,7 @@ Further requirements are the source code of the Rust runtime,  [cargo-download](
 
 ```sh
 cargo install cargo-download
+cargo install cargo-binutils
 rustup component add rust-src
 rustup component add llvm-tools-preview
 ```
