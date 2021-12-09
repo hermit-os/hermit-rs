@@ -38,7 +38,7 @@ version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 dependencies = [
- "hermit-abi 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hermit-abi 0.1.19",
  "libc",
  "winapi 0.3.9",
 ]
@@ -273,15 +273,6 @@ dependencies = [
 [[package]]
 name = "hermit-abi"
 version = "0.1.19"
-dependencies = [
- "compiler_builtins",
- "libc",
- "rustc-std-workspace-core",
-]
-
-[[package]]
-name = "hermit-abi"
-version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
@@ -289,8 +280,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hermit-abi"
+version = "0.1.20"
+dependencies = [
+ "compiler_builtins",
+ "libc",
+ "rustc-std-workspace-core",
+]
+
+[[package]]
 name = "hermit-sys"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "aarch64",
  "async-task",
@@ -436,7 +436,7 @@ version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 dependencies = [
- "hermit-abi 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hermit-abi 0.1.19",
  "libc",
 ]
 
