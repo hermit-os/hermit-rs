@@ -143,6 +143,33 @@ You can provide arguments to the application via the kernel commandline, which y
 qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 ```
 
+### Using Qemu as microVM
+
+Qemu provides [microvm virtual platform](https://qemu.readthedocs.io/en/latest/system/i386/microvm.html), which is a minimalist machine type without PCI nor ACPI support.
+In comparsion to a common hypervisor, it has a clearly smaller memory footprint and a faster boot time.
+To use this VM type, all default features of RustyHermit has to be disabled (especially PCI and ACPI support).
+For instance, the following command build the smallest version of the [`hello_world` example](https://github.com/hermitcore/rusty-hermit/tree/master/examples/hello_world):
+
+```bash
+cargo build --no-default-features -p hello_world --release
+```
+
+Afterwards, this minimal example can be loaded with the same boot loader like the common Qemu machine type:
+
+```bash
+qemu-system-x86_64 -M microvm,x-option-roms=off,pit=off,pic=off,rtc=on,auto-kernel-cmdline=off -nodefaults -no-user-config -display none -smp 1 -m 512M -serial stdio -kernel path_to_loader/rusty-loader -initrd path_to_hello_world/hello_world -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr -device isa-debug-exit,iobase=0xf4,iosize=0x04 -append "-freq 2800"
+```
+
+Depending on the virtualized processor, the processor frequency has to pass as kernel argument (`-freq`) to the kernel.
+MHz is used here as the unit for the frequency.
+
+Kernel features like TCP/IP support can be reenabled by hand.
+For instance, the following command creates a [minimal web-server](https://github.com/hermitcore/rusty-hermit/tree/master/examples/httpd) for Qemu's microvm plattform:
+
+```bash
+cargo build --no-default-features --features smoltcp -p httpd --release
+```
+
 ## Advanced Features
 
 You are not happy with `Hello World` yet?
