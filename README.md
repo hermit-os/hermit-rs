@@ -161,7 +161,7 @@ qemu-system-x86_64 -M microvm,x-option-roms=off,pit=off,pic=off,rtc=on,auto-kern
 ```
 
 Depending on the virtualized processor, the processor frequency has to pass as kernel argument (`-freq`) to the kernel.
-MHz is used here as the unit for the frequency.
+MHz is used as unit of frequency here.
 
 Kernel features like TCP/IP support can be reenabled by hand.
 For instance, the following command creates a [minimal web-server](https://github.com/hermitcore/rusty-hermit/tree/master/examples/httpd) for Qemu's microvm platform:
