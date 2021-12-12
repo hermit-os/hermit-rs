@@ -146,7 +146,7 @@ qemu-system-x86_64 ... -append "kernel-arguments -- application-arguments"
 ### Using Qemu as microVM
 
 Qemu provides [microvm virtual platform](https://qemu.readthedocs.io/en/latest/system/i386/microvm.html), which is a minimalist machine type without PCI nor ACPI support.
-In comparison on to a common hypervisor, it has a clearly smaller memory footprint and a faster boot time.
+In comparison to a common hypervisor, it has a clearly smaller memory footprint and a faster boot time.
 To use this VM type, all default features of RustyHermit has to be disabled (especially PCI and ACPI support).
 For instance, the following command build the smallest version of the [`hello_world` example](https://github.com/hermitcore/rusty-hermit/tree/master/examples/hello_world):
 
