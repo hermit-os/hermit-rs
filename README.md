@@ -157,7 +157,14 @@ cargo build --no-default-features -p hello_world --release
 Afterwards, this minimal example can be loaded with the same boot loader like the common Qemu machine type:
 
 ```bash
-qemu-system-x86_64 -M microvm,x-option-roms=off,pit=off,pic=off,rtc=on,auto-kernel-cmdline=off -nodefaults -no-user-config -display none -smp 1 -m 512M -serial stdio -kernel path_to_loader/rusty-loader -initrd path_to_hello_world/hello_world -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr -device isa-debug-exit,iobase=0xf4,iosize=0x04 -append "-freq 2800"
+qemu-system-x86_64 \
+    -M microvm,x-option-roms=off,pit=off,pic=off,rtc=on,auto-kernel-cmdline=off \
+    -nodefaults -no-user-config -display none -smp 1 -m 512M -serial stdio \
+    -kernel path_to_loader/rusty-loader \
+    -initrd path_to_hello_world/hello_world \
+    -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    -append "-freq 2800"
 ```
 
 Depending on the virtualized processor, the processor frequency has to pass as kernel argument (`-freq`) to the kernel.
