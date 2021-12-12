@@ -8,4 +8,4 @@ members = [
     "examples/httpd",
     "examples/demo",
 ]
-exclude = ["target", "loader", "libhermit-rs"]
+exclude = ["target", "libhermit-rs"]

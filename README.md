@@ -16,8 +16,7 @@ The repository contains following directories and submodules:
 2. _hermit-abi_ contains the platform APIs and builds the interface between library operating system and the application
 3. _hermit-sys_ contains a crate to automate the build process of the library operating systems
 4. _libhermit-rs_ is the kernel itself
-5. _loader_ contains a loader to run RustyHermit on a common virtualization platforms ([Qemu](https://www.qemu.org)) or bare-metal on a x86 system
-6. _netbench_ provides some basic network benchmarks
+5. _netbench_ provides some basic network benchmarks
 
 ## Background
 
