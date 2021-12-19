@@ -15,9 +15,23 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		src_dir.exists(),
 		"rusty_hermit source folder does not exist"
 	);
-	let target_arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
+	let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
 	let mut cmd = Command::new("cargo");
+
+	let kernel_triple = match target_arch.as_str() {
+		"x86_64" => "x86_64-unknown-none-hermitkernel",
+		"aarch64" => "aarch64-unknown-hermit",
+		_ => panic!("Unsupported target arch: {}", target_arch),
+	};
+
+	cmd.arg("build")
+		.arg("-Z")
+		.arg("build-std=core,alloc")
+		.arg("--target")
+		.arg(kernel_triple);
+
+	cmd.current_dir(src_dir);
 
 	cmd.env_remove("RUSTUP_TOOLCHAIN");
 	if option_env!("RUSTC_WORKSPACE_WRAPPER")
@@ -28,24 +42,6 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	}
 
 	cmd.env("CARGO_TERM_COLOR", "always");
-
-	if target_arch == "x86_64" {
-		cmd.current_dir(src_dir)
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("x86_64-unknown-none-hermitkernel");
-	} else if target_arch == "aarch64" {
-		cmd.current_dir(src_dir)
-			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg("aarch64-unknown-hermit");
-	} else {
-		panic!("Try to build for an unsupported platform");
-	}
 
 	if let Some(target_dir) = target_dir_opt {
 		cmd.arg("--target-dir").arg(target_dir);
@@ -130,21 +126,12 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let status = cmd.status().expect("failed to start kernel build");
 	assert!(status.success());
 
-	let lib_location = if target_arch == "x86_64" {
-		target_dir
-			.join("x86_64-unknown-none-hermitkernel")
-			.join(&profile)
-			.canonicalize()
-			.unwrap() // Must exist after building
-	} else if target_arch == "aarch64" {
-		target_dir
-			.join("aarch64-unknown-hermit")
-			.join(&profile)
-			.canonicalize()
-			.unwrap() // Must exist after building
-	} else {
-		panic!("Try to build for an unsupported platform");
-	};
+	let lib_location = target_dir
+		.join(kernel_triple)
+		.join(&profile)
+		.canonicalize()
+		.unwrap();
+
 	println!("Lib location: {}", lib_location.display());
 
 	let lib = lib_location.join("libhermit.a");
