@@ -29,7 +29,9 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		.arg("-Z")
 		.arg("build-std=core,alloc")
 		.arg("--target")
-		.arg(kernel_triple);
+		.arg(kernel_triple)
+		.arg("--manifest-path")
+		.arg("Cargo.toml");
 
 	cmd.current_dir(src_dir);
 
