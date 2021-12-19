@@ -49,6 +49,8 @@ rustup component add rust-src
 rustup component add llvm-tools-preview
 ```
 
+If you work with this repository, remember to checkout the submodules.
+
 ## Building your own applications
 
 To give you an example on how to build your application with RustyHermit, lets create a new cargo project:
