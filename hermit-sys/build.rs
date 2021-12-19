@@ -11,9 +11,11 @@ use std::process::Command;
 use walkdir::{DirEntry, WalkDir};
 
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+	let manifest_path = src_dir.join("Cargo.toml");
 	assert!(
-		src_dir.exists(),
-		"rusty_hermit source folder does not exist"
+		manifest_path.exists(),
+		"kernel manifest path `{}` does not exist",
+		manifest_path.display()
 	);
 	let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
 	let profile = env::var("PROFILE").expect("PROFILE was not set");
