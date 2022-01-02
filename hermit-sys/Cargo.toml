@@ -26,6 +26,7 @@ dhcpv4 = ["smoltcp/proto-dhcpv4"]
 # only for internal usage, please don't use it
 with_submodule = []
 smp = []
+aarch64-qemu-stdout = []
 
 [build-dependencies]
 walkdir = "2"

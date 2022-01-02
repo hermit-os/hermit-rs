@@ -62,7 +62,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	// disable all default features
 	cmd.arg("--no-default-features");
 
-	if target_arch == "aarch64" {
+	#[cfg(feature = "aarch64-qemu-stdout")]
+	{
 		cmd.arg("--features");
 		cmd.arg("aarch64-qemu-stdout");
 	}
