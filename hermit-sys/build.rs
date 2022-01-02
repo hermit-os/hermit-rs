@@ -10,6 +10,23 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use walkdir::{DirEntry, WalkDir};
 
+macro_rules! forward_features {
+	($cmd:expr, $($feature:literal,)+ ) => {
+		let mut features = vec![];
+
+		$(
+			if cfg!(feature = $feature) {
+				features.push($feature);
+			}
+		)+
+
+		if !features.is_empty() {
+			$cmd.arg("--features");
+			$cmd.arg(features.join(" "));
+		}
+	};
+}
+
 fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let manifest_path = src_dir.join("Cargo.toml");
 	assert!(
@@ -59,49 +76,17 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 		cmd.arg("--release");
 	}
 
-	// disable all default features
+	// Control enabled features via this crate's features
 	cmd.arg("--no-default-features");
-
-	#[cfg(feature = "aarch64-qemu-stdout")]
-	{
-		cmd.arg("--features");
-		cmd.arg("aarch64-qemu-stdout");
-	}
-
-	// do we have to enable PCI support?
-	#[cfg(feature = "pci")]
-	{
-		cmd.arg("--features");
-		cmd.arg("pci");
-	}
-
-	// do we have to enable acpi support?
-	#[cfg(feature = "acpi")]
-	{
-		cmd.arg("--features");
-		cmd.arg("acpi");
-	}
-
-	// do we have to enable FSGSBASE support?
-	#[cfg(feature = "fsgs_base")]
-	{
-		cmd.arg("--features");
-		cmd.arg("fsgs_base");
-	}
-
-	// do we support multi-processor systems?
-	#[cfg(feature = "smp")]
-	{
-		cmd.arg("--features");
-		cmd.arg("smp");
-	}
-
-	// do we have to enable VGA support
-	#[cfg(feature = "vga")]
-	{
-		cmd.arg("--features");
-		cmd.arg("vga");
-	}
+	forward_features!(
+		cmd,
+		"aarch64-qemu-stdout",
+		"acpi",
+		"fsgsbase",
+		"pci",
+		"smp",
+		"vga",
+	);
 
 	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
 	let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap();
