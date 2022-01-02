@@ -83,10 +83,10 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	}
 
 	// do we have to enable FSGSBASE support?
-	#[cfg(feature = "fsgs_base")]
+	#[cfg(feature = "fsgsbase")]
 	{
 		cmd.arg("--features");
-		cmd.arg("fsgs_base");
+		cmd.arg("fsgsbase");
 	}
 
 	// do we support multi-processor systems?
