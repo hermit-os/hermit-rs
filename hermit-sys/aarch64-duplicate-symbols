@@ -94,6 +94,7 @@ __rust_u128_sub
 __rust_u128_subo
 __subdf3
 __subsf3
+__truncdfsf2
 __udivdi3
 __udivmoddi4
 __udivmodsi4
