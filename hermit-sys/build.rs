@@ -39,8 +39,8 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	let mut cmd = Command::new("cargo");
 
 	let kernel_triple = match target_arch.as_str() {
-		"x86_64" => "x86_64-unknown-none-hermitkernel",
-		"aarch64" => "aarch64-unknown-hermit",
+		"x86_64" => "x86_64-unknown-none",
+		"aarch64" => "aarch64-unknown-none-softfloat",
 		_ => panic!("Unsupported target arch: {}", target_arch),
 	};
 
