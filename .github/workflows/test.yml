@@ -73,3 +73,8 @@ jobs:
       - name: Build httpd without DHCP support
         run:
           cargo build --package httpd
+      - name: Build aarch64 debug profile
+        run:
+          cargo build -p hello_world --target aarch64-unknown-hermit
+      - name: Build aarch64 release profile
+          cargo build -p hello_world --target aarch64-unknown-hermit --release
