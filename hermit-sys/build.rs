@@ -80,7 +80,6 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	cmd.arg("--no-default-features");
 	forward_features!(
 		cmd,
-		"aarch64-qemu-stdout",
 		"acpi",
 		"fsgsbase",
 		"pci",
