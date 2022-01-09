@@ -78,14 +78,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	// Control enabled features via this crate's features
 	cmd.arg("--no-default-features");
-	forward_features!(
-		cmd,
-		"acpi",
-		"fsgsbase",
-		"pci",
-		"smp",
-		"vga",
-	);
+	forward_features!(cmd, "acpi", "fsgsbase", "pci", "smp", "vga",);
 
 	let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
 	let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap();
