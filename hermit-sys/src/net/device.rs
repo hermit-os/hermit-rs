@@ -121,17 +121,17 @@ impl NetworkInterface<HermitNet> {
 			}
 		};
 		let myip: Ipv4Addr = std::env::var("HERMIT_IP")
-			.unwrap_or(HERMIT_IP.to_string())
+			.unwrap_or_else(|_| HERMIT_IP.to_string())
 			.parse()
 			.expect("Unable to parse IPv4 address");
 		let myip = myip.octets();
 		let mygw: Ipv4Addr = std::env::var("HERMIT_GATEWAY")
-			.unwrap_or(HERMIT_GATEWAY.to_string())
+			.unwrap_or_else(|_| HERMIT_GATEWAY.to_string())
 			.parse()
 			.expect("Unable to parse IPv4 address");
 		let mygw = mygw.octets();
 		let mymask: Ipv4Addr = std::env::var("HERMIT_MASK")
-			.unwrap_or(HERMIT_MASK.to_string())
+			.unwrap_or_else(|_| HERMIT_MASK.to_string())
 			.parse()
 			.expect("Unable to parse IPv4 address");
 		let mymask = mymask.octets();
