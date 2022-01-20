@@ -480,8 +480,14 @@ pub fn sys_tcp_stream_peek(_handle: Handle, _buf: &mut [u8]) -> Result<usize, ()
 }
 
 #[no_mangle]
-pub fn sys_tcp_stream_set_nonblocking(_handle: Handle, _mode: bool) -> Result<(), ()> {
-	Err(())
+pub fn sys_tcp_stream_set_nonblocking(_handle: Handle, mode: bool) -> Result<(), ()> {
+	// non-blocking mode is currently not support
+	// => return only an error, if `mode` is defined as `true`
+	if mode {
+		Err(())
+	} else {
+		Ok(())
+	}
 }
 
 #[no_mangle]
