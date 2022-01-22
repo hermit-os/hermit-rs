@@ -258,11 +258,14 @@ impl AsyncSocket {
 				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
 				_ => {
 					if s.may_recv() {
-						Poll::Ready(s.recv_slice(buffer))
-					} else {
-						s.register_recv_waker(cx.waker());
-						Poll::Pending
+						let n = s.recv_slice(buffer)?;
+						if n > 0 || buffer.len() == 0 {
+							return Poll::Ready(Ok(n));
+						}
 					}
+					
+					s.register_recv_waker(cx.waker());
+					Poll::Pending
 				}
 			})
 		})
