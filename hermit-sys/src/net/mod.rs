@@ -259,11 +259,11 @@ impl AsyncSocket {
 				_ => {
 					if s.may_recv() {
 						let n = s.recv_slice(buffer)?;
-						if n > 0 || buffer.len() == 0 {
+						if n > 0 || buffer.is_empty() {
 							return Poll::Ready(Ok(n));
 						}
 					}
-					
+
 					s.register_recv_waker(cx.waker());
 					Poll::Pending
 				}
