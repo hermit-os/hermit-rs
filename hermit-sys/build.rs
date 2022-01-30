@@ -231,14 +231,13 @@ fn create_constants() {
 	let mask = option_env!("HERMIT_MASK");
 	let mask = mask.map_or("255.255.255.0", |v| v);
 
-	writeln!(&mut f, "const HERMIT_IP: &str = \"{}\";", ip).expect("Could not write file");
+	writeln!(f, "const HERMIT_IP: &str = \"{}\";", ip).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_IP");
 
-	writeln!(&mut f, "const HERMIT_GATEWAY: &str = \"{}\";", gateway)
-		.expect("Could not write file");
+	writeln!(f, "const HERMIT_GATEWAY: &str = \"{}\";", gateway).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_GATEWAY");
 
-	writeln!(&mut f, "const HERMIT_MASK: &str = \"{}\";", mask).expect("Could not write file");
+	writeln!(f, "const HERMIT_MASK: &str = \"{}\";", mask).expect("Could not write file");
 	println!("cargo:rerun-if-env-changed=HERMIT_MASK");
 }
 
