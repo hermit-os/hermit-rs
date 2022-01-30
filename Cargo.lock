@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "aarch64"
-version = "0.0.6"
+version = "0.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fb59c3a5adf5ce5807ba9e635a0874c7c4136e07208caafeb4e2b0ecf0764cb"
+checksum = "9d48df31899ce44f6ca081b39bcf4f9913e4435e3ec4287283451f71f1577ab3"
 dependencies = [
  "cortex-a",
 ]
@@ -154,9 +154,9 @@ dependencies = [
 
 [[package]]
 name = "cortex-a"
-version = "6.1.0"
+version = "7.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "509fc35485a2b4ddbacabe0bf2212cdfff88da93658608e5cc651afcb75b7733"
+checksum = "5bd95fd055d118f77d4e4d527201b6ceccd13586b19b4dac1270f7081fef0f98"
 dependencies = [
  "tock-registers",
 ]
@@ -409,6 +409,7 @@ dependencies = [
  "hermit-sys",
  "rayon",
  "syscalls",
+ "tock-registers",
 ]
 
 [[package]]
