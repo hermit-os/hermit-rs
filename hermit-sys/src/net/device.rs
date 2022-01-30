@@ -1,6 +1,3 @@
-#[cfg(not(feature = "dhcpv4"))]
-include!(concat!(env!("OUT_DIR"), "/constants.rs"));
-
 use std::collections::BTreeMap;
 #[cfg(not(feature = "dhcpv4"))]
 use std::net::Ipv4Addr;
@@ -46,6 +43,48 @@ impl HermitNet {
 	pub(crate) const fn new(mtu: u16) -> Self {
 		Self { mtu }
 	}
+}
+
+/// Returns the value of the specified environment variable.
+///
+/// The value is fetched from the current runtime environment and, if not
+/// present, falls back to the same environment variable set at compile time
+/// (might not be present as well).
+///
+/// # Panics
+///
+/// Panics when environment variable is not valid unicode.
+macro_rules! hermit_var {
+	($name:expr) => {{
+		use std::borrow::Cow;
+		use std::env::{self, VarError};
+
+		match env::var($name) {
+			Ok(val) => Some(Cow::Owned(val)),
+			Err(VarError::NotPresent) => option_env!($name).map(Cow::Borrowed),
+			Err(VarError::NotUnicode(s)) => {
+				panic!("couldn't interpret {}: {}", $name, VarError::NotUnicode(s))
+			}
+		}
+	}};
+}
+
+/// Tries to parse the specified environment variable with a default value.
+///
+/// Parses according to [`hermit_var`] or returns the specified default value.
+///
+/// # Panics
+///
+/// Panics when environment variable is not valid unicode or cannot be parsed.
+macro_rules! parse_hermit_var_or {
+	($name:expr, $default:expr) => {{
+		hermit_var!($name)
+			.map(|ip| {
+				ip.parse()
+					.unwrap_or_else(|err| panic!("{err}: {}: {ip}", $name))
+			})
+			.unwrap_or($default)
+	}};
 }
 
 impl NetworkInterface<HermitNet> {
@@ -120,20 +159,12 @@ impl NetworkInterface<HermitNet> {
 				return NetworkState::InitializationFailed;
 			}
 		};
-		let myip: Ipv4Addr = std::env::var("HERMIT_IP")
-			.unwrap_or_else(|_| HERMIT_IP.to_string())
-			.parse()
-			.expect("Unable to parse IPv4 address");
+
+		let myip = parse_hermit_var_or!("HERMIT_IP", Ipv4Addr::new(10, 0, 5, 3));
 		let myip = myip.octets();
-		let mygw: Ipv4Addr = std::env::var("HERMIT_GATEWAY")
-			.unwrap_or_else(|_| HERMIT_GATEWAY.to_string())
-			.parse()
-			.expect("Unable to parse IPv4 address");
+		let mygw = parse_hermit_var_or!("HERMIT_GATEWAY", Ipv4Addr::new(10, 0, 5, 1));
 		let mygw = mygw.octets();
-		let mymask: Ipv4Addr = std::env::var("HERMIT_MASK")
-			.unwrap_or_else(|_| HERMIT_MASK.to_string())
-			.parse()
-			.expect("Unable to parse IPv4 address");
+		let mymask = parse_hermit_var_or!("HERMIT_MASK", Ipv4Addr::new(255, 255, 255, 0));
 		let mymask = mymask.octets();
 
 		// calculate the netmask length
