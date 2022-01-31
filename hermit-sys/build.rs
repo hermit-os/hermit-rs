@@ -147,7 +147,7 @@ fn rename_symbols(symbols: impl IntoIterator<Item = impl AsRef<OsStr>>, lib: imp
 	assert!(status.success(), "rust-objcopy was not successful");
 }
 
-#[cfg(all(not(feature = "rustc-dep-of-std"), not(feature = "with_submodule")))]
+#[cfg(not(feature = "with_submodule"))]
 fn build() {
 	#[cfg(windows)]
 	let out_dir = env::temp_dir();
@@ -174,7 +174,7 @@ fn build() {
 	build_hermit(src_dir.as_ref());
 }
 
-#[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
+#[cfg(feature = "with_submodule")]
 fn build() {
 	let src_dir = env::current_dir()
 		.unwrap()
@@ -186,6 +186,5 @@ fn build() {
 }
 
 fn main() {
-	#[cfg(not(feature = "rustc-dep-of-std"))]
 	build();
 }
