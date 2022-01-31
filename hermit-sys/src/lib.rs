@@ -1,15 +1,8 @@
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::new_ret_no_self)]
 
-#[cfg(target_arch = "aarch64")]
-extern crate aarch64;
 #[macro_use]
 extern crate log;
-extern crate libm;
-#[cfg(feature = "tcp")]
-extern crate smoltcp;
-#[cfg(target_arch = "x86_64")]
-extern crate x86;
 
 mod cmath;
 #[cfg(not(feature = "tcp"))]
