@@ -20,14 +20,14 @@ default-features = false
 features = ["with_submodule"]
 
 [features]
-default = ["pci", "acpi", "smoltcp", "smp"]
+default = ["pci", "acpi", "tcp", "smp"]
 vga = ["hermit-sys/vga"]
 dhcpv4 = ["hermit-sys/dhcpv4"]
 pci = ["hermit-sys/pci"]
 acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
-smoltcp = ["hermit-sys/smoltcp"]
+tcp = ["hermit-sys/tcp"]
 instrument = ["hermit-sys/instrument"]
 
 [[bin]]

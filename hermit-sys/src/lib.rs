@@ -5,7 +5,7 @@
 extern crate aarch64;
 #[macro_use]
 extern crate log;
-#[cfg(feature = "smoltcp")]
+#[cfg(feature = "tcp")]
 extern crate smoltcp;
 #[cfg(target_arch = "x86_64")]
 extern crate x86;
@@ -14,9 +14,9 @@ extern crate lazy_static;
 extern crate libm;
 
 mod cmath;
-#[cfg(not(feature = "smoltcp"))]
+#[cfg(not(feature = "tcp"))]
 mod dummy;
-#[cfg(feature = "smoltcp")]
+#[cfg(feature = "tcp")]
 mod net;
 
 use log::{set_logger, set_max_level, LevelFilter, Metadata, Record};
@@ -56,9 +56,9 @@ pub extern "C" fn sys_network_init() -> i32 {
 	};
 	set_max_level(max_level);
 
-	#[cfg(feature = "smoltcp")]
+	#[cfg(feature = "tcp")]
 	let ret: i32 = if net::network_init().is_ok() { 0 } else { -1 };
-	#[cfg(not(feature = "smoltcp"))]
+	#[cfg(not(feature = "tcp"))]
 	let ret: i32 = -1;
 
 	if ret < 0 {
