@@ -31,7 +31,13 @@ instrument = ["rftrace"]
 
 pci = []
 smp = []
-tcp = ["smoltcp"]
+tcp = [
+    "async-task",
+    "concurrent-queue",
+    "futures-lite",
+    "lazy_static",
+    "smoltcp",
+]
 trace = []
 vga = []
 
@@ -44,10 +50,10 @@ walkdir = "2"
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2.1", default-features = false }
-async-task = "4.0"
-concurrent-queue = "1.2"
-futures-lite = "1.11"
-lazy_static = "1.4"
+async-task = { version = "4.0", optional = true }
+concurrent-queue = { version = "1.2", optional = true }
+futures-lite = { version = "1.11", optional = true }
+lazy_static = { version = "1.4", optional = true }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies.x86]
 version = "0.*"

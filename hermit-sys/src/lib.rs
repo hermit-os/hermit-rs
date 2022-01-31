@@ -5,13 +5,11 @@
 extern crate aarch64;
 #[macro_use]
 extern crate log;
+extern crate libm;
 #[cfg(feature = "tcp")]
 extern crate smoltcp;
 #[cfg(target_arch = "x86_64")]
 extern crate x86;
-#[macro_use]
-extern crate lazy_static;
-extern crate libm;
 
 mod cmath;
 #[cfg(not(feature = "tcp"))]

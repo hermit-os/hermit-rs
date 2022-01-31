@@ -3,6 +3,7 @@ use crate::net::network_delay;
 use async_task::{Runnable, Task};
 use concurrent_queue::ConcurrentQueue;
 use futures_lite::pin;
+use lazy_static::lazy_static;
 use smoltcp::time::{Duration, Instant};
 use std::sync::atomic::Ordering;
 use std::{

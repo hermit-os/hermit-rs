@@ -14,6 +14,7 @@ use std::task::{Context, Poll};
 
 use std::u16;
 
+use lazy_static::lazy_static;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::dhcp::Dhcpv4Client;
 use smoltcp::phy::Device;
