@@ -176,7 +176,7 @@ Kernel features like TCP/IP support can be reenabled manually.
 For instance, the following command creates a [minimal web-server](https://github.com/hermitcore/rusty-hermit/tree/master/examples/httpd) for Qemu's microvm platform:
 
 ```bash
-cargo build --no-default-features --features smoltcp -p httpd --release
+cargo build --no-default-features --features tcp -p httpd --release
 ```
 
 ## Advanced Features
@@ -208,7 +208,7 @@ sudo ip link set dev tap10 up
 sudo bash -c 'echo 1 > /proc/sys/net/ipv4/conf/tap10/proxy_arp'
 ```
 
-Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
+Add the feature `tcp` in the `Cargo.toml`. This includes the network stack [smoltcp](https://github.com/smoltcp-rs/smoltcp) and offers TCP/UDP communication.
 `hermi-sys` dependency has to be factored out of `[target.'cfg(target_os = "hermit")'.dependencies]` because it requires features selection for network support to work thus this snippet should be added to `Cargo.toml` 
 ```toml
 # Cargo.toml
@@ -216,7 +216,7 @@ Add the feature `smoltcp` in the `Cargo.toml`. This includes the network stack [
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 version = "0.1.*"
 default-features = false
-features = ["smoltcp"]
+features = ["tcp"]
 ```
 
 Per default, RustyHermit's network interface uses `10.0.5.3` as IP address, `10.0.5.1`

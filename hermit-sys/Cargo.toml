@@ -31,6 +31,13 @@ instrument = ["rftrace"]
 
 pci = []
 smp = []
+tcp = [
+    "async-task",
+    "concurrent-queue",
+    "futures-lite",
+    "lazy_static",
+    "smoltcp",
+]
 trace = []
 vga = []
 
@@ -42,22 +49,15 @@ walkdir = "2"
 
 [dependencies]
 log = { version = "0.4", default-features = false }
-libm = { version = "0.2.1", default-features = false }
-async-task = "4.0"
-concurrent-queue = "1.2"
-futures-lite = "1.11"
-lazy_static = "1.4"
+libm = { version = "0.2", default-features = false }
 
-[target.'cfg(target_arch = "x86_64")'.dependencies.x86]
-version = "0.*"
-default-features = false
-
-[target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
-version = "0.0.7"
-default-features = false
+async-task = { version = "4.0", optional = true }
+concurrent-queue = { version = "1.2", optional = true }
+futures-lite = { version = "1.11", optional = true }
+lazy_static = { version = "1.4", optional = true }
 
 [dependencies.smoltcp]
-version = "0.7.0"
+version = "0.7"
 optional = true
 default-features = false
 features = ["std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "async"]
@@ -65,7 +65,15 @@ features = ["std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-
 #features = ["log", "verbose", "std", "ethernet", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "async"]
 
 [dependencies.rftrace]
-version = "0.1.0"
+version = "0.1"
 optional = true
 features = ["autokernel", "buildcore", "interruptsafe"]
+
+[target.'cfg(target_arch = "x86_64")'.dependencies.x86]
+version = "0.45"
+default-features = false
+
+[target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
+version = "0.0.7"
+default-features = false
 
