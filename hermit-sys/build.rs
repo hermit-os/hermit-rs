@@ -24,7 +24,12 @@ macro_rules! forward_features {
 	};
 }
 
-fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+fn build_hermit(src_dir: &Path) {
+	let target_dir = {
+		let mut target_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+		target_dir.push("target");
+		target_dir
+	};
 	let manifest_path = src_dir.join("Cargo.toml");
 	assert!(
 		manifest_path.exists(),
@@ -61,13 +66,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
-	if let Some(target_dir) = target_dir_opt {
-		cmd.arg("--target-dir").arg(target_dir);
-	}
-	let target_dir = match target_dir_opt {
-		Some(target_dir) => target_dir.to_path_buf(),
-		None => src_dir.join("target"),
-	};
+	cmd.arg("--target-dir").arg(&target_dir);
 
 	if profile == "release" {
 		cmd.arg("--release");
@@ -174,20 +173,18 @@ fn build() {
 		);
 	}
 
-	build_hermit(src_dir.as_ref(), None);
+	build_hermit(src_dir.as_ref());
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
 fn build() {
-	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-	let target_dir = out_dir.join("target");
 	let src_dir = env::current_dir()
 		.unwrap()
 		.parent()
 		.unwrap()
 		.join("libhermit-rs");
 
-	build_hermit(src_dir.as_ref(), Some(target_dir.as_ref()));
+	build_hermit(src_dir.as_ref());
 }
 
 #[cfg(not(feature = "rustc-dep-of-std"))]
