@@ -2,8 +2,6 @@ pub mod device;
 mod executor;
 mod waker;
 
-#[cfg(target_arch = "aarch64")]
-use aarch64::regs::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::ops::DerefMut;
@@ -11,9 +9,11 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
 use std::task::{Context, Poll};
-
 use std::u16;
 
+#[cfg(target_arch = "aarch64")]
+use aarch64::regs::*;
+use futures_lite::future;
 use lazy_static::lazy_static;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::dhcp::Dhcpv4Client;
@@ -26,8 +26,6 @@ use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
 use smoltcp::Error;
-
-use futures_lite::future;
 
 use crate::net::device::HermitNet;
 use crate::net::executor::{block_on, poll_on, spawn};
