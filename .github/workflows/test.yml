@@ -32,7 +32,7 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
-          brew install qemu, nasm
+          brew install qemu nasm
       - name: Install QEMU, NASM, GNU make (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
