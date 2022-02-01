@@ -23,20 +23,21 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - name: Install NASM (ubuntu)
+      - name: Install QEMU, NASM (ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install nasm
-      - name: Install NASM (macos)
+          sudo apt-get install qemu-system-x86 nasm
+      - name: Install QEMU, NASM (macos)
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
-          brew install nasm
-      - name: Install NASM (windows)
+          brew install qemu, nasm
+      - name: Install QEMU, NASM, GNU make (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          choco install nasm
+          choco install qemu nasm make
+          echo "C:\Program Files\qemu" >> $GITHUB_PATH
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
       - name: Install cargo-binutils
         run: cargo install cargo-binutils
@@ -47,22 +48,6 @@ jobs:
         run: rustup show
       - name: Build dev profile
         run: cargo build --package rusty_demo
-      - name: Install QEMU, NASM (ubuntu)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install qemu-system-x86 nasm
-      - name: Install QEMU, NASM (macos)
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          brew update
-          brew install qemu nasm
-      - name: Install QEMU, NASM, GNU make (windows)
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          choco install qemu nasm make
-          echo "C:\Program Files\qemu" >> $GITHUB_PATH
-          echo "C:\Program Files\NASM" >> $GITHUB_PATH
       - name: Build loader
         run: |
           sed -i.old 's/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy)/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy -o -name llvm-objcopy.exe)/g' loader/Makefile
