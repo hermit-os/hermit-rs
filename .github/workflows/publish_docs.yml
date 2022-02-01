@@ -20,6 +20,10 @@ jobs:
           submodules: true
       - name: Rustup (apply rust-toolchain.toml)
         run: rustup show
+      - name: Install NASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
       - name: Generate documentation
         run: cargo doc
       - name: Generate index.html
