@@ -149,9 +149,6 @@ fn rename_symbols(symbols: impl IntoIterator<Item = impl AsRef<OsStr>>, lib: imp
 
 #[cfg(not(feature = "with_submodule"))]
 fn build() {
-	#[cfg(windows)]
-	let out_dir = env::temp_dir();
-	#[cfg(not(windows))]
 	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 	let src_dir = out_dir.join("rusty-hermit");
 
