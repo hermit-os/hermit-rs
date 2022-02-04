@@ -1,12 +1,9 @@
-extern crate walkdir;
-
 use std::borrow::Cow;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use walkdir::{DirEntry, WalkDir};
 
 macro_rules! forward_features {
 	($cmd:expr, $($feature:literal,)+ ) => {
@@ -25,7 +22,12 @@ macro_rules! forward_features {
 	};
 }
 
-fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
+fn build_hermit(src_dir: &Path) {
+	let target_dir = {
+		let mut target_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+		target_dir.push("target");
+		target_dir
+	};
 	let manifest_path = src_dir.join("Cargo.toml");
 	assert!(
 		manifest_path.exists(),
@@ -62,13 +64,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 
 	cmd.env("CARGO_TERM_COLOR", "always");
 
-	if let Some(target_dir) = target_dir_opt {
-		cmd.arg("--target-dir").arg(target_dir);
-	}
-	let target_dir = match target_dir_opt {
-		Some(target_dir) => target_dir.to_path_buf(),
-		None => src_dir.join("target"),
-	};
+	cmd.arg("--target-dir").arg(&target_dir);
 
 	if profile == "release" {
 		cmd.arg("--release");
@@ -127,6 +123,7 @@ fn build_hermit(src_dir: &Path, target_dir_opt: Option<&Path>) {
 	println!("cargo:rustc-link-search=native={}", lib_location.display());
 	println!("cargo:rustc-link-lib=static=hermit");
 
+	println!("cargo:rerun-if-changed={}", src_dir.display());
 	// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 	println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 }
@@ -174,44 +171,18 @@ fn build() {
 		);
 	}
 
-	build_hermit(src_dir.as_ref(), None);
+	build_hermit(src_dir.as_ref());
 }
 
 #[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
 fn build() {
-	let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-	let target_dir = out_dir.join("target");
 	let src_dir = env::current_dir()
 		.unwrap()
 		.parent()
 		.unwrap()
 		.join("libhermit-rs");
 
-	build_hermit(src_dir.as_ref(), Some(target_dir.as_ref()));
-	configure_cargo_rerun_if_changed(src_dir.as_ref());
-}
-
-#[cfg(all(not(feature = "rustc-dep-of-std"), feature = "with_submodule"))]
-fn configure_cargo_rerun_if_changed(src_dir: &Path) {
-	fn is_not_ignored(entry: &DirEntry) -> bool {
-		// Ignore .git .vscode and target directories, but not .cargo or .github
-		if entry.depth() == 1
-			&& entry.path().is_dir()
-			&& (entry.path().ends_with("target")
-				|| entry.path().ends_with(".git")
-				|| entry.path().ends_with(".vscode"))
-		{
-			return false;
-		}
-		true
-	}
-
-	WalkDir::new(src_dir)
-		.into_iter()
-		.filter_entry(is_not_ignored)
-		.filter_map(|v| v.ok())
-		.filter_map(|v| v.path().canonicalize().ok())
-		.for_each(|x| println!("cargo:rerun-if-changed={}", x.display()));
+	build_hermit(src_dir.as_ref());
 }
 
 fn main() {

@@ -44,9 +44,6 @@ vga = []
 # Internal feature for building the kernel from local sources
 with_submodule = []
 
-[build-dependencies]
-walkdir = "2"
-
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2", default-features = false }
