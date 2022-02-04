@@ -1,10 +1,7 @@
 #![allow(unused_imports)]
 
-extern crate bytes;
-extern crate hdrhist;
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
-extern crate rust_tcp_io_perf;
 
 use rust_tcp_io_perf::config;
 use rust_tcp_io_perf::connection;

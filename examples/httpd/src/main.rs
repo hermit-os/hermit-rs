@@ -3,7 +3,6 @@
 use ascii::AsciiString;
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
-extern crate tiny_http;
 
 fn main() {
 	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];

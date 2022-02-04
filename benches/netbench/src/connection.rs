@@ -1,5 +1,3 @@
-extern crate core_affinity;
-
 use crate::config::Config;
 use std::io;
 use std::io::ErrorKind::WouldBlock;

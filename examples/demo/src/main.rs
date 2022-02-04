@@ -4,8 +4,6 @@
 
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
-extern crate num_cpus;
-extern crate rayon;
 
 mod tests;
 

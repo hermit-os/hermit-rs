@@ -3,12 +3,12 @@
 #![feature(test)]
 #![feature(bench_black_box)]
 
-#[cfg(target_os = "hermit")]
-use hermit_sys as _;
-extern crate rayon;
 #[cfg(target_os = "linux")]
 #[macro_use]
 extern crate syscalls;
+
+#[cfg(target_os = "hermit")]
+use hermit_sys as _;
 
 mod benches;
 
