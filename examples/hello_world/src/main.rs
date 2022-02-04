@@ -1,6 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
-
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
 
