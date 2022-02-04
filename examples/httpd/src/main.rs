@@ -2,7 +2,7 @@
 /// https://github.com/tiny-http/tiny-http/blob/master/examples/hello-world.rs
 use ascii::AsciiString;
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
+use hermit_sys as _;
 extern crate tiny_http;
 
 fn main() {

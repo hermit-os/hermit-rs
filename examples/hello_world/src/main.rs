@@ -1,5 +1,5 @@
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
+use hermit_sys as _;
 
 fn main() {
 	println!("Hello World!");

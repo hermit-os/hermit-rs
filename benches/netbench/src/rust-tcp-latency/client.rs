@@ -3,7 +3,7 @@
 extern crate bytes;
 extern crate hdrhist;
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
+use hermit_sys as _;
 extern crate rust_tcp_io_perf;
 
 use rust_tcp_io_perf::config;

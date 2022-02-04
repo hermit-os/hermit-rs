@@ -78,7 +78,7 @@ To link the application with RustyHermit, declare `hermit_sys` an `external crat
 // src/main.rs
 
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
+use hermit_sys as _;
 
 fn main() {
         println!("Hello World!");

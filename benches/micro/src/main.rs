@@ -4,7 +4,7 @@
 #![feature(bench_black_box)]
 
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
+use hermit_sys as _;
 extern crate rayon;
 #[cfg(target_os = "linux")]
 #[macro_use]
