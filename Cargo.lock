@@ -541,7 +541,6 @@ dependencies = [
  "hermit-sys",
  "num_cpus",
  "rayon",
- "syscalls",
 ]
 
 [[package]]
