@@ -11,8 +11,6 @@ use std::str;
 use std::thread;
 use std::time::Instant;
 use std::vec;
-#[cfg(target_os = "linux")]
-use syscalls::SYS_getpid;
 
 mod laplace;
 mod matmul;

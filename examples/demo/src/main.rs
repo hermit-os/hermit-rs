@@ -6,9 +6,6 @@
 extern crate hermit_sys;
 extern crate num_cpus;
 extern crate rayon;
-#[cfg(target_os = "linux")]
-#[macro_use]
-extern crate syscalls;
 
 mod tests;
 

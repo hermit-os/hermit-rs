@@ -4,9 +4,6 @@
 
 #[cfg(target_os = "hermit")]
 extern crate hermit_sys;
-#[cfg(target_os = "linux")]
-#[macro_use]
-extern crate syscalls;
 
 mod tests;
 
