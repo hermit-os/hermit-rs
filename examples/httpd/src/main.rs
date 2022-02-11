@@ -2,8 +2,7 @@
 /// https://github.com/tiny-http/tiny-http/blob/master/examples/hello-world.rs
 use ascii::AsciiString;
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
-extern crate tiny_http;
+use hermit_sys as _;
 
 fn main() {
 	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];

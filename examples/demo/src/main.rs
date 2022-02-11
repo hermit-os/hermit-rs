@@ -3,9 +3,7 @@
 #![feature(thread_id_value)]
 
 #[cfg(target_os = "hermit")]
-extern crate hermit_sys;
-extern crate num_cpus;
-extern crate rayon;
+use hermit_sys as _;
 
 mod tests;
 

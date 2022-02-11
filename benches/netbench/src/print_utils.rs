@@ -1,5 +1,3 @@
-extern crate hdrhist;
-
 /// Prints dashed line
 fn print_line() {
 	println!("\n-------------------------------------------------------------\n");
