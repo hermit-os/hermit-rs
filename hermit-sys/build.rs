@@ -66,7 +66,7 @@ impl KernelSrc {
 
 		let kernel_triple = match target_arch.as_str() {
 			"x86_64" => "x86_64-unknown-none-hermitkernel",
-			"aarch64" => "aarch64-unknown-hermit",
+			"aarch64" => "aarch64-unknown-none-hermitkernel",
 			_ => panic!("Unsupported target arch: {}", target_arch),
 		};
 
