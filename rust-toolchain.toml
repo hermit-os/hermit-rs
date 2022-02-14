@@ -1,5 +1,5 @@
 [toolchain]
-channel = "nightly-2022-01-30"
+channel = "nightly-2022-02-12"
 components = [
     "rust-src",
     "llvm-tools-preview",
