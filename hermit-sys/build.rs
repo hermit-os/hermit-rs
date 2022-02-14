@@ -141,6 +141,8 @@ impl KernelSrc {
 
 		if target_arch == "aarch64" {
 			symbols.extend(include_str!("aarch64-duplicate-symbols").lines());
+		} else if target_arch == "x86_64" {
+			symbols.extend(include_str!("x86_64-duplicate-symbols").lines());
 		}
 
 		// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
