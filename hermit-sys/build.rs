@@ -61,11 +61,6 @@ impl KernelSrc {
 			manifest_path.display()
 		);
 		let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-		assert!(
-			target_arch == "aarch64" || target_arch == "x86_64",
-			"Target {} isn't supported!",
-			target_arch
-		);
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 		let mut cmd = Command::new("cargo");
 
