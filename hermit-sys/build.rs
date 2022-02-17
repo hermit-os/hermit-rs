@@ -5,6 +5,14 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
+	// TODO: Replace with is_some_with once stabilized
+	// https://github.com/rust-lang/rust/issues/93050
+	let targets_hermit =
+		matches!(env::var_os("CARGO_CFG_TARGET_OS"), Some(os) if os == OsStr::new("hermit"));
+	if !targets_hermit {
+		return;
+	}
+
 	let kernel_src = if has_feature("with_submodule") {
 		KernelSrc::from_submodule()
 	} else {
