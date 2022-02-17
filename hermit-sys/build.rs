@@ -74,7 +74,7 @@ impl KernelSrc {
 
 		let kernel_target = match user_target.as_str() {
 			"x86_64-unknown-hermit" => "x86_64-unknown-none-hermitkernel",
-			"aarch64-unknonw-hermit" => "aarch64-unknown-none-hermitkernel",
+			"aarch64-unknown-hermit" => "aarch64-unknown-none-hermitkernel",
 			_ => panic!("Unsupported target: {}", user_target),
 		};
 
