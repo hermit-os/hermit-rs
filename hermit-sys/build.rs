@@ -60,21 +60,21 @@ impl KernelSrc {
 			"kernel manifest path `{}` does not exist",
 			manifest_path.display()
 		);
-		let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+		let user_target = env::var("TARGET").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 		let mut cmd = Command::new("cargo");
 
-		let kernel_triple = match target_arch.as_str() {
-			"x86_64" => "x86_64-unknown-none-hermitkernel",
-			"aarch64" => "aarch64-unknown-none-hermitkernel",
-			_ => panic!("Unsupported target arch: {}", target_arch),
+		let kernel_target = match user_target.as_str() {
+			"x86_64-unknown-hermit" => "x86_64-unknown-none-hermitkernel",
+			"aarch64-unknonw-hermit" => "aarch64-unknown-none-hermitkernel",
+			_ => panic!("Unsupported target: {}", user_target),
 		};
 
 		cmd.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
 			.arg("--target")
-			.arg(kernel_triple)
+			.arg(kernel_target)
 			.arg("--manifest-path")
 			.arg("Cargo.toml");
 
@@ -128,7 +128,7 @@ impl KernelSrc {
 		assert!(status.success());
 
 		let lib_location = target_dir
-			.join(kernel_triple)
+			.join(kernel_target)
 			.join(&profile)
 			.canonicalize()
 			.unwrap();
@@ -139,10 +139,14 @@ impl KernelSrc {
 
 		let mut symbols = vec!["rust_begin_unwind", "rust_oom"];
 
-		if target_arch == "aarch64" {
-			symbols.extend(include_str!("aarch64-duplicate-symbols").lines());
-		} else if target_arch == "x86_64" {
-			symbols.extend(include_str!("x86_64-duplicate-symbols").lines());
+		match kernel_target {
+			"x86_64-unknown-none-hermitkernel" => {
+				symbols.extend(include_str!("x86_64-duplicate-symbols").lines())
+			}
+			"aarch64-unknown-none-hermitkernel" => {
+				symbols.extend(include_str!("aarch64-duplicate-symbols").lines())
+			}
+			_ => (),
 		}
 
 		// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
