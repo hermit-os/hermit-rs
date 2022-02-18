@@ -15,9 +15,9 @@ jobs:
 
     steps:
     - name: Install QEMU, NASM
-        run: |
-          sudo apt-get update
-          sudo apt-get install qemu-system-x86 nasm
+      run: |
+        sudo apt-get update
+        sudo apt-get install qemu-system-x86 nasm
     - name: Install cargo-binutils
       run: cargo install cargo-binutils
     - uses: actions/checkout@v2
