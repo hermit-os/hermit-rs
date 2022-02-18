@@ -1,0 +1,31 @@
+name: Publish container image
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish_image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install cargo-binutils
+      run: cargo install cargo-binutils
+    - uses: actions/checkout@v2
+      with:
+         submodules: true
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Rustup (apply rust-toolchain.toml)
+      run: rustup show
+    - name: Build hello_world
+      run: cargo build --package hello_world --release
