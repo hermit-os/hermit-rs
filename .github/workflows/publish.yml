@@ -44,7 +44,7 @@ jobs:
         COPY target/x86_64-unknown-hermit/release/rusty_demo hermit/rusty_demo
         CMD ["/hermit/rusty_demo"]
         END
-        docker build -f Dockerfile -t ghcr.io/hermitcore/rusty_hermit/rusty_demo:latest .
+        docker build -f Dockerfile -t ghcr.io/hermitcore/rusty_demo:latest .
     - name: Push container
       run:
-        docker push ghcr.io/hermitcore/rusty_hermit/rusty_demo:latest
+        docker push ghcr.io/hermitcore/rusty_demo:latest
