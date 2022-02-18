@@ -11,6 +11,7 @@ env:
 
 jobs:
   publish_image:
+    name: Publish container image
     runs-on: ubuntu-latest
 
     steps:
@@ -32,4 +33,18 @@ jobs:
     - name: Rustup (apply rust-toolchain.toml)
       run: rustup show
     - name: Build hello_world
-      run: cargo build --package hello_world --release
+      run: |
+        cargo build -p rusty_demo --release
+        cd loader
+        make release=1
+    - name: Build container
+      run: |
+        cat << END > Dockerfile
+        FROM scratch
+        COPY target/x86_64-unknown-hermit/release/rusty_demo hermit/rusty_demo
+        CMD ["/hermit/rusty_demo"]
+        END
+        docker build -f Dockerfile -t ghcr.io/hermitcore/rusty_hermit/rusty_demo:latest .
+    - name: Push container
+      run:
+        docker push ghcr.io/hermitcore/rusty_hermit/rusty_demo:latest
