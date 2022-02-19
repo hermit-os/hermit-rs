@@ -25,14 +25,12 @@ jobs:
       with:
          submodules: true
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v1
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      run: echo $CR_PAT | docker login ghcr.io -u hermitcore --password-stdin
+      env:
+        CR_PAT: ${{ secrets.CR_PAT }}
     - name: Rustup (apply rust-toolchain.toml)
       run: rustup show
-    - name: Build hello_world
+    - name: Build demo
       run: |
         cargo build -p rusty_demo --release
         cd loader
