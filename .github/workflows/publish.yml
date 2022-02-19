@@ -1,0 +1,52 @@
+name: Publish container image
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish_image:
+    name: Publish container image
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install QEMU, NASM
+      run: |
+        sudo apt-get update
+        sudo apt-get install qemu-system-x86 nasm
+    - name: Install cargo-binutils
+      run: cargo install cargo-binutils
+    - uses: actions/checkout@v2
+      with:
+         submodules: true
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: hermitcore
+          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Rustup (apply rust-toolchain.toml)
+      run: rustup show
+    - name: Build demo
+      run: |
+        cargo build -p rusty_demo --release
+        cd loader
+        make release=1
+    - name: Create dockerfile
+      run: |
+        cat << END > Dockerfile
+        FROM scratch
+        COPY target/x86_64-unknown-hermit/release/rusty_demo hermit/rusty_demo
+        CMD ["/hermit/rusty_demo"]
+        END
+    - name: Build and push container
+      uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/hermitcore/rusty_demo:latest
