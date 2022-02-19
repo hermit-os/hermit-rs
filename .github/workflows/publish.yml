@@ -45,8 +45,7 @@ jobs:
         END
     - name: Build and push container
       uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/hermitcore/rusty_demo:latest
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/hermitcore/rusty_demo:latest
