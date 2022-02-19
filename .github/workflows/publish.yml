@@ -29,8 +29,6 @@ jobs:
         registry: ghcr.io
         username: hermitcore
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Rustup (apply rust-toolchain.toml)
-      run: rustup show
     - name: Build demo
       run: |
         cargo build --no-default-features -p rusty_demo --release
