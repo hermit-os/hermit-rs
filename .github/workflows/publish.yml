@@ -25,9 +25,7 @@ jobs:
       with:
          submodules: true
     - name: Login to GitHub Container Registry
-      run: echo $CR_PAT | docker login ghcr.io -u hermitcore --password-stdin
-      env:
-        CR_PAT: ${{ secrets.CR_PAT }}
+      run: docker login ghcr.io -u hermitcore -p ${{ secrets.CR_PAT }}
     - name: Rustup (apply rust-toolchain.toml)
       run: rustup show
     - name: Build demo
