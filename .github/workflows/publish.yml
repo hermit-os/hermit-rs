@@ -22,13 +22,13 @@ jobs:
       run: cargo install cargo-binutils
     - uses: actions/checkout@v2
       with:
-         submodules: true
+        submodules: true
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: hermitcore
-          password: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        registry: ghcr.io
+        username: hermitcore
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Rustup (apply rust-toolchain.toml)
       run: rustup show
     - name: Build demo
