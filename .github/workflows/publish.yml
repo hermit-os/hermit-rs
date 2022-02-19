@@ -33,7 +33,7 @@ jobs:
       run: rustup show
     - name: Build demo
       run: |
-        cargo build -p rusty_demo --release
+        cargo build --no-default-features -p rusty_demo --release
         cd loader
         make release=1
     - name: Create dockerfile
