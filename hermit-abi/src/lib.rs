@@ -41,7 +41,7 @@ extern "C" {
 	fn sys_recmutex_destroy(recmutex: *const c_void) -> i32;
 	fn sys_recmutex_lock(recmutex: *const c_void) -> i32;
 	fn sys_recmutex_unlock(recmutex: *const c_void) -> i32;
-	fn sys_getpid() -> u32;
+	fn sys_getpid() -> Tid;
 	fn sys_exit(arg: i32) -> !;
 	fn sys_abort() -> !;
 	fn sys_usleep(usecs: u64);
@@ -68,6 +68,8 @@ extern "C" {
 	fn sys_block_current_task();
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_get_priority() -> u8;
+	fn sys_set_priority(id: Tid, prio: u8);
+	fn sys_set_current_task_priority(prio: u8);
 }
 
 /// A thread handle type
@@ -317,7 +319,7 @@ pub unsafe fn recmutex_unlock(recmutex: *const c_void) -> i32 {
 
 /// Determines the id of the current thread
 #[inline(always)]
-pub unsafe fn getpid() -> u32 {
+pub unsafe fn getpid() -> Tid {
 	sys_getpid()
 }
 
@@ -485,4 +487,16 @@ pub unsafe fn wakeup_task(tid: Tid) {
 #[inline(always)]
 pub unsafe fn get_priority() -> Priority {
 	Priority::from(sys_get_priority())
+}
+
+/// Set priority of the thread with the identifier `id`
+#[inline(always)]
+pub unsafe fn set_priority(id: Tid, prio: Priority) {
+	sys_set_priority(id, prio.into());
+}
+
+/// Set priority of the thread with the identifier `id`
+#[inline(always)]
+pub unsafe fn set_current_task_priority(prio: Priority) {
+	sys_set_current_task_priority(prio.into());
 }
