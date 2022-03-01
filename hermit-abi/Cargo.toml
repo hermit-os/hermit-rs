@@ -22,6 +22,7 @@ libc = { version = "0.2.119", default-features = false }
 [features]
 default = []
 docs = []
+in-kernel = []
 rustc-dep-of-std = ["core", "compiler_builtins/rustc-dep-of-std", "libc/rustc-dep-of-std"]
 
 [package.metadata.docs.rs]
