@@ -1,7 +1,6 @@
-use std::borrow::Cow;
 use std::env;
-use std::ffi::{OsStr, OsString};
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::path::PathBuf;
 use std::process::Command;
 
 use flate2::read::GzDecoder;
@@ -64,32 +63,36 @@ impl KernelSrc {
 			"kernel manifest path `{}` does not exist",
 			manifest_path.display()
 		);
-		let user_target = env::var("TARGET").unwrap();
+		let arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 
-		let kernel_target = match user_target.as_str() {
-			"x86_64-unknown-hermit" => "x86_64-unknown-none-hermitkernel",
-			"aarch64-unknown-hermit" => "aarch64-unknown-none-hermitkernel",
-			_ => panic!("Unsupported target: {}", user_target),
-		};
-
 		let mut cmd = Command::new("cargo");
+
+		// Remove rust-toolchain-specific environment variables from kernel cargo
+		cmd.env_remove("LD_LIBRARY_PATH");
+		env::vars()
+			.filter(|(key, _value)| key.starts_with("CARGO") || key.starts_with("RUST"))
+			.for_each(|(key, _value)| {
+				cmd.env_remove(&key);
+			});
+
 		cmd.current_dir(&self.src_dir)
+			.arg("xtask")
 			.arg("build")
-			.arg("-Z")
-			.arg("build-std=core,alloc")
-			.args(&["--target", kernel_target])
-			.arg("--manifest-path")
-			.arg("Cargo.toml")
+			.arg("--arch")
+			.arg(&arch)
+			.args(&[
+				"--profile",
+				match profile.as_str() {
+					"debug" => "dev",
+					profile => profile,
+				},
+			])
 			.arg("--target-dir")
 			.arg(&target_dir);
 
-		cmd.env_remove("RUSTUP_TOOLCHAIN");
-
-		cmd.env("CARGO_TERM_COLOR", "always");
-
-		if profile == "release" {
-			cmd.arg("--release");
+		if has_feature("instrument") {
+			cmd.arg("--instrument-mcount");
 		}
 
 		// Control enabled features via this crate's features
@@ -99,55 +102,14 @@ impl KernelSrc {
 			["acpi", "fsgsbase", "pci", "smp", "vga"].into_iter(),
 		);
 
-		let mut rustflags = vec!["-Zmutable-noalias=no".to_string()];
-		let outer_rustflags = env::var("CARGO_ENCODED_RUSTFLAGS").unwrap();
-
-		if has_feature("instrument") {
-			rustflags.push("-Zinstrument-mcount".to_string());
-			// Add outer rustflags to command
-			rustflags.push(outer_rustflags);
-		} else {
-			// If the `instrument` feature feature is not enabled,
-			// filter it from outer rustflags before adding them to the command.
-			if !outer_rustflags.is_empty() {
-				let flags = outer_rustflags
-					.split('\x1f')
-					.filter(|&flag| !flag.contains("instrument-mcount"))
-					.map(String::from);
-				rustflags.extend(flags);
-			}
-		}
-
-		cmd.env("CARGO_ENCODED_RUSTFLAGS", rustflags.join("\x1f"));
-
 		let status = cmd.status().expect("failed to start kernel build");
 		assert!(status.success());
 
 		let lib_location = target_dir
-			.join(kernel_target)
+			.join(&arch)
 			.join(&profile)
 			.canonicalize()
 			.unwrap();
-
-		println!("Lib location: {}", lib_location.display());
-
-		let lib = lib_location.join("libhermit.a");
-
-		let mut symbols = vec!["rust_begin_unwind", "rust_oom"];
-
-		match kernel_target {
-			"x86_64-unknown-none-hermitkernel" => {
-				symbols.extend(include_str!("x86_64-duplicate-symbols").lines())
-			}
-			"aarch64-unknown-none-hermitkernel" => {
-				symbols.extend(include_str!("aarch64-duplicate-symbols").lines())
-			}
-			_ => (),
-		}
-
-		// Kernel and user space has its own versions of panic handler, oom handler, memcpy, memset, etc,
-		// Consequently, we rename the functions in the libos to avoid collisions.
-		rename_symbols(symbols.iter(), &lib);
 
 		println!("cargo:rustc-link-search=native={}", lib_location.display());
 		println!("cargo:rustc-link-lib=static=hermit");
@@ -184,21 +146,4 @@ fn forward_features<'a>(cmd: &mut Command, features: impl Iterator<Item = &'a st
 	if !features.is_empty() {
 		cmd.args(&["--features", &features.join(" ")]);
 	}
-}
-
-fn rename_symbols(symbols: impl Iterator<Item = impl AsRef<OsStr>>, lib: &Path) {
-	let args = symbols.into_iter().flat_map(|symbol| {
-		let option = OsStr::new("--redefine-sym");
-		let arg = [symbol.as_ref(), "=kernel-".as_ref(), symbol.as_ref()]
-			.into_iter()
-			.collect::<OsString>();
-		[Cow::Borrowed(option), Cow::Owned(arg)]
-	});
-
-	let status = Command::new("rust-objcopy")
-		.args(args)
-		.arg(lib)
-		.status()
-		.expect("Failed to execute rust-objcopy. Is cargo-binutils installed?");
-	assert!(status.success(), "rust-objcopy was not successful");
 }

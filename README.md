@@ -43,7 +43,6 @@ rustup default nightly
 Further requirements are the source code of the Rust runtime and llvm-tools:
 
 ```sh
-cargo install cargo-binutils
 rustup component add rust-src
 rustup component add llvm-tools-preview
 ```

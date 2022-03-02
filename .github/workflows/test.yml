@@ -39,8 +39,6 @@ jobs:
           choco install qemu nasm make
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
-      - name: Install cargo-binutils
-        run: cargo install cargo-binutils
       - uses: actions/checkout@v3
         with:
           submodules: true
