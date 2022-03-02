@@ -31,7 +31,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build demo
       run: |
-        cargo build --no-default-features -p rusty_demo --release
+        cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --no-default-features -p rusty_demo --release
         cd loader
         make release=1
     - name: Create dockerfile

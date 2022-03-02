@@ -87,7 +87,7 @@ fn main() {
 The final step is building the application as follows:
 
 ```sh
-cargo build -Z build-std=std,core,alloc,panic_abort -Z build-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
+cargo build -Zbuild-std=std,core,alloc,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
 ```
 
 (You can set an easy alias for this in the `.cargo/config` file. Take a look at the [demo](https://github.com/hermitcore/rusty-demo/blob/master/.cargo/config))
@@ -157,7 +157,7 @@ To use this VM type, all default features of RustyHermit has to be disabled (esp
 For instance, the following command builds the smallest version of the [`hello_world` example](https://github.com/hermitcore/rusty-hermit/tree/master/examples/hello_world):
 
 ```bash
-cargo build --no-default-features -p hello_world --release
+cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --no-default-features -p hello_world --release
 ```
 
 Afterwards, this minimal example can be loaded with the same boot loader like the common Qemu machine type:
@@ -180,7 +180,7 @@ Kernel features like TCP/IP support can be reenabled manually.
 For instance, the following command creates a [minimal web-server](https://github.com/hermitcore/rusty-hermit/tree/master/examples/httpd) for Qemu's microvm platform:
 
 ```bash
-cargo build --no-default-features --features tcp -p httpd --release
+cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --no-default-features --features tcp -p httpd --release
 ```
 
 ## Advanced Features
@@ -196,7 +196,7 @@ If the environment variable is not set, or the name doesn't match, then LevelFil
 For instance, the following command builds RustyHermit with debug messages:
 
 ```sh
-HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+HERMIT_LOG_LEVEL_FILTER=Debug cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit 
 ```
 
 ### Network support
@@ -230,7 +230,7 @@ The default configuration could be overloaded at compile time by the environment
 For instance, the following command sets the IP address to `10.0.5.100`.
 
 ```sh
-HERMIT_IP="10.0.5.100" cargo build -Z build-std=std,core,alloc,panic_abort --target x86_64-unknown-hermit
+HERMIT_IP="10.0.5.100" cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit 
 ```
 
 Currently, RustyHermit does only support network interfaces through [virtio](https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net).
