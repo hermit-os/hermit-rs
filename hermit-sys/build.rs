@@ -12,7 +12,9 @@ fn main() {
 	// https://github.com/rust-lang/rust/issues/93050
 	let targets_hermit =
 		matches!(env::var_os("CARGO_CFG_TARGET_OS"), Some(os) if os == OsStr::new("hermit"));
-	if !targets_hermit {
+	let runs_clippy =
+		matches!(env::var_os("CARGO_CFG_FEATURE"), Some(os) if os == OsStr::new("cargo-clippy"));
+	if !targets_hermit || runs_clippy {
 		return;
 	}
 
@@ -83,12 +85,6 @@ impl KernelSrc {
 		cmd.current_dir(&self.src_dir);
 
 		cmd.env_remove("RUSTUP_TOOLCHAIN");
-		if option_env!("RUSTC_WORKSPACE_WRAPPER")
-			.unwrap_or_default()
-			.ends_with("clippy-driver")
-		{
-			cmd.env("RUSTC_WORKSPACE_WRAPPER", "clippy-driver");
-		}
 
 		cmd.env("CARGO_TERM_COLOR", "always");
 
