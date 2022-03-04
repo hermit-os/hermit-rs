@@ -38,7 +38,7 @@ impl KernelSrc {
 
 	fn download() -> Self {
 		let version = "0.3.54";
-		let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+		let out_dir = out_dir();
 		let src_dir = out_dir.join(format!("libhermit-rs-{version}"));
 
 		if !src_dir.exists() {
@@ -55,11 +55,7 @@ impl KernelSrc {
 	}
 
 	fn build(self) {
-		let target_dir = {
-			let mut target_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
-			target_dir.push("target");
-			target_dir
-		};
+		let target_dir = target_dir();
 		let manifest_path = self.src_dir.join("Cargo.toml");
 		assert!(
 			manifest_path.exists(),
@@ -166,6 +162,16 @@ impl KernelSrc {
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 	}
+}
+
+fn out_dir() -> PathBuf {
+	env::var_os("OUT_DIR").unwrap().into()
+}
+
+fn target_dir() -> PathBuf {
+	let mut target_dir = out_dir();
+	target_dir.push("target");
+	target_dir
 }
 
 fn has_feature(feature: &str) -> bool {
