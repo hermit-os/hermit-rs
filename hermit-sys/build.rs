@@ -66,7 +66,6 @@ impl KernelSrc {
 		);
 		let user_target = env::var("TARGET").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
-		let mut cmd = Command::new("cargo");
 
 		let kernel_target = match user_target.as_str() {
 			"x86_64-unknown-hermit" => "x86_64-unknown-none-hermitkernel",
@@ -74,21 +73,20 @@ impl KernelSrc {
 			_ => panic!("Unsupported target: {}", user_target),
 		};
 
-		cmd.arg("build")
+		let mut cmd = Command::new("cargo");
+		cmd.current_dir(&self.src_dir)
+			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg(kernel_target)
+			.args(&["--target", kernel_target])
 			.arg("--manifest-path")
-			.arg("Cargo.toml");
-
-		cmd.current_dir(&self.src_dir);
+			.arg("Cargo.toml")
+			.arg("--target-dir")
+			.arg(&target_dir);
 
 		cmd.env_remove("RUSTUP_TOOLCHAIN");
 
 		cmd.env("CARGO_TERM_COLOR", "always");
-
-		cmd.arg("--target-dir").arg(&target_dir);
 
 		if profile == "release" {
 			cmd.arg("--release");
@@ -184,8 +182,7 @@ fn has_feature(feature: &str) -> bool {
 fn forward_features<'a>(cmd: &mut Command, features: impl Iterator<Item = &'a str>) {
 	let features = features.filter(|f| has_feature(f)).collect::<Vec<_>>();
 	if !features.is_empty() {
-		cmd.arg("--features");
-		cmd.arg(features.join(" "));
+		cmd.args(&["--features", &features.join(" ")]);
 	}
 }
 
