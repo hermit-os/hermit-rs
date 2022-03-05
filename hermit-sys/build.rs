@@ -4,6 +4,9 @@ use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use flate2::read::GzDecoder;
+use tar::Archive;
+
 fn main() {
 	// TODO: Replace with is_some_with once stabilized
 	// https://github.com/rust-lang/rust/issues/93050
@@ -34,23 +37,18 @@ impl KernelSrc {
 	}
 
 	fn download() -> Self {
+		let version = "0.3.54";
 		let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
-		let src_dir = out_dir.join("rusty-hermit");
+		let src_dir = out_dir.join(format!("libhermit-rs-{version}"));
 
 		if !src_dir.exists() {
-			let status = Command::new("cargo")
-				.current_dir(out_dir)
-				.arg("download")
-				.arg("--output")
-				.arg(&src_dir)
-				.arg("--extract")
-				.arg("rusty-hermit")
-				.status()
-				.expect("failed to start kernel download");
-			assert!(
-				status.success(),
-				"Unable to download rusty-hermit. Is cargo-download installed?"
+			let url = format!(
+				"https://github.com/hermitcore/libhermit-rs/archive/refs/tags/v{version}.tar.gz"
 			);
+			let response = ureq::get(url.as_str()).call().unwrap().into_reader();
+			let tar = GzDecoder::new(response);
+			let mut archive = Archive::new(tar);
+			archive.unpack(src_dir.parent().unwrap()).unwrap();
 		}
 
 		Self { src_dir }

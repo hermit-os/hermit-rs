@@ -40,10 +40,9 @@ RustyHermit currently requires the **nightly versions** of the toolchain.
 rustup default nightly
 ```
 
-Further requirements are the source code of the Rust runtime,  [cargo-download](https://crates.io/crates/cargo-download), and llvm-tools:
+Further requirements are the source code of the Rust runtime and llvm-tools:
 
 ```sh
-cargo install cargo-download
 cargo install cargo-binutils
 rustup component add rust-src
 rustup component add llvm-tools-preview
