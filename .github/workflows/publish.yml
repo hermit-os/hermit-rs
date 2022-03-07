@@ -20,7 +20,7 @@ jobs:
         sudo apt-get install nasm
     - name: Install cargo-binutils
       run: cargo install cargo-binutils
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: true
     - name: Login to GitHub Container Registry

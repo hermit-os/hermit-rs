@@ -41,7 +41,7 @@ jobs:
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
       - name: Install cargo-binutils
         run: cargo install cargo-binutils
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
       - name: Rustup (apply rust-toolchain.toml)
