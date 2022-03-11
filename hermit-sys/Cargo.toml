@@ -74,3 +74,7 @@ default-features = false
 version = "0.0.7"
 default-features = false
 
+[build-dependencies]
+flate2 = "1"
+ureq = "2.4"
+tar = "0.4"
