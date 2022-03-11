@@ -134,7 +134,7 @@ Afterwards, the loader is stored in `target/x86_64-unknown-hermit-loader/debug/`
 As final step, the unikernel application `app` can be booted with following command:
 
 ```bash
-qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio  -kernel path_to_loader/rusty-loader -initrd path_to_app/app -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr
+qemu-system-x86_64 -display none -smp 1 -m 64M -serial stdio -kernel path_to_loader/rusty-loader -initrd path_to_app/app -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr
 ```
 
 It is important to enable the processor features _fsgsbase_ and _rdtscp_ because it is a prerequisite to boot RustyHermit.
