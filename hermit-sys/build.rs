@@ -12,7 +12,9 @@ fn main() {
 	// https://github.com/rust-lang/rust/issues/93050
 	let targets_hermit =
 		matches!(env::var_os("CARGO_CFG_TARGET_OS"), Some(os) if os == OsStr::new("hermit"));
-	if !targets_hermit {
+	let runs_clippy =
+		matches!(env::var_os("CARGO_CFG_FEATURE"), Some(os) if os == OsStr::new("cargo-clippy"));
+	if !targets_hermit || runs_clippy {
 		return;
 	}
 
@@ -38,7 +40,7 @@ impl KernelSrc {
 
 	fn download() -> Self {
 		let version = "0.3.54";
-		let out_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+		let out_dir = out_dir();
 		let src_dir = out_dir.join(format!("libhermit-rs-{version}"));
 
 		if !src_dir.exists() {
@@ -55,11 +57,7 @@ impl KernelSrc {
 	}
 
 	fn build(self) {
-		let target_dir = {
-			let mut target_dir = PathBuf::from(env::var_os("OUT_DIR").unwrap());
-			target_dir.push("target");
-			target_dir
-		};
+		let target_dir = target_dir();
 		let manifest_path = self.src_dir.join("Cargo.toml");
 		assert!(
 			manifest_path.exists(),
@@ -68,7 +66,6 @@ impl KernelSrc {
 		);
 		let user_target = env::var("TARGET").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
-		let mut cmd = Command::new("cargo");
 
 		let kernel_target = match user_target.as_str() {
 			"x86_64-unknown-hermit" => "x86_64-unknown-none-hermitkernel",
@@ -76,27 +73,20 @@ impl KernelSrc {
 			_ => panic!("Unsupported target: {}", user_target),
 		};
 
-		cmd.arg("build")
+		let mut cmd = Command::new("cargo");
+		cmd.current_dir(&self.src_dir)
+			.arg("build")
 			.arg("-Z")
 			.arg("build-std=core,alloc")
-			.arg("--target")
-			.arg(kernel_target)
+			.args(&["--target", kernel_target])
 			.arg("--manifest-path")
-			.arg("Cargo.toml");
-
-		cmd.current_dir(&self.src_dir);
+			.arg("Cargo.toml")
+			.arg("--target-dir")
+			.arg(&target_dir);
 
 		cmd.env_remove("RUSTUP_TOOLCHAIN");
-		if option_env!("RUSTC_WORKSPACE_WRAPPER")
-			.unwrap_or_default()
-			.ends_with("clippy-driver")
-		{
-			cmd.env("RUSTC_WORKSPACE_WRAPPER", "clippy-driver");
-		}
 
 		cmd.env("CARGO_TERM_COLOR", "always");
-
-		cmd.arg("--target-dir").arg(&target_dir);
 
 		if profile == "release" {
 			cmd.arg("--release");
@@ -168,6 +158,16 @@ impl KernelSrc {
 	}
 }
 
+fn out_dir() -> PathBuf {
+	env::var_os("OUT_DIR").unwrap().into()
+}
+
+fn target_dir() -> PathBuf {
+	let mut target_dir = out_dir();
+	target_dir.push("target");
+	target_dir
+}
+
 fn has_feature(feature: &str) -> bool {
 	let mut var = "CARGO_FEATURE_".to_string();
 
@@ -182,8 +182,7 @@ fn has_feature(feature: &str) -> bool {
 fn forward_features<'a>(cmd: &mut Command, features: impl Iterator<Item = &'a str>) {
 	let features = features.filter(|f| has_feature(f)).collect::<Vec<_>>();
 	if !features.is_empty() {
-		cmd.arg("--features");
-		cmd.arg(features.join(" "));
+		cmd.args(&["--features", &features.join(" ")]);
 	}
 }
 

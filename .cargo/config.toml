@@ -1,8 +1,0 @@
-[unstable]
-build-std = ["std", "core", "alloc", "panic_abort"]
-
-[build]
-target = "x86_64-unknown-hermit"
-
-[target.x86_64-unknown-hermit]
-runner = "uhyve -v"

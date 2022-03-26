@@ -32,8 +32,8 @@ build:demo:
   stage: build
   image: ${DOCKER_IMAGE}:${DOCKER_TAG}
   script:
-    - cargo build -p rusty_demo
-    - cargo build -p rusty_demo --release
+    - cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
+    - cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo --release
     - cd loader
     - make
     - make release=1
@@ -49,7 +49,7 @@ build:httpd:
   stage: build
   image: ${DOCKER_IMAGE}:${DOCKER_TAG}
   script:
-    - cargo build --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,tcp,vga,dhcpv4 --release
+    - cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --manifest-path examples/httpd/Cargo.toml --no-default-features --features pci,acpi,tcp,vga,dhcpv4 --release
     - cd loader
     - make release=1
     - cd ..
