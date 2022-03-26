@@ -18,8 +18,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install nasm
-    - name: Install cargo-binutils
-      run: cargo install cargo-binutils
     - uses: actions/checkout@v3
       with:
         submodules: true
