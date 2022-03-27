@@ -47,9 +47,7 @@ jobs:
       - name: Build dev profile
         run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
       - name: Build loader
-        run: |
-          sed -i.old 's/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy)/OBJCOPY := $(shell find $(SYSROOT) -name llvm-objcopy -o -name llvm-objcopy.exe)/g' loader/Makefile
-          make -C loader release=1
+        run: make -C loader release=1
       - name: Test dev profile
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
