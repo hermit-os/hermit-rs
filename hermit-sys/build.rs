@@ -77,7 +77,11 @@ impl KernelSrc {
 			});
 
 		cmd.current_dir(&self.src_dir)
-			.arg("xtask")
+			.arg("run")
+			.arg("--package=xtask")
+			.arg("--target-dir")
+			.arg(&target_dir)
+			.arg("--")
 			.arg("build")
 			.arg("--arch")
 			.arg(&arch)
