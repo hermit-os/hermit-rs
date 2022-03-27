@@ -26,6 +26,8 @@ use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::{IpCidr, Ipv4Address, Ipv4Cidr};
 use smoltcp::Error;
+#[cfg(target_arch = "aarch64")]
+use tock_registers::interfaces::Readable;
 
 use crate::net::device::HermitNet;
 use crate::net::executor::{block_on, poll_on, spawn};

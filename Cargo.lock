@@ -354,6 +354,7 @@ dependencies = [
  "rftrace",
  "smoltcp",
  "tar",
+ "tock-registers",
  "ureq",
  "x86",
 ]
