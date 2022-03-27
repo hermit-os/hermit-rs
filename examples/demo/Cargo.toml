@@ -24,17 +24,8 @@ num_cpus = "1.13"
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["with_submodule"]
+features = ["acpi", "pci", "smp", "with_submodule"]
 
 [target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
 version = "0.0.7"
 default-features = false
-
-[features]
-default = ["pci", "acpi", "smp"]
-vga = ["hermit-sys/vga"]
-pci = ["hermit-sys/pci"]
-acpi = ["hermit-sys/acpi"]
-fsgsbase = ["hermit-sys/fsgsbase"]
-smp = ["hermit-sys/smp"]
-instrument = ["hermit-sys/instrument"]
