@@ -103,7 +103,7 @@ impl KernelSrc {
 		cmd.arg("--no-default-features");
 		forward_features(
 			&mut cmd,
-			["acpi", "fsgsbase", "pci", "smp", "vga"].into_iter(),
+			["acpi", "fsgsbase", "pci", "pci-ids", "smp", "vga"].into_iter(),
 		);
 
 		let status = cmd.status().expect("failed to start kernel build");
