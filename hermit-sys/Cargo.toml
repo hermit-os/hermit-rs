@@ -17,6 +17,7 @@ documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 default = [
     "acpi",
     "pci",
+    "pci-ids",
     "smp",
     "fsgsbase",
 ]
@@ -30,6 +31,7 @@ fsgsbase = []
 instrument = ["rftrace"]
 
 pci = []
+pci-ids = ["pci"]
 smp = []
 tcp = [
     "async-task",
