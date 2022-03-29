@@ -17,18 +17,7 @@ hdrhist = "^0.5.0"
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["with_submodule"]
-
-[features]
-default = ["pci", "acpi", "tcp", "smp"]
-vga = ["hermit-sys/vga"]
-dhcpv4 = ["hermit-sys/dhcpv4"]
-pci = ["hermit-sys/pci"]
-acpi = ["hermit-sys/acpi"]
-fsgsbase = ["hermit-sys/fsgsbase"]
-smp = ["hermit-sys/smp"]
-tcp = ["hermit-sys/tcp"]
-instrument = ["hermit-sys/instrument"]
+features = ["acpi", "pci", "smp", "tcp", "with_submodule"]
 
 [[bin]]
 name = "server-bw"
