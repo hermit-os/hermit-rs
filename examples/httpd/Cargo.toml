@@ -12,4 +12,15 @@ tiny_http = { git = "https://github.com/hermitcore/tiny-http.git" }
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
-features = ["acpi", "pci", "tcp", "with_submodule"]
+features = ["with_submodule"]
+
+[features]
+default = ["pci", "acpi", "tcp"]
+vga = ["hermit-sys/vga"]
+dhcpv4 = ["hermit-sys/dhcpv4"]
+pci = ["hermit-sys/pci"]
+acpi = ["hermit-sys/acpi"]
+fsgsbase = ["hermit-sys/fsgsbase"]
+smp = ["hermit-sys/smp"]
+tcp = ["hermit-sys/tcp"]
+instrument = ["hermit-sys/instrument"]
