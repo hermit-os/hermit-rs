@@ -29,7 +29,7 @@ jobs:
     - name: Build dev profile
       run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
     - name: Install uhyve
-      run: cargo +nightly install --git https://github.com/hermitcore/uhyve.git --locked uhyve
+      run: cargo install --git https://github.com/hermitcore/uhyve.git --locked uhyve
     - name: Check KVM availability
       shell: bash
       run: |
