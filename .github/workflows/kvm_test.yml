@@ -17,6 +17,10 @@ jobs:
     runs-on: [self-hosted]
 
     steps:
+    - name: Install NASM
+      run: |
+        sudo apt-get update
+        sudo apt-get install nasm
     - uses: actions/checkout@v3
       with:
          submodules: true
