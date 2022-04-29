@@ -8,18 +8,17 @@
 pub mod tcplistener;
 pub mod tcpstream;
 
+use core::mem::MaybeUninit;
+
 use libc::c_void;
 
 // sysmbols, which are part of the library operating system
 
-extern "Rust" {
-	fn sys_secure_rand64() -> Option<u64>;
-	fn sys_secure_rand32() -> Option<u32>;
-}
-
 extern "C" {
 	fn sys_rand() -> u32;
 	fn sys_srand(seed: u32);
+	fn sys_secure_rand32(value: *mut u32) -> i32;
+	fn sys_secure_rand64(value: *mut u64) -> i32;
 	fn sys_get_processor_count() -> usize;
 	fn sys_malloc(size: usize, align: usize) -> *mut u8;
 	fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8;
@@ -457,7 +456,9 @@ pub unsafe fn srand(seed: u32) {
 /// the function returns `None`.
 #[inline(always)]
 pub unsafe fn secure_rand32() -> Option<u32> {
-	sys_secure_rand32()
+	let mut rand = MaybeUninit::uninit();
+	let res = sys_secure_rand32(rand.as_mut_ptr());
+	(res == 0).then(|| rand.assume_init())
 }
 
 /// Create a cryptographicly secure 64bit random number with the support of
@@ -465,7 +466,9 @@ pub unsafe fn secure_rand32() -> Option<u32> {
 /// the function returns `None`.
 #[inline(always)]
 pub unsafe fn secure_rand64() -> Option<u64> {
-	sys_secure_rand64()
+	let mut rand = MaybeUninit::uninit();
+	let res = sys_secure_rand64(rand.as_mut_ptr());
+	(res == 0).then(|| rand.assume_init())
 }
 
 /// Add current task to the queue of blocked tasl. After calling `block_current_task`,
