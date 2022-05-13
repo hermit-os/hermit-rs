@@ -125,10 +125,10 @@ After the installation, the loader can be built as follows.
 ```bash
 git clone https://github.com/hermitcore/rusty-loader.git
 cd rusty-loader
-make
+cargo xtask build --arch x86_64
 ```
 
-Afterwards, the loader is stored in `target/x86_64-unknown-hermit-loader/debug/` as `rusty-loader`.
+Afterwards, the loader is stored in `target/x86_64/debug/` as `rusty-loader`.
 As final step, the unikernel application `app` can be booted with following command:
 
 ```bash

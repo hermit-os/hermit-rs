@@ -16,7 +16,9 @@ args="--bytes 1048576 --rounds 1000"
 hermit() {
     echo "Building rusty-loader"
 
-    make -C "$rusty_loader_dir" release=1
+    pushd loader
+    cargo xtask build --arch x86_64 --release
+    popd
 
     echo "Building $bin image"
 
@@ -27,7 +29,7 @@ hermit() {
 
     qemu-system-x86_64 -cpu host \
             -enable-kvm -display none -smp 1 -m 1G -serial stdio \
-            -kernel "$rusty_loader_dir"/target/x86_64-unknown-hermit-loader/release/rusty-loader \
+            -kernel "$rusty_loader_dir"/target/x86_64/release/rusty-loader \
             -initrd "$root_dir"/target/x86_64-unknown-hermit/release/$bin \
             -netdev tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=on \
             -device virtio-net-pci,netdev=net0,disable-legacy=on \
