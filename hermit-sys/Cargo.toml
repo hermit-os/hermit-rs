@@ -43,9 +43,6 @@ tcp = [
 trace = []
 vga = []
 
-# Internal feature for building the kernel from local sources
-with_submodule = []
-
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2", default-features = false }
