@@ -17,11 +17,7 @@ fn main() {
 		return;
 	}
 
-	let kernel_src = if has_feature("with_submodule") {
-		KernelSrc::from_submodule()
-	} else {
-		KernelSrc::download()
-	};
+	let kernel_src = KernelSrc::local().unwrap_or_else(KernelSrc::download);
 
 	kernel_src.build();
 }
@@ -31,10 +27,10 @@ struct KernelSrc {
 }
 
 impl KernelSrc {
-	fn from_submodule() -> Self {
+	fn local() -> Option<Self> {
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("libhermit-rs");
-		Self { src_dir }
+		src_dir.exists().then(|| Self { src_dir })
 	}
 
 	fn download() -> Self {
