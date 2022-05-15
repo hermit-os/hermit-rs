@@ -9,10 +9,10 @@ readme = "README.md"
 description = "A Rust program to measure bandwidth or latency over a Rust TCP connection"
 
 [dependencies]
-bytes = "*"
-clap = "2"
-core_affinity = "0.5.10"
-hdrhist = "^0.5.0"
+bytes = "1.1"
+clap = "2.34"
+core_affinity = "0.5"
+hdrhist = "0.5"
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 path = "../../hermit-sys"
