@@ -13,7 +13,8 @@ fn main() {
 		matches!(env::var_os("CARGO_CFG_TARGET_OS"), Some(os) if os == OsStr::new("hermit"));
 	let runs_clippy =
 		matches!(env::var_os("CARGO_CFG_FEATURE"), Some(os) if os == OsStr::new("cargo-clippy"));
-	if !targets_hermit || runs_clippy {
+	let is_docs_rs = env::var_os("DOCS_RS").is_some();
+	if !targets_hermit || runs_clippy || is_docs_rs {
 		return;
 	}
 
