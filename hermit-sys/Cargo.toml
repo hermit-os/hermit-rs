@@ -55,7 +55,7 @@ lazy_static = { version = "1.4", optional = true }
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
 [dependencies.smoltcp]
-version = "0.7"
+version = "0.8"
 optional = true
 default-features = false
 features = [
