@@ -24,7 +24,10 @@ default = [
 
 aarch64-qemu-stdout = []
 acpi = []
-dhcpv4 = ["smoltcp/proto-dhcpv4"]
+dhcpv4 = [
+    "smoltcp/proto-dhcpv4",
+    "smoltcp/socket-dhcpv4",
+]
 fsgsbase = []
 
 # Build the kernel with function instrument code for mcount-based tracing
@@ -55,12 +58,12 @@ lazy_static = { version = "1.4", optional = true }
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
 [dependencies.smoltcp]
-version = "0.7"
+version = "0.8"
 optional = true
 default-features = false
 features = [
     "async",
-    "ethernet",
+    "medium-ethernet",
     "proto-ipv4",
     "proto-ipv6",
     "socket-tcp",

@@ -3,21 +3,18 @@ use std::collections::BTreeMap;
 use std::net::Ipv4Addr;
 use std::slice;
 
-#[cfg(feature = "dhcpv4")]
-use smoltcp::dhcp::Dhcpv4Client;
-use smoltcp::iface::{EthernetInterfaceBuilder, NeighborCache, Routes};
+use smoltcp::iface::{InterfaceBuilder, NeighborCache, Routes};
 #[cfg(feature = "trace")]
-use smoltcp::phy::EthernetTracer;
+use smoltcp::phy::Tracer;
 use smoltcp::phy::{self, Device, DeviceCapabilities};
-use smoltcp::socket::SocketSet;
 #[cfg(feature = "dhcpv4")]
-use smoltcp::socket::{RawPacketMetadata, RawSocketBuffer};
+use smoltcp::socket::Dhcpv4Socket;
 use smoltcp::time::Instant;
 #[cfg(not(feature = "dhcpv4"))]
 use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
 use smoltcp::wire::Ipv4Cidr;
-use smoltcp::wire::{EthernetAddress, IpCidr, Ipv4Address};
+use smoltcp::wire::{EthernetAddress, HardwareAddress, IpCidr, Ipv4Address};
 
 use crate::net::waker::WakerRegistration;
 use crate::net::{NetworkInterface, NetworkState};
@@ -98,7 +95,7 @@ impl NetworkInterface<HermitNet> {
 		};
 		let device = HermitNet::new(mtu);
 		#[cfg(feature = "trace")]
-		let device = EthernetTracer::new(device, |_timestamp, printer| {
+		let device = Tracer::new(device, |_timestamp, printer| {
 			trace!("{}", printer);
 		});
 
@@ -111,20 +108,18 @@ impl NetworkInterface<HermitNet> {
 
 		let neighbor_cache = NeighborCache::new(BTreeMap::new());
 		let ethernet_addr = EthernetAddress([mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]]);
+		let hardware_addr = HardwareAddress::Ethernet(ethernet_addr);
 		let ip_addrs = [IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0)];
 		let routes = Routes::new(BTreeMap::new());
 
-		info!("MAC address {}", ethernet_addr);
+		info!("MAC address {}", hardware_addr);
 		info!("MTU: {} bytes", mtu);
 
-		let mut sockets = SocketSet::new(vec![]);
-		let dhcp_rx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 900]);
-		let dhcp_tx_buffer = RawSocketBuffer::new([RawPacketMetadata::EMPTY; 1], vec![0; 600]);
-		let dhcp = Dhcpv4Client::new(&mut sockets, dhcp_rx_buffer, dhcp_tx_buffer, Instant::now());
+		let dhcp = Dhcpv4Socket::new();
 		let prev_cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
 
-		let iface = EthernetInterfaceBuilder::new(device)
-			.ethernet_addr(ethernet_addr)
+		let iface = InterfaceBuilder::new(device, vec![])
+			.hardware_addr(hardware_addr)
 			.neighbor_cache(neighbor_cache)
 			.ip_addrs(ip_addrs)
 			.routes(routes)
@@ -132,7 +127,6 @@ impl NetworkInterface<HermitNet> {
 
 		NetworkState::Initialized(Self {
 			iface,
-			sockets,
 			dhcp,
 			prev_cidr,
 			waker: WakerRegistration::new(),
@@ -149,7 +143,7 @@ impl NetworkInterface<HermitNet> {
 		};
 		let device = HermitNet::new(mtu);
 		#[cfg(feature = "trace")]
-		let device = EthernetTracer::new(device, |_timestamp, printer| {
+		let device = Tracer::new(device, |_timestamp, printer| {
 			trace!("{}", printer);
 		});
 
@@ -183,6 +177,7 @@ impl NetworkInterface<HermitNet> {
 
 		let neighbor_cache = NeighborCache::new(BTreeMap::new());
 		let ethernet_addr = EthernetAddress([mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]]);
+		let hardware_addr = HardwareAddress::Ethernet(ethernet_addr);
 		let ip_addrs = [IpCidr::new(
 			IpAddress::v4(myip[0], myip[1], myip[2], myip[3]),
 			prefix_len.try_into().unwrap(),
@@ -191,13 +186,13 @@ impl NetworkInterface<HermitNet> {
 		let mut routes = Routes::new(BTreeMap::new());
 		routes.add_default_ipv4_route(default_v4_gw).unwrap();
 
-		info!("MAC address {}", ethernet_addr);
+		info!("MAC address {}", hardware_addr);
 		info!("Configure network interface with address {}", ip_addrs[0]);
 		info!("Configure gateway with address {}", default_v4_gw);
 		info!("MTU: {} bytes", mtu);
 
-		let iface = EthernetInterfaceBuilder::new(device)
-			.ethernet_addr(ethernet_addr)
+		let iface = InterfaceBuilder::new(device, vec![])
+			.hardware_addr(hardware_addr)
 			.neighbor_cache(neighbor_cache)
 			.ip_addrs(ip_addrs)
 			.routes(routes)
@@ -205,7 +200,6 @@ impl NetworkInterface<HermitNet> {
 
 		NetworkState::Initialized(Self {
 			iface,
-			sockets: SocketSet::new(vec![]),
 			waker: WakerRegistration::new(),
 		})
 	}
