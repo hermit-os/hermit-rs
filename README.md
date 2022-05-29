@@ -31,23 +31,10 @@ The kernel and the integration into the Rust runtime are entirely written in Rus
 We extended the Rust toolchain so that the build process is similar to Rust's usual workflow.
 Rust applications that use the Rust runtime and do not directly use OS services are able to run on RustyHermit without modifications.
 
-## Prerequisites
+## Requirements
 
-The Rust toolchain can be installed from the [official webpage](https://www.rust-lang.org/).
-RustyHermit currently requires the **nightly versions** of the toolchain.
-
-```sh
-rustup default nightly
-```
-
-Further requirements are the source code of the Rust runtime and llvm-tools:
-
-```sh
-rustup component add rust-src
-rustup component add llvm-tools-preview
-```
-
-If you work with this repository, remember to checkout the submodules.
+* [`rustup`](https://www.rust-lang.org/tools/install)
+* [NASM](https://nasm.us/) (only for SMP on x86_64)
 
 ## Building your own applications
 
