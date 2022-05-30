@@ -10,8 +10,6 @@ use std::str;
 use std::thread;
 use std::time::Instant;
 use std::vec;
-#[cfg(target_os = "linux")]
-use syscalls::SYS_getpid;
 
 extern "C" {
 	pub fn memcpy(dest: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;
@@ -52,7 +50,7 @@ pub fn bench_syscall() -> Result<(), ()> {
 		#[cfg(target_os = "hermit")]
 		let _ = sys_getpid();
 		#[cfg(target_os = "linux")]
-		let _ = syscall!(SYS_getpid);
+		let _ = syscalls::syscall!(syscalls::Sysno::getpid);
 		let _ = get_timestamp();
 
 		let start = get_timestamp();
@@ -60,7 +58,7 @@ pub fn bench_syscall() -> Result<(), ()> {
 			#[cfg(target_os = "hermit")]
 			let _ = sys_getpid();
 			#[cfg(target_os = "linux")]
-			let _ = syscall!(SYS_getpid);
+			let _ = syscalls::syscall!(syscalls::Sysno::getpid);
 		}
 		get_timestamp() - start
 	};
