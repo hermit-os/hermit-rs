@@ -159,9 +159,9 @@ test:httpd_image:
      - docker push ${DOCKER_IMAGE}/httpd_mvm:latest
    tags:
      - docker
-#   only:
-#     refs:
-#       - master
+   only:
+     refs:
+       - master
 
 deploy:httpd_mvm:
   <<: *deploy_httpd_mvm
