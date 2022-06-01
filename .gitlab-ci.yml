@@ -140,6 +140,29 @@ test:httpd_image:
      refs:
         - master
 
+.deploy:httpd_mvm:
+   stage: test
+   dependencies:
+     - build:httpd_mvm
+   image: docker
+   before_script:
+     - docker version
+     - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+   script:
+     - |
+       cat << END > ${DOCKER_FILE}
+       FROM scratch
+       COPY target/x86_64-unknown-hermit/release/httpd hermit/httpd
+       COPY loader/target/x86_64/release/rusty-loader hermit/loader
+       END
+     - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd_mvm:latest .
+     - docker push ${DOCKER_IMAGE}/httpd_mvm:latest
+   tags:
+     - docker
+#   only:
+#     refs:
+#       - master
+
 .deploy:httpd_docker: &deploy_httpd_docker
    stage: predeploy
    dependencies:
