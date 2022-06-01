@@ -140,8 +140,8 @@ test:httpd_image:
      refs:
         - master
 
-.deploy:httpd_mvm:
-   stage: test
+.deploy:httpd_mvm: &deploy_httpd_mvm
+   stage: predeploy
    dependencies:
      - build:httpd_mvm
    image: docker
@@ -162,6 +162,9 @@ test:httpd_image:
 #   only:
 #     refs:
 #       - master
+
+deploy:httpd_mvm:
+  <<: *deploy_httpd_mvm
 
 .deploy:httpd_docker: &deploy_httpd_docker
    stage: predeploy
