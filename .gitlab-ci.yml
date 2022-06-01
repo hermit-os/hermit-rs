@@ -58,6 +58,19 @@ build:httpd:
       - target/x86_64-unknown-hermit/release/httpd
       - loader/target/x86_64/release/rusty-loader
 
+build:httpd_mvm:
+  stage: build
+  image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+  script:
+    - cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --manifest-path examples/httpd/Cargo.toml --no-default-features --features tcp,dhcpv4 --release
+    - cd loader
+    - cargo xtask build --arch x86_64 --release
+    - cd ..
+  artifacts:
+    paths:
+      - target/x86_64-unknown-hermit/release/httpd
+      - loader/target/x86_64/release/rusty-loader
+
 test:uhyve:
    stage: test
    dependencies:
@@ -126,6 +139,32 @@ test:httpd_image:
    only:
      refs:
         - master
+
+.deploy:httpd_mvm: &deploy_httpd_mvm
+   stage: predeploy
+   dependencies:
+     - build:httpd_mvm
+   image: docker
+   before_script:
+     - docker version
+     - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
+   script:
+     - |
+       cat << END > ${DOCKER_FILE}
+       FROM scratch
+       COPY target/x86_64-unknown-hermit/release/httpd hermit/httpd
+       COPY loader/target/x86_64/release/rusty-loader hermit/loader
+       END
+     - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd_mvm:latest .
+     - docker push ${DOCKER_IMAGE}/httpd_mvm:latest
+   tags:
+     - docker
+   only:
+     refs:
+       - master
+
+deploy:httpd_mvm:
+  <<: *deploy_httpd_mvm
 
 .deploy:httpd_docker: &deploy_httpd_docker
    stage: predeploy
