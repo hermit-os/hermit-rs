@@ -15,12 +15,13 @@ use std::u16;
 use aarch64::regs::*;
 use futures_lite::future;
 use lazy_static::lazy_static;
-#[cfg(feature = "dhcpv4")]
-use smoltcp::dhcp::Dhcpv4Client;
+use smoltcp::iface::{self, SocketHandle};
 use smoltcp::phy::Device;
 #[cfg(feature = "trace")]
-use smoltcp::phy::EthernetTracer;
-use smoltcp::socket::{SocketHandle, SocketSet, TcpSocket, TcpSocketBuffer, TcpState};
+use smoltcp::phy::Tracer;
+#[cfg(feature = "dhcpv4")]
+use smoltcp::socket::{Dhcpv4Event, Dhcpv4Socket};
+use smoltcp::socket::{TcpSocket, TcpSocketBuffer, TcpState};
 use smoltcp::time::{Duration, Instant};
 use smoltcp::wire::IpAddress;
 #[cfg(feature = "dhcpv4")]
@@ -74,12 +75,11 @@ static LOCAL_ENDPOINT: AtomicU16 = AtomicU16::new(0);
 
 pub(crate) struct NetworkInterface<T: for<'a> Device<'a>> {
 	#[cfg(feature = "trace")]
-	pub iface: smoltcp::iface::EthernetInterface<'static, EthernetTracer<T>>,
+	pub iface: smoltcp::iface::Interface<'static, Tracer<T>>,
 	#[cfg(not(feature = "trace"))]
-	pub iface: smoltcp::iface::EthernetInterface<'static, T>,
-	pub sockets: SocketSet<'static>,
+	pub iface: smoltcp::iface::Interface<'static, T>,
 	#[cfg(feature = "dhcpv4")]
-	dhcp: Dhcpv4Client,
+	dhcp: Dhcpv4Socket,
 	#[cfg(feature = "dhcpv4")]
 	prev_cidr: Ipv4Cidr,
 	waker: WakerRegistration,
@@ -93,7 +93,7 @@ where
 		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
 		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
 		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
-		let tcp_handle = self.sockets.add(tcp_socket);
+		let tcp_handle = self.iface.add_socket(tcp_socket);
 
 		Ok(tcp_handle)
 	}
@@ -103,34 +103,26 @@ where
 	}
 
 	pub(crate) fn poll_common(&mut self, timestamp: Instant) {
-		while self
-			.iface
-			.poll(&mut self.sockets, timestamp)
-			.unwrap_or(true)
-		{
+		while self.iface.poll(timestamp).unwrap_or(true) {
 			// just to make progress
 		}
 		#[cfg(feature = "dhcpv4")]
-		let config = self
-			.dhcp
-			.poll(&mut self.iface, &mut self.sockets, timestamp)
-			.unwrap_or_else(|e| {
-				debug!("DHCP: {:?}", e);
-				None
-			});
+		let config = self.dhcp.poll().and_then(|event| match event {
+			Dhcpv4Event::Configured(config) => Some(config),
+			Dhcpv4Event::Deconfigured => None,
+		});
 		#[cfg(feature = "dhcpv4")]
 		config.map(|config| {
 			debug!("DHCP config: {:?}", config);
-			if let Some(cidr) = config.address {
-				if cidr != self.prev_cidr && !cidr.address().is_unspecified() {
-					self.iface.update_ip_addrs(|addrs| {
-						addrs.iter_mut().next().map(|addr| {
-							*addr = IpCidr::Ipv4(cidr);
-						});
+			let cidr = config.address;
+			if cidr != self.prev_cidr && !cidr.address().is_unspecified() {
+				self.iface.update_ip_addrs(|addrs| {
+					addrs.iter_mut().next().map(|addr| {
+						*addr = IpCidr::Ipv4(cidr);
 					});
-					self.prev_cidr = cidr;
-					debug!("Assigned a new IPv4 address: {}", cidr);
-				}
+				});
+				self.prev_cidr = cidr;
+				debug!("Assigned a new IPv4 address: {}", cidr);
 			}
 
 			config.router.map(|router| {
@@ -162,7 +154,7 @@ where
 	}
 
 	pub(crate) fn poll_delay(&mut self, timestamp: Instant) -> Option<Duration> {
-		self.iface.poll_delay(&self.sockets, timestamp)
+		self.iface.poll_delay(timestamp)
 	}
 }
 
@@ -184,8 +176,19 @@ impl AsyncSocket {
 		let mut guard = NIC.lock().unwrap();
 		let nic = guard.as_nic_mut().unwrap();
 		let res = {
-			let mut s = nic.sockets.get::<TcpSocket>(self.0);
-			f(&mut *s)
+			let s = nic.iface.get_socket::<TcpSocket>(self.0);
+			f(s)
+		};
+		nic.wake();
+		res
+	}
+
+	fn with_context<R>(&self, f: impl FnOnce(&mut TcpSocket, &mut iface::Context<'_>) -> R) -> R {
+		let mut guard = NIC.lock().unwrap();
+		let nic = guard.as_nic_mut().unwrap();
+		let res = {
+			let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
+			f(s, cx)
 		};
 		nic.wake();
 		res
@@ -195,8 +198,9 @@ impl AsyncSocket {
 		let address = IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| Error::Illegal)?)
 			.map_err(|_| Error::Illegal)?;
 
-		self.with(|s| {
+		self.with_context(|s, cx| {
 			s.connect(
+				cx,
 				(address, port),
 				LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
 			)
@@ -242,7 +246,7 @@ impl AsyncSocket {
 
 		let mut guard = NIC.lock().unwrap();
 		let nic = guard.as_nic_mut().map_err(|_| Error::Illegal)?;
-		let mut socket = nic.sockets.get::<TcpSocket>(self.0);
+		let socket = nic.iface.get_socket::<TcpSocket>(self.0);
 		socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
 		let endpoint = socket.remote_endpoint();
 
@@ -508,7 +512,7 @@ pub fn sys_tcp_stream_get_tll(_handle: Handle) -> Result<u32, ()> {
 pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> {
 	let mut guard = NIC.lock().unwrap();
 	let nic = guard.as_nic_mut().map_err(drop)?;
-	let mut socket = nic.sockets.get::<TcpSocket>(handle);
+	let socket = nic.iface.get_socket::<TcpSocket>(handle);
 	socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
 	let endpoint = socket.remote_endpoint();
 
