@@ -1,5 +1,3 @@
-extern crate alloc;
-
 use crate::{
 	block_current_task, get_priority, getpid, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
 };
