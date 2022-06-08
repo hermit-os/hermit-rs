@@ -1,15 +1,12 @@
 extern crate alloc;
 
 use crate::{
-	block_current_task, get_priority, getpid, recmutex_destroy, recmutex_init, recmutex_lock,
-	recmutex_unlock, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
+	block_current_task, get_priority, getpid, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
 };
 use alloc::collections::vec_deque::VecDeque;
 use core::cell::UnsafeCell;
-use core::ffi::c_void;
 use core::hint;
 use core::ops::{Deref, DerefMut, Drop};
-use core::ptr;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 /// This type provides a lock based on busy waiting to realize mutual exclusion
@@ -197,7 +194,7 @@ impl Mutex {
 	pub unsafe fn lock(&self) {
 		loop {
 			let mut guard = self.inner.lock();
-			if guard.locked == false {
+			if !guard.locked {
 				guard.locked = true;
 				return;
 			} else {
@@ -232,39 +229,4 @@ impl Mutex {
 
 	#[inline]
 	pub unsafe fn destroy(&self) {}
-}
-
-pub struct ReentrantMutex {
-	inner: *const c_void,
-}
-
-impl ReentrantMutex {
-	pub const unsafe fn uninitialized() -> ReentrantMutex {
-		ReentrantMutex { inner: ptr::null() }
-	}
-
-	#[inline]
-	pub unsafe fn init(&self) {
-		let _ = recmutex_init(&self.inner as *const *const c_void as *mut _);
-	}
-
-	#[inline]
-	pub unsafe fn lock(&self) {
-		let _ = recmutex_lock(self.inner);
-	}
-
-	#[inline]
-	pub unsafe fn try_lock(&self) -> bool {
-		true
-	}
-
-	#[inline]
-	pub unsafe fn unlock(&self) {
-		let _ = recmutex_unlock(self.inner);
-	}
-
-	#[inline]
-	pub unsafe fn destroy(&self) {
-		let _ = recmutex_destroy(self.inner);
-	}
 }
