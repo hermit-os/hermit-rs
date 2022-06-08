@@ -219,7 +219,7 @@ impl Mutex {
 	#[inline]
 	pub unsafe fn try_lock(&self) -> bool {
 		let mut guard = self.inner.lock();
-		if guard.locked == false {
+		if !guard.locked {
 			guard.locked = true;
 		}
 		guard.locked
