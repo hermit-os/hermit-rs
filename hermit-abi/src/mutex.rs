@@ -173,8 +173,6 @@ pub struct Mutex {
 	inner: Spinlock<MutexInner>,
 }
 
-pub type MovableMutex = Mutex;
-
 unsafe impl Send for Mutex {}
 unsafe impl Sync for Mutex {}
 
