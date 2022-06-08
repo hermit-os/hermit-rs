@@ -5,6 +5,7 @@
 #![allow(clippy::missing_safety_doc)]
 #![allow(clippy::result_unit_err)]
 
+pub mod mutex;
 pub mod tcplistener;
 pub mod tcpstream;
 
