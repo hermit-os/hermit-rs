@@ -5,6 +5,8 @@
 #![allow(clippy::missing_safety_doc)]
 #![allow(clippy::result_unit_err)]
 
+#[cfg(feature = "rustc-dep-of-std")]
+pub mod mutex;
 pub mod tcplistener;
 pub mod tcpstream;
 
