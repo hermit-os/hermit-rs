@@ -1,3 +1,6 @@
+#[cfg(not(feature = "rustc-dep-of-std"))]
+extern crate alloc;
+
 use crate::{
 	block_current_task, get_priority, getpid, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
 };
@@ -29,7 +32,7 @@ unsafe impl<T: ?Sized + Send> Send for Spinlock<T> {}
 /// A guard to which the protected data can be accessed
 ///
 /// When the guard falls out of scope it will release the lock.
-struct SpinlockGuard<'a, T: ?Sized + 'a> {
+struct SpinlockGuard<'a, T: ?Sized> {
 	dequeue: &'a AtomicUsize,
 	data: &'a mut T,
 }
@@ -97,7 +100,7 @@ impl<'a, T: ?Sized> Drop for SpinlockGuard<'a, T> {
 }
 
 /// Realize a priority queue for tasks
-pub struct PriorityQueue {
+struct PriorityQueue {
 	queues: [Option<VecDeque<Tid>>; NO_PRIORITIES],
 	prio_bitmap: u64,
 }
