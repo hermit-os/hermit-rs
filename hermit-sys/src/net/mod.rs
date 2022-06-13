@@ -163,30 +163,32 @@ pub(crate) struct AsyncSocket(Handle);
 
 impl AsyncSocket {
 	pub(crate) fn new() -> Self {
-		let handle = NIC.lock().as_nic_mut().unwrap().create_handle().unwrap();
+		let handle = NIC.lock(|i| i.as_nic_mut().unwrap().create_handle().unwrap());
 		Self(handle)
 	}
 
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
-		let mut guard = NIC.lock();
-		let nic = guard.as_nic_mut().unwrap();
-		let res = {
-			let s = nic.iface.get_socket::<TcpSocket>(self.0);
-			f(s)
-		};
-		nic.wake();
-		res
+		NIC.lock(|state| {
+			let nic = state.as_nic_mut().unwrap();
+			let res = {
+				let s = nic.iface.get_socket::<TcpSocket>(self.0);
+				f(s)
+			};
+			nic.wake();
+			res
+		})
 	}
 
 	fn with_context<R>(&self, f: impl FnOnce(&mut TcpSocket, &mut iface::Context<'_>) -> R) -> R {
-		let mut guard = NIC.lock();
-		let nic = guard.as_nic_mut().unwrap();
-		let res = {
-			let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
-			f(s, cx)
-		};
-		nic.wake();
-		res
+		NIC.lock(|state| {
+			let nic = state.as_nic_mut().unwrap();
+			let res = {
+				let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
+				f(s, cx)
+			};
+			nic.wake();
+			res
+		})
 	}
 
 	pub(crate) async fn connect(&self, ip: &[u8], port: u16) -> Result<Handle, Error> {
@@ -239,13 +241,14 @@ impl AsyncSocket {
 		})
 		.await?;
 
-		let mut guard = NIC.lock();
-		let nic = guard.as_nic_mut().map_err(|_| Error::Illegal)?;
-		let socket = nic.iface.get_socket::<TcpSocket>(self.0);
-		socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
-		let endpoint = socket.remote_endpoint();
+		NIC.lock(|state| {
+			let nic = state.as_nic_mut().map_err(|_| Error::Illegal)?;
+			let socket = nic.iface.get_socket::<TcpSocket>(self.0);
+			socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
+			let endpoint = socket.remote_endpoint();
 
-		Ok((endpoint.addr, endpoint.port))
+			Ok((endpoint.addr, endpoint.port))
+		})
 	}
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
@@ -353,16 +356,18 @@ fn start_endpoint() -> u16 {
 }
 
 pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
-	NIC.lock().as_nic_mut().ok()?.poll_delay(timestamp)
+	NIC.lock(|state| state.as_nic_mut().ok()?.poll_delay(timestamp))
 }
 
 pub(crate) async fn network_run() {
-	future::poll_fn(|cx| match NIC.lock().deref_mut() {
-		NetworkState::Initialized(nic) => {
-			nic.poll(cx, Instant::now());
-			Poll::Pending
-		}
-		_ => Poll::Ready(()),
+	future::poll_fn(|cx| {
+		NIC.lock(|mut state| match state.deref_mut() {
+			NetworkState::Initialized(nic) => {
+				nic.poll(cx, Instant::now());
+				Poll::Pending
+			}
+			_ => Poll::Ready(()),
+		})
 	})
 	.await
 }
@@ -373,9 +378,11 @@ extern "C" fn nic_thread(_: usize) {
 
 		trace!("Network thread checks the devices");
 
-		if let NetworkState::Initialized(nic) = NIC.lock().deref_mut() {
-			nic.poll_common(Instant::now());
-		}
+		NIC.lock(|mut state| {
+			if let NetworkState::Initialized(nic) = state.deref_mut() {
+				nic.poll_common(Instant::now());
+			}
+		})
 	}
 }
 
@@ -383,23 +390,29 @@ pub(crate) fn network_init() -> Result<(), ()> {
 	// initialize variable, which contains the next local endpoint
 	LOCAL_ENDPOINT.store(start_endpoint(), Ordering::SeqCst);
 
-	let mut guard = NIC.lock();
+	let new_thread = NIC.lock(|mut state| {
+		*state = NetworkInterface::<HermitNet>::new();
 
-	*guard = NetworkInterface::<HermitNet>::new();
+		if let NetworkState::Initialized(nic) = state.deref_mut() {
+			nic.poll_common(Instant::now());
 
-	if let NetworkState::Initialized(nic) = guard.deref_mut() {
-		nic.poll_common(Instant::now());
+			// create thread, which manages the network stack
+			// use a higher priority to reduce the network latency
+			let mut tid: Tid = 0;
+			let ret = unsafe { sys_spawn(&mut tid, nic_thread, 0, 3, 0) };
+			if ret >= 0 {
+				debug!("Spawn network thread with id {}", tid);
+			}
 
-		// create thread, which manages the network stack
-		// use a higher priority to reduce the network latency
-		let mut tid: Tid = 0;
-		let ret = unsafe { sys_spawn(&mut tid, nic_thread, 0, 3, 0) };
-		if ret >= 0 {
-			debug!("Spawn network thread with id {}", tid);
+			spawn(network_run()).detach();
+
+			true
+		} else {
+			false
 		}
+	});
 
-		spawn(network_run()).detach();
-
+	if new_thread {
 		// switch to network thread
 		unsafe { sys_yield() };
 	}
@@ -505,13 +518,14 @@ pub fn sys_tcp_stream_get_tll(_handle: Handle) -> Result<u32, ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> {
-	let mut guard = NIC.lock();
-	let nic = guard.as_nic_mut().map_err(drop)?;
-	let socket = nic.iface.get_socket::<TcpSocket>(handle);
-	socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
-	let endpoint = socket.remote_endpoint();
+	NIC.lock(|state| {
+		let nic = state.as_nic_mut().map_err(drop)?;
+		let socket = nic.iface.get_socket::<TcpSocket>(handle);
+		socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
+		let endpoint = socket.remote_endpoint();
 
-	Ok((endpoint.addr, endpoint.port))
+		Ok((endpoint.addr, endpoint.port))
+	})
 }
 
 #[no_mangle]
