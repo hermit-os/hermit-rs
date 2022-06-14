@@ -68,6 +68,7 @@ extern "C" {
 	fn sys_block_current_task();
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_get_priority() -> u8;
+	fn sys_set_priority(tid: Tid, prio: u8);
 }
 
 /// A thread handle type
@@ -489,4 +490,10 @@ pub unsafe fn wakeup_task(tid: Tid) {
 #[inline(always)]
 pub unsafe fn get_priority() -> Priority {
 	Priority::from(sys_get_priority())
+}
+
+/// Determine the priority of the current thread
+#[inline(always)]
+pub unsafe fn set_priority(tid: Tid, prio: Priority) {
+	sys_set_priority(tid, prio.into());
 }
