@@ -158,18 +158,22 @@ impl PriorityQueue {
 }
 
 struct MutexInner {
+	/// The lock is free, if `id` is none. Otherwise `id` identifies the task.
+	id: Option<Tid>,
+	/// Current priority of the task, which holds the lock
 	current_prio: Priority,
+	/// Original priority of the task, which holds the lock
 	base_prio: Priority,
-	id: Tid,
+	/// Priority queue of blocked tasks
 	blocked_task: PriorityQueue,
 }
 
 impl MutexInner {
 	pub const fn new() -> MutexInner {
 		MutexInner {
+			id: None,
 			current_prio: Priority::from(0),
 			base_prio: Priority::from(0),
-			id: 0,
 			blocked_task: PriorityQueue::new(),
 		}
 	}
@@ -198,22 +202,25 @@ impl Mutex {
 	pub unsafe fn lock(&self) {
 		loop {
 			let mut guard = self.inner.lock();
-			if guard.id == 0 {
-				guard.current_prio = get_priority();
-				guard.base_prio = guard.current_prio;
-				guard.id = getpid();
-				return;
-			} else {
-				let prio = get_priority();
+			match guard.id {
+				None => {
+					guard.current_prio = get_priority();
+					guard.base_prio = guard.current_prio;
+					guard.id = Some(getpid());
+					return;
+				},
+				Some(id) => {
+					let prio = get_priority();
 
-				if guard.current_prio < prio {
-					set_priority(guard.id, prio);
-					guard.current_prio = prio;
-				}
-				guard.blocked_task.push(prio, getpid());
-				block_current_task();
-				drop(guard);
-				yield_now();
+					if guard.current_prio < prio {
+						set_priority(id, prio);
+						guard.current_prio = prio;
+					}
+					guard.blocked_task.push(prio, getpid());
+					block_current_task();
+					drop(guard);
+					yield_now();
+				},
 			}
 		}
 	}
@@ -223,13 +230,15 @@ impl Mutex {
 		let mut guard = self.inner.lock();
 
 		if guard.base_prio != guard.current_prio {
-			set_priority(guard.id, guard.base_prio);
+			if let Some(id) = guard.id {
+				set_priority(id, guard.base_prio);
+			}
 		}
 
 		// reset data
 		guard.current_prio = Priority::from(0);
 		guard.base_prio = Priority::from(0);
-		guard.id = 0;
+		guard.id = None;
 
 		if let Some(tid) = guard.blocked_task.pop() {
 			wakeup_task(tid);
@@ -239,13 +248,15 @@ impl Mutex {
 	#[inline]
 	pub unsafe fn try_lock(&self) -> bool {
 		let mut guard = self.inner.lock();
-		let locked = guard.id == 0;
-		if locked {
+		if guard.id.is_none() {
 			guard.current_prio = get_priority();
 			guard.base_prio = guard.current_prio;
-			guard.id = getpid();
+			guard.id = Some(getpid());
+
+			true
+		} else {
+			false
 		}
-		locked
 	}
 
 	#[inline]
