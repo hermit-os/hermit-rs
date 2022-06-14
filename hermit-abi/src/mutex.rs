@@ -2,7 +2,8 @@
 extern crate alloc;
 
 use crate::{
-	block_current_task, get_priority, getpid, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
+	block_current_task, get_priority, getpid, set_priority, wakeup_task, yield_now, Priority, Tid,
+	NO_PRIORITIES,
 };
 use alloc::collections::vec_deque::VecDeque;
 use core::cell::UnsafeCell;
@@ -157,14 +158,18 @@ impl PriorityQueue {
 }
 
 struct MutexInner {
-	locked: bool,
+	current_prio: Priority,
+	base_prio: Priority,
+	id: Tid,
 	blocked_task: PriorityQueue,
 }
 
 impl MutexInner {
 	pub const fn new() -> MutexInner {
 		MutexInner {
-			locked: false,
+			current_prio: Priority::from(0),
+			base_prio: Priority::from(0),
+			id: 0,
 			blocked_task: PriorityQueue::new(),
 		}
 	}
@@ -193,14 +198,19 @@ impl Mutex {
 	pub unsafe fn lock(&self) {
 		loop {
 			let mut guard = self.inner.lock();
-			if !guard.locked {
-				guard.locked = true;
+			if guard.id == 0 {
+				guard.current_prio = get_priority();
+				guard.base_prio = guard.current_prio;
+				guard.id = getpid();
 				return;
 			} else {
 				let prio = get_priority();
-				let id = getpid();
 
-				guard.blocked_task.push(prio, id);
+				if guard.current_prio < prio {
+					set_priority(guard.id, prio);
+					guard.current_prio = prio;
+				}
+				guard.blocked_task.push(prio, getpid());
 				block_current_task();
 				drop(guard);
 				yield_now();
@@ -211,7 +221,16 @@ impl Mutex {
 	#[inline]
 	pub unsafe fn unlock(&self) {
 		let mut guard = self.inner.lock();
-		guard.locked = false;
+
+		if guard.base_prio != guard.current_prio {
+			set_priority(guard.id, guard.base_prio);
+		}
+
+		// reset data
+		guard.current_prio = Priority::from(0);
+		guard.base_prio = Priority::from(0);
+		guard.id = 0;
+
 		if let Some(tid) = guard.blocked_task.pop() {
 			wakeup_task(tid);
 		}
@@ -220,10 +239,13 @@ impl Mutex {
 	#[inline]
 	pub unsafe fn try_lock(&self) -> bool {
 		let mut guard = self.inner.lock();
-		if !guard.locked {
-			guard.locked = true;
+		let locked = guard.id == 0;
+		if locked {
+			guard.current_prio = get_priority();
+			guard.base_prio = guard.current_prio;
+			guard.id = getpid();
 		}
-		guard.locked
+		locked
 	}
 
 	#[inline]
