@@ -279,4 +279,4 @@ Create your own fork, send us a pull request, and chat with us on [Slack](https:
 
 ## Funding
 
-The development of this project was partially funded by the European Union’s Horizon 2020 research and innovation programme under grant agreement No 957246  - IoT-NGIN.
+The development of this project was partially funded by the European Union’s Horizon 2020 research and innovation programme under grant agreement No 957246 - IoT-NGIN.
