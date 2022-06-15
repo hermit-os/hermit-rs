@@ -208,7 +208,7 @@ impl Mutex {
 					guard.base_prio = guard.current_prio;
 					guard.id = Some(getpid());
 					return;
-				},
+				}
 				Some(id) => {
 					let prio = get_priority();
 
@@ -220,7 +220,7 @@ impl Mutex {
 					block_current_task();
 					drop(guard);
 					yield_now();
-				},
+				}
 			}
 		}
 	}
