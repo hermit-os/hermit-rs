@@ -1,5 +1,6 @@
 pub mod device;
 mod executor;
+mod mutex;
 mod waker;
 
 #[cfg(target_arch = "x86_64")]
@@ -7,7 +8,6 @@ use std::arch::x86_64::_rdtsc;
 use std::ops::DerefMut;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
-use std::sync::Mutex;
 use std::task::{Context, Poll};
 use std::u16;
 
@@ -32,6 +32,7 @@ use tock_registers::interfaces::Readable;
 
 use crate::net::device::HermitNet;
 use crate::net::executor::{block_on, poll_on, spawn};
+use crate::net::mutex::Mutex;
 use crate::net::waker::WakerRegistration;
 
 pub(crate) enum NetworkState {
@@ -162,18 +163,12 @@ pub(crate) struct AsyncSocket(Handle);
 
 impl AsyncSocket {
 	pub(crate) fn new() -> Self {
-		let handle = NIC
-			.lock()
-			.unwrap()
-			.as_nic_mut()
-			.unwrap()
-			.create_handle()
-			.unwrap();
+		let handle = NIC.lock().as_nic_mut().unwrap().create_handle().unwrap();
 		Self(handle)
 	}
 
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
-		let mut guard = NIC.lock().unwrap();
+		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
 		let res = {
 			let s = nic.iface.get_socket::<TcpSocket>(self.0);
@@ -184,7 +179,7 @@ impl AsyncSocket {
 	}
 
 	fn with_context<R>(&self, f: impl FnOnce(&mut TcpSocket, &mut iface::Context<'_>) -> R) -> R {
-		let mut guard = NIC.lock().unwrap();
+		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
 		let res = {
 			let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
@@ -244,7 +239,7 @@ impl AsyncSocket {
 		})
 		.await?;
 
-		let mut guard = NIC.lock().unwrap();
+		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().map_err(|_| Error::Illegal)?;
 		let socket = nic.iface.get_socket::<TcpSocket>(self.0);
 		socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
@@ -358,11 +353,11 @@ fn start_endpoint() -> u16 {
 }
 
 pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
-	NIC.lock().unwrap().as_nic_mut().ok()?.poll_delay(timestamp)
+	NIC.lock().as_nic_mut().ok()?.poll_delay(timestamp)
 }
 
 pub(crate) async fn network_run() {
-	future::poll_fn(|cx| match NIC.lock().unwrap().deref_mut() {
+	future::poll_fn(|cx| match NIC.lock().deref_mut() {
 		NetworkState::Initialized(nic) => {
 			nic.poll(cx, Instant::now());
 			Poll::Pending
@@ -378,7 +373,7 @@ extern "C" fn nic_thread(_: usize) {
 
 		trace!("Network thread checks the devices");
 
-		if let NetworkState::Initialized(nic) = NIC.lock().unwrap().deref_mut() {
+		if let NetworkState::Initialized(nic) = NIC.lock().deref_mut() {
 			nic.poll_common(Instant::now());
 		}
 	}
@@ -388,7 +383,7 @@ pub(crate) fn network_init() -> Result<(), ()> {
 	// initialize variable, which contains the next local endpoint
 	LOCAL_ENDPOINT.store(start_endpoint(), Ordering::SeqCst);
 
-	let mut guard = NIC.lock().unwrap();
+	let mut guard = NIC.lock();
 
 	*guard = NetworkInterface::<HermitNet>::new();
 
@@ -510,7 +505,7 @@ pub fn sys_tcp_stream_get_tll(_handle: Handle) -> Result<u32, ()> {
 
 #[no_mangle]
 pub fn sys_tcp_stream_peer_addr(handle: Handle) -> Result<(IpAddress, u16), ()> {
-	let mut guard = NIC.lock().unwrap();
+	let mut guard = NIC.lock();
 	let nic = guard.as_nic_mut().map_err(drop)?;
 	let socket = nic.iface.get_socket::<TcpSocket>(handle);
 	socket.set_keep_alive(Some(Duration::from_millis(DEFAULT_KEEP_ALIVE_INTERVAL)));
