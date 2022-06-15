@@ -276,3 +276,7 @@ Unless you explicitly state otherwise, any contribution intentionally submitted 
 
 RustyHermit is being developed on [GitHub](https://github.com/hermitcore/rusty-hermit).
 Create your own fork, send us a pull request, and chat with us on [Slack](https://matrix.osbyexample.com:3008)
+
+## Funding
+
+The development of this project was partially funded by the European Union’s Horizon 2020 research and innovation programme under grant agreement No 957246  - IoT-NGIN.
