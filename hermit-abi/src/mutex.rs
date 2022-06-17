@@ -7,9 +7,9 @@ use crate::{
 };
 use alloc::collections::vec_deque::VecDeque;
 use core::cell::UnsafeCell;
-use core::hint;
 use core::ops::{Deref, DerefMut, Drop};
 use core::sync::atomic::{AtomicUsize, Ordering};
+use core::{hint, mem};
 
 /// This type provides a lock based on busy waiting to realize mutual exclusion
 ///
@@ -157,24 +157,29 @@ impl PriorityQueue {
 	}
 }
 
+enum MutexState {
+	Unlocked,
+	Locked {
+		/// Identifies the task.
+		id: Tid,
+		/// Current priority of the task, which holds the lock
+		current_prio: Priority,
+		/// Original priority of the task, which holds the lock
+		base_prio: Priority,
+	},
+}
+
 struct MutexInner {
-	/// The lock is free, if `id` is none. Otherwise `id` identifies the task.
-	id: Option<Tid>,
-	/// Current priority of the task, which holds the lock
-	current_prio: Priority,
-	/// Original priority of the task, which holds the lock
-	base_prio: Priority,
+	state: MutexState,
 	/// Priority queue of blocked tasks
-	blocked_task: PriorityQueue,
+	blocked_tasks: PriorityQueue,
 }
 
 impl MutexInner {
 	pub const fn new() -> MutexInner {
-		MutexInner {
-			id: None,
-			current_prio: Priority::from(0),
-			base_prio: Priority::from(0),
-			blocked_task: PriorityQueue::new(),
+		Self {
+			state: MutexState::Unlocked,
+			blocked_tasks: PriorityQueue::new(),
 		}
 	}
 }
@@ -202,21 +207,27 @@ impl Mutex {
 	pub unsafe fn lock(&self) {
 		loop {
 			let mut guard = self.inner.lock();
-			match guard.id {
-				None => {
-					guard.current_prio = get_priority();
-					guard.base_prio = guard.current_prio;
-					guard.id = Some(getpid());
-					return;
+			match guard.state {
+				MutexState::Unlocked => {
+					let prio = get_priority();
+					guard.state = MutexState::Locked {
+						id: getpid(),
+						current_prio: prio,
+						base_prio: prio,
+					}
 				}
-				Some(id) => {
+				MutexState::Locked {
+					id,
+					ref mut current_prio,
+					base_prio: _,
+				} => {
 					let prio = get_priority();
 
-					if guard.current_prio < prio {
+					if *current_prio < prio {
 						set_priority(id, prio);
-						guard.current_prio = prio;
+						*current_prio = prio;
 					}
-					guard.blocked_task.push(prio, getpid());
+					guard.blocked_tasks.push(prio, getpid());
 					block_current_task();
 					drop(guard);
 					yield_now();
@@ -229,29 +240,35 @@ impl Mutex {
 	pub unsafe fn unlock(&self) {
 		let mut guard = self.inner.lock();
 
-		if guard.base_prio != guard.current_prio {
-			if let Some(id) = guard.id {
-				set_priority(id, guard.base_prio);
+		if let MutexState::Locked {
+			id,
+			current_prio,
+			base_prio,
+		} = mem::replace(&mut guard.state, MutexState::Unlocked)
+		{
+			if current_prio != base_prio {
+				set_priority(id, base_prio);
 			}
-		}
 
-		// reset data
-		guard.current_prio = Priority::from(0);
-		guard.base_prio = Priority::from(0);
-		guard.id = None;
+			guard.state = MutexState::Unlocked;
 
-		if let Some(tid) = guard.blocked_task.pop() {
-			wakeup_task(tid);
+			if let Some(tid) = guard.blocked_tasks.pop() {
+				wakeup_task(tid);
+			}
 		}
 	}
 
 	#[inline]
 	pub unsafe fn try_lock(&self) -> bool {
 		let mut guard = self.inner.lock();
-		if guard.id.is_none() {
-			guard.current_prio = get_priority();
-			guard.base_prio = guard.current_prio;
-			guard.id = Some(getpid());
+
+		if matches!(guard.state, MutexState::Unlocked) {
+			let prio = get_priority();
+			guard.state = MutexState::Locked {
+				id: getpid(),
+				current_prio: prio,
+				base_prio: prio,
+			};
 
 			true
 		} else {
