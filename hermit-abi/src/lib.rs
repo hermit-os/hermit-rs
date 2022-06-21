@@ -66,6 +66,7 @@ extern "C" {
 	fn sys_unlink(name: *const i8) -> i32;
 	fn sys_network_init() -> i32;
 	fn sys_block_current_task();
+	fn sys_block_current_task_with_timeout(timeout: u64);
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);
@@ -473,11 +474,20 @@ pub unsafe fn secure_rand64() -> Option<u64> {
 	(res == 0).then(|| rand.assume_init())
 }
 
-/// Add current task to the queue of blocked tasl. After calling `block_current_task`,
+/// Add current task to the queue of blocked tasks. After calling `block_current_task`,
 /// call `yield_now` to switch to another task.
 #[inline(always)]
 pub unsafe fn block_current_task() {
 	sys_block_current_task();
+}
+
+/// Add current task to the queue of blocked tasks, but wake it when `timeout` milliseconds
+/// have elapsed.
+///
+/// After calling `block_current_task`, call `yield_now` to switch to another task.
+#[inline(always)]
+pub unsafe fn block_current_task_with_timeout(timeout: u64) {
+	sys_block_current_task_with_timeout(timeout);
 }
 
 /// Wakeup task with the thread id `tid`
