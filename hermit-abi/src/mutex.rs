@@ -214,7 +214,8 @@ impl Mutex {
 						id: getpid(),
 						current_prio: prio,
 						base_prio: prio,
-					}
+					};
+					return;
 				}
 				MutexState::Locked {
 					id,
