@@ -1,6 +1,5 @@
 /// Example is derived from tiny-http example
 /// https://github.com/tiny-http/tiny-http/blob/master/examples/hello-world.rs
-use ascii::AsciiString;
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
 
@@ -14,13 +13,15 @@ fn main() {
 	let server = tiny_http::Server::http("0.0.0.0:9975").unwrap();
 	println!("Now listening on port 9975");
 
-	for rq in server.incoming_requests() {
-		let response = tiny_http::Response::from_string(text.to_string())
-			.with_status_code(200)
-			.with_header(tiny_http::Header {
-				field: "Content-Type".parse().unwrap(),
-				value: AsciiString::from_ascii("text/plain; charset=utf8").unwrap(),
-			});
-		let _ = rq.respond(response);
+	for request in server.incoming_requests() {
+		println!(
+			"received request! method: {:?}, url: {:?}, headers: {:?}",
+			request.method(),
+			request.url(),
+			request.headers()
+		);
+
+		let response = tiny_http::Response::from_string(text.clone());
+		request.respond(response).expect("Responded");
 	}
 }
