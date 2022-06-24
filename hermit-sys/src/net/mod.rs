@@ -31,7 +31,7 @@ use smoltcp::Error;
 use tock_registers::interfaces::Readable;
 
 use crate::net::device::HermitNet;
-use crate::net::executor::{block_on, poll_on, spawn};
+use crate::net::executor::{block_on, spawn};
 use crate::net::mutex::Mutex;
 use crate::net::waker::WakerRegistration;
 
@@ -167,6 +167,10 @@ impl AsyncSocket {
 		Self(handle)
 	}
 
+	fn poll(&self) {
+		let _ = NIC.lock().as_nic_mut().unwrap().iface.poll(Instant::now());
+	}
+
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
 		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
@@ -193,8 +197,8 @@ impl AsyncSocket {
 		let address = IpAddress::from_str(std::str::from_utf8(ip).map_err(|_| Error::Illegal)?)
 			.map_err(|_| Error::Illegal)?;
 
-		self.with_context(|s, cx| {
-			s.connect(
+		self.with_context(|socket, cx| {
+			socket.connect(
 				cx,
 				(address, port),
 				LOCAL_ENDPOINT.fetch_add(1, Ordering::SeqCst),
@@ -203,11 +207,11 @@ impl AsyncSocket {
 		.map_err(|_| Error::Illegal)?;
 
 		future::poll_fn(|cx| {
-			self.with(|s| match s.state() {
+			self.with(|socket| match socket.state() {
 				TcpState::Closed | TcpState::TimeWait => Poll::Ready(Err(Error::Unaddressable)),
 				TcpState::Listen => Poll::Ready(Err(Error::Illegal)),
 				TcpState::SynSent | TcpState::SynReceived => {
-					s.register_send_waker(cx.waker());
+					socket.register_send_waker(cx.waker());
 					Poll::Pending
 				}
 				_ => Poll::Ready(Ok(self.0)),
@@ -217,20 +221,20 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn accept(&self, port: u16) -> Result<(IpAddress, u16), Error> {
-		self.with(|s| s.listen(port).map_err(|_| Error::Illegal))?;
+		self.with(|socket| socket.listen(port).map_err(|_| Error::Illegal))?;
 
 		future::poll_fn(|cx| {
-			self.with(|s| {
-				if s.is_active() {
+			self.with(|socket| {
+				if socket.is_active() {
 					Poll::Ready(Ok(()))
 				} else {
-					match s.state() {
+					match socket.state() {
 						TcpState::Closed
 						| TcpState::Closing
 						| TcpState::FinWait1
 						| TcpState::FinWait2 => Poll::Ready(Err(Error::Illegal)),
 						_ => {
-							s.register_recv_waker(cx.waker());
+							socket.register_recv_waker(cx.waker());
 							Poll::Pending
 						}
 					}
@@ -250,21 +254,21 @@ impl AsyncSocket {
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
 		future::poll_fn(|cx| {
-			self.with(|s| match s.state() {
+			self.with(|socket| match socket.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
 				| TcpState::Closed
 				| TcpState::Closing
 				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
 				_ => {
-					if s.may_recv() {
-						let n = s.recv_slice(buffer)?;
+					if socket.can_recv() {
+						let n = socket.recv_slice(buffer)?;
 						if n > 0 || buffer.is_empty() {
 							return Poll::Ready(Ok(n));
 						}
 					}
 
-					s.register_recv_waker(cx.waker());
+					socket.register_recv_waker(cx.waker());
 					Poll::Pending
 				}
 			})
@@ -274,42 +278,47 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
-		future::poll_fn(|cx| {
-			self.with(|s| match s.state() {
+		let ret = future::poll_fn(|cx| {
+			self.with(|socket| match socket.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
 				| TcpState::Closed
 				| TcpState::Closing
 				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
 				_ => {
-					if !s.may_recv() {
-						Poll::Ready(Ok(0))
-					} else if s.can_send() {
-						Poll::Ready(s.send_slice(buffer).map_err(|_| Error::Illegal))
+					if !socket.may_send() {
+						Poll::Ready(Err(Error::Illegal))
+					} else if socket.can_send() {
+						Poll::Ready(socket.send_slice(buffer).map_err(|_| Error::Illegal))
 					} else {
-						s.register_send_waker(cx.waker());
+						socket.register_send_waker(cx.waker());
 						Poll::Pending
 					}
 				}
 			})
 		})
-		.await
+		.await;
+
+		// just to flush send buffers
+		self.poll();
+
+		ret
 	}
 
 	pub(crate) async fn close(&self) -> Result<(), Error> {
 		future::poll_fn(|cx| {
-			self.with(|s| match s.state() {
+			self.with(|socket| match socket.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
 				| TcpState::Closed
 				| TcpState::Closing
 				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
 				_ => {
-					if s.send_queue() > 0 {
-						s.register_send_waker(cx.waker());
+					if socket.send_queue() > 0 {
+						socket.register_send_waker(cx.waker());
 						Poll::Pending
 					} else {
-						s.close();
+						socket.close();
 						Poll::Ready(Ok(()))
 					}
 				}
@@ -318,14 +327,14 @@ impl AsyncSocket {
 		.await?;
 
 		future::poll_fn(|cx| {
-			self.with(|s| match s.state() {
+			self.with(|socket| match socket.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
 				| TcpState::Closed
 				| TcpState::Closing
 				| TcpState::TimeWait => Poll::Ready(Ok(())),
 				_ => {
-					s.register_send_waker(cx.waker());
+					socket.register_send_waker(cx.waker());
 					Poll::Pending
 				}
 			})
@@ -375,6 +384,7 @@ extern "C" fn nic_thread(_: usize) {
 
 		if let NetworkState::Initialized(nic) = NIC.lock().deref_mut() {
 			nic.poll_common(Instant::now());
+			nic.wake();
 		}
 	}
 }
@@ -416,13 +426,13 @@ pub fn sys_tcp_stream_connect(ip: &[u8], port: u16, timeout: Option<u64>) -> Res
 #[no_mangle]
 pub fn sys_tcp_stream_read(handle: Handle, buffer: &mut [u8]) -> Result<usize, ()> {
 	let socket = AsyncSocket::from(handle);
-	poll_on(socket.read(buffer), None)?.map_err(|_| ())
+	block_on(socket.read(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]
 pub fn sys_tcp_stream_write(handle: Handle, buffer: &[u8]) -> Result<usize, ()> {
 	let socket = AsyncSocket::from(handle);
-	poll_on(socket.write(buffer), None)?.map_err(|_| ())
+	block_on(socket.write(buffer), None)?.map_err(|_| ())
 }
 
 #[no_mangle]

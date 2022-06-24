@@ -39,8 +39,6 @@ impl WakerRegistration {
 
 	/// Wake the registered waker, if any.
 	pub(crate) fn wake(&mut self) {
-		if let Some(w) = self.waker.take() {
-			w.wake();
-		}
+		self.waker.take().map(|w| w.wake());
 	}
 }

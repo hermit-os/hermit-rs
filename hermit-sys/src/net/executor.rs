@@ -21,7 +21,6 @@ extern "C" {
 	fn sys_wakeup_task(tid: Tid);
 	fn sys_set_network_polling_mode(value: bool);
 	fn sys_block_current_task_with_timeout(timeout: u64);
-	fn sys_block_current_task();
 }
 
 lazy_static! {
@@ -29,13 +28,22 @@ lazy_static! {
 }
 
 fn run_executor() {
+	// execute all futures and reschedule them
+	// ToDo: don't wake every Runnable immediatly
+	//          -> mark futures safe to be detached, if they
+	//             register a waker before Pending
+	let mut wake_buf = Vec::with_capacity(QUEUE.len());
 	while let Ok(runnable) = QUEUE.pop() {
+		wake_buf.push(runnable.waker());
 		runnable.run();
+	}
+	for waker in wake_buf {
+		waker.wake()
 	}
 }
 
 /// Spawns a future on the executor.
-pub fn spawn<F, T>(future: F) -> Task<T>
+pub(crate) fn spawn<F, T>(future: F) -> Task<T>
 where
 	F: Future<Output = T> + Send + 'static,
 	T: Send + 'static,
@@ -84,19 +92,17 @@ impl Wake for ThreadNotify {
 	}
 }
 
-thread_local! {
-	static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
-}
-
-pub fn poll_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
+/// Blocks the current thread on `f`, running the executor when idling.
+pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
 where
 	F: Future<Output = T>,
 {
-	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
-		unsafe {
-			sys_set_network_polling_mode(true);
-		}
+	thread_local! {
+		static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
+	}
 
+	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+		unsafe { sys_set_network_polling_mode(true) }
 		let start = Instant::now();
 		let waker = thread_notify.clone().into();
 		let mut cx = Context::from_waker(&waker);
@@ -119,50 +125,26 @@ where
 				}
 			}
 
-			run_executor()
-		}
-	})
-}
+			run_executor();
 
-/// Blocks the current thread on `f`, running the executor when idling.
-pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
-where
-	F: Future<Output = T>,
-{
-	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
-		let start = Instant::now();
-		let waker = thread_notify.clone().into();
-		let mut cx = Context::from_waker(&waker);
-		pin!(future);
+			let delay = network_delay(start).map(|d| d.total_millis());
 
-		loop {
-			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
-				return Ok(t);
-			}
-
-			if let Some(duration) = timeout {
-				if Instant::now() >= start + duration {
-					return Err(());
-				}
-			}
-
-			let delay = network_delay(Instant::now()).map(|d| d.total_millis());
-
-			if delay.is_none() || delay.unwrap() > 100 {
-				let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
-				if !unparked {
-					unsafe {
-						match delay {
-							Some(d) => sys_block_current_task_with_timeout(d),
-							None => sys_block_current_task(),
-						};
-						sys_yield();
+			match delay {
+				Some(d) => {
+					if d > 100 {
+						let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
+						if !unparked {
+							unsafe {
+								sys_set_network_polling_mode(false);
+								sys_block_current_task_with_timeout(d);
+								sys_yield();
+								sys_set_network_polling_mode(true);
+							}
+							thread_notify.unparked.store(false, Ordering::Release);
+						}
 					}
-					thread_notify.unparked.store(false, Ordering::Release);
-					run_executor()
 				}
-			} else {
-				run_executor()
+				None => {}
 			}
 		}
 	})
