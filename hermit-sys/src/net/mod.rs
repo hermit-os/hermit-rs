@@ -167,10 +167,6 @@ impl AsyncSocket {
 		Self(handle)
 	}
 
-	fn poll(&self) {
-		let _ = NIC.lock().as_nic_mut().unwrap().iface.poll(Instant::now());
-	}
-
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
 		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
@@ -179,6 +175,8 @@ impl AsyncSocket {
 			f(s)
 		};
 		nic.wake();
+		// just to flush send buffers
+		let _ = nic.iface.poll(Instant::now());
 		res
 	}
 
@@ -190,6 +188,8 @@ impl AsyncSocket {
 			f(s, cx)
 		};
 		nic.wake();
+		// just to flush send buffers
+		let _ = nic.iface.poll(Instant::now());
 		res
 	}
 
@@ -298,9 +298,6 @@ impl AsyncSocket {
 			})
 		})
 		.await;
-
-		// just to flush send buffers
-		self.poll();
 
 		ret
 	}
