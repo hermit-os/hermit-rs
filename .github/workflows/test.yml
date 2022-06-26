@@ -70,7 +70,7 @@ jobs:
       - name: Build httpd with DHCP support
         run:
           cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package httpd --features ci,dhcpv4
-      - name: Test httpd
+      - name: Test httpd with DHCP support
         run: |
           qemu-system-x86_64 -smp 1 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
             -device isa-debug-exit,iobase=0xf4,iosize=0x04 -display none -m 128M -serial stdio \
