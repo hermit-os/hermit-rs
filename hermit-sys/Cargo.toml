@@ -55,7 +55,7 @@ async-task = { version = "4.2", optional = true }
 concurrent-queue = { version = "1.2", optional = true }
 futures-lite = { version = "1.11", optional = true }
 lazy_static = { version = "1.4", optional = true }
-hermit-abi = { version = "0.2.2", optional = true }
+hermit-abi = { version = "0.2.3", optional = true }
 
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
