@@ -13,10 +13,11 @@ path = "../../hermit-sys"
 default-features = false
 
 [features]
-default = ["pci", "acpi", "tcp"]
+default = ["pci", "pci-ids", "acpi", "tcp"]
 vga = ["hermit-sys/vga"]
 dhcpv4 = ["hermit-sys/dhcpv4"]
 pci = ["hermit-sys/pci"]
+pci-ids = ["hermit-sys/pci-ids"]
 acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
