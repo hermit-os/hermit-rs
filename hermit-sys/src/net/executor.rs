@@ -72,7 +72,7 @@ impl ThreadNotify {
 
 impl Drop for ThreadNotify {
 	fn drop(&mut self) {
-		println!("Dropping ThreadNotify!");
+		debug!("Dropping ThreadNotify!");
 	}
 }
 

@@ -13,7 +13,23 @@ fn main() {
 	let server = tiny_http::Server::http("0.0.0.0:9975").unwrap();
 	println!("Now listening on port 9975");
 
+	// In the CI httpd should only answer one request
+
+	#[cfg(not(feature = "ci"))]
 	for request in server.incoming_requests() {
+		println!(
+			"received request! method: {:?}, url: {:?}, headers: {:?}",
+			request.method(),
+			request.url(),
+			request.headers()
+		);
+
+		let response = tiny_http::Response::from_string(text.clone());
+		request.respond(response).expect("Responded");
+	}
+
+	#[cfg(feature = "ci")]
+	if let Some(request) = server.incoming_requests().next() {
 		println!(
 			"received request! method: {:?}, url: {:?}, headers: {:?}",
 			request.method(),

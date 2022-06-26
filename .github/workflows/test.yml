@@ -23,23 +23,25 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - name: Install QEMU, NASM (ubuntu)
+      - name: Install CURL, QEMU, NASM (ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-x86 nasm
-      - name: Install QEMU, NASM (macos)
+          sudo apt-get install qemu-system-x86 nasm curl
+      - name: Install CURL, QEMU, NASM (macos)
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
-          brew install qemu nasm
-      - name: Install QEMU, NASM (windows)
+          brew install qemu nasm curl
+      - name: Install CURL, QEMU, NASM (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           choco install qemu --version 2021.12.15
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           choco install nasm
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
+          choco install curl
+          echo "C:\Program Files\curl" >> $GITHUB_PATH
       - uses: actions/checkout@v3
         with:
           submodules: true
@@ -67,7 +69,18 @@ jobs:
             -initrd target/x86_64-unknown-hermit/release/rusty_demo
       - name: Build httpd with DHCP support
         run:
-          cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package httpd --features dhcpv4
+          cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package httpd --features ci,dhcpv4
+      - name: Test httpd with DHCP support
+        run: |
+          qemu-system-x86_64 -smp 1 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
+            -device isa-debug-exit,iobase=0xf4,iosize=0x04 -display none -m 128M -serial stdio \
+            -kernel loader/target/x86_64/release/rusty-loader \
+            -initrd target/x86_64-unknown-hermit/debug/httpd \
+            -netdev user,id=u1,hostfwd=tcp::9975-:9975,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
+            -device rtl8139,netdev=u1 &
+            sleep 5
+            curl http://127.0.0.1:9975/help
+            sleep 1
       - name: Build httpd without DHCP support
         run:
           cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package httpd

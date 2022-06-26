@@ -80,9 +80,7 @@ pub(crate) struct NetworkInterface<T: for<'a> Device<'a>> {
 	#[cfg(not(feature = "trace"))]
 	pub iface: smoltcp::iface::Interface<'static, T>,
 	#[cfg(feature = "dhcpv4")]
-	dhcp: Dhcpv4Socket,
-	#[cfg(feature = "dhcpv4")]
-	prev_cidr: Ipv4Cidr,
+	dhcp_handle: SocketHandle,
 	waker: WakerRegistration,
 }
 
@@ -108,45 +106,46 @@ where
 			// just to make progress
 		}
 		#[cfg(feature = "dhcpv4")]
-		let config = self.dhcp.poll().and_then(|event| match event {
-			Dhcpv4Event::Configured(config) => Some(config),
-			Dhcpv4Event::Deconfigured => None,
-		});
-		#[cfg(feature = "dhcpv4")]
-		config.map(|config| {
-			debug!("DHCP config: {:?}", config);
-			let cidr = config.address;
-			if cidr != self.prev_cidr && !cidr.address().is_unspecified() {
+		match self
+			.iface
+			.get_socket::<Dhcpv4Socket>(self.dhcp_handle)
+			.poll()
+		{
+			None => {}
+			Some(Dhcpv4Event::Configured(config)) => {
+				info!("DHCP config acquired!");
+				info!("IP address:      {}", config.address);
 				self.iface.update_ip_addrs(|addrs| {
-					addrs.iter_mut().next().map(|addr| {
-						*addr = IpCidr::Ipv4(cidr);
-					});
+					let dest = addrs.iter_mut().next().unwrap();
+					*dest = IpCidr::Ipv4(config.address);
 				});
-				self.prev_cidr = cidr;
-				debug!("Assigned a new IPv4 address: {}", cidr);
-			}
+				if let Some(router) = config.router {
+					info!("Default gateway: {}", router);
+					self.iface
+						.routes_mut()
+						.add_default_ipv4_route(router)
+						.unwrap();
+				} else {
+					info!("Default gateway: None");
+					self.iface.routes_mut().remove_default_ipv4_route();
+				}
 
-			config.router.map(|router| {
-				self.iface
-					.routes_mut()
-					.add_default_ipv4_route(router)
-					.unwrap()
-			});
-			self.iface.routes_mut().update(|routes_map| {
-				routes_map
-					.get(&IpCidr::new(Ipv4Address::UNSPECIFIED.into(), 0))
-					.map(|default_route| {
-						debug!("Default gateway: {}", default_route.via_router);
-					});
-			});
-
-			if config.dns_servers.iter().any(|s| s.is_some()) {
-				debug!("DNS servers:");
-				for dns_server in config.dns_servers.iter().filter_map(|s| *s) {
-					debug!("- {}", dns_server);
+				for (i, s) in config.dns_servers.iter().enumerate() {
+					if let Some(s) = s {
+						info!("DNS server {}:    {}", i, s);
+					}
 				}
 			}
-		});
+			Some(Dhcpv4Event::Deconfigured) => {
+				info!("DHCP lost config!");
+				let cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
+				self.iface.update_ip_addrs(|addrs| {
+					let dest = addrs.iter_mut().next().unwrap();
+					*dest = IpCidr::Ipv4(cidr);
+				});
+				self.iface.routes_mut().remove_default_ipv4_route();
+			}
+		};
 	}
 
 	pub(crate) fn poll(&mut self, cx: &mut Context<'_>, timestamp: Instant) {
