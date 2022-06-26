@@ -12,8 +12,6 @@ use smoltcp::socket::Dhcpv4Socket;
 use smoltcp::time::Instant;
 #[cfg(not(feature = "dhcpv4"))]
 use smoltcp::wire::IpAddress;
-#[cfg(feature = "dhcpv4")]
-use smoltcp::wire::Ipv4Cidr;
 use smoltcp::wire::{EthernetAddress, HardwareAddress, IpCidr, Ipv4Address};
 
 use crate::net::waker::WakerRegistration;
@@ -116,19 +114,19 @@ impl NetworkInterface<HermitNet> {
 		info!("MTU: {} bytes", mtu);
 
 		let dhcp = Dhcpv4Socket::new();
-		let prev_cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
 
-		let iface = InterfaceBuilder::new(device, vec![])
+		let mut iface = InterfaceBuilder::new(device, vec![])
 			.hardware_addr(hardware_addr)
 			.neighbor_cache(neighbor_cache)
 			.ip_addrs(ip_addrs)
 			.routes(routes)
 			.finalize();
 
+		let dhcp_handle = iface.add_socket(dhcp);
+
 		NetworkState::Initialized(Self {
 			iface,
-			dhcp,
-			prev_cidr,
+			dhcp_handle,
 			waker: WakerRegistration::new(),
 		})
 	}
