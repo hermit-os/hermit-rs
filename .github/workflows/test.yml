@@ -27,12 +27,12 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-x86 nasm
+          sudo apt-get install qemu-system-x86 nasm curl
       - name: Install QEMU, NASM (macos)
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           brew update
-          brew install qemu nasm
+          brew install qemu nasm curl
       - name: Install QEMU, NASM (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
@@ -40,6 +40,8 @@ jobs:
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           choco install nasm
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
+          choco install curl
+          echo "C:\Program Files\curl" >> $GITHUB_PATH
       - uses: actions/checkout@v3
         with:
           submodules: true
