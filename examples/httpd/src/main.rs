@@ -23,5 +23,9 @@ fn main() {
 
 		let response = tiny_http::Response::from_string(text.clone());
 		request.respond(response).expect("Responded");
+
+		// In the CI httpd should only answer one request
+		#[cfg(not(feature = "ci"))]
+		return;
 	}
 }
