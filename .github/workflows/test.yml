@@ -74,7 +74,7 @@ jobs:
         run: |
           qemu-system-x86_64 -smp 1 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
             -device isa-debug-exit,iobase=0xf4,iosize=0x04 -display none -m 128M -serial stdio \
-            -kernel loader/target/x86_64/debug/rusty-loader \
+            -kernel loader/target/x86_64/release/rusty-loader \
             -initrd target/x86_64-unknown-hermit/debug/httpd \
             -netdev user,id=u1,hostfwd=tcp::9975-:9975,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
             -device rtl8139,netdev=u1 &
