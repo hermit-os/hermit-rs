@@ -54,7 +54,7 @@ Consequently, it is required to **extend** *Cargo.toml* with following lines:
 # Cargo.toml
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit-sys = "0.1.*"
+hermit-sys = "0.2.*"
 ```
 
 To link the application with RustyHermit, declare `hermit_sys` an `external crate` in the main file of your application.
@@ -204,9 +204,9 @@ Add the feature `tcp` in the `Cargo.toml`. This includes the network stack [smol
 # Cargo.toml
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
-version = "0.1.*"
+version = "0.2.*"
 default-features = false
-features = ["tcp"]
+features = ["tcp", "pci"]
 ```
 
 Per default, RustyHermit's network interface uses `10.0.5.3` as IP address, `10.0.5.1`
@@ -225,6 +225,7 @@ To use it, you have to start RustyHermit in Qemu with following command:
 ```bash
 $ qemu-system-x86_64 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr \
         -enable-kvm -display none -smp 1 -m 1G -serial stdio \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
         -kernel path_to_loader/rusty-loader \
         -initrd path_to_app/app \
         -netdev tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=on \
