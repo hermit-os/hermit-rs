@@ -36,7 +36,7 @@ jobs:
       - name: Install CURL, QEMU, NASM (windows)
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          choco install qemu --version 2021.12.15
+          choco install qemu
           echo "C:\Program Files\qemu" >> $GITHUB_PATH
           choco install nasm
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
