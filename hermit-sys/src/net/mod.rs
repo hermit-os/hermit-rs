@@ -277,7 +277,7 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
-		let ret = future::poll_fn(|cx| {
+		future::poll_fn(|cx| {
 			self.with(|socket| match socket.state() {
 				TcpState::FinWait1
 				| TcpState::FinWait2
@@ -296,9 +296,7 @@ impl AsyncSocket {
 				}
 			})
 		})
-		.await;
-
-		ret
+		.await
 	}
 
 	pub(crate) async fn close(&self) -> Result<(), Error> {
