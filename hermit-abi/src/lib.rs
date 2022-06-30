@@ -96,9 +96,22 @@ pub const HIGH_PRIO: Priority = Priority::from(3);
 pub const NORMAL_PRIO: Priority = Priority::from(2);
 pub const LOW_PRIO: Priority = Priority::from(1);
 
-/// A handle, identifying a socket
+/// A handle to identify a socket
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Handle(usize);
+pub struct SocketHandle(usize);
+
+/// A handle to identify IO operations
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Handle {
+	Socket(SocketHandle),
+	Invalid,
+}
+
+impl Default for Handle {
+	fn default() -> Self {
+		Handle::Invalid
+	}
+}
 
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const CLOCK_REALTIME: u64 = 1;
