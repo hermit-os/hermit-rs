@@ -1,6 +1,6 @@
 //! `tcplistener` provide an interface to establish tcp socket server.
 
-use crate::{Handle, Handle::Socket, IpAddress, SocketHandle};
+use crate::{Handle, IpAddress, SocketHandle};
 
 extern "Rust" {
 	fn sys_tcp_listener_accept(port: u16) -> Result<(SocketHandle, IpAddress, u16), ()>;
