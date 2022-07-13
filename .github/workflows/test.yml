@@ -49,14 +49,16 @@ jobs:
         run: rustup show
       - name: Build dev profile
         run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
-      - name: Build loader
-        working-directory: loader
-        run: cargo xtask build --arch x86_64 --release
+      - name: Download loader
+        uses: dsaltares/fetch-gh-release-asset@1.0.0
+        with:
+          repo: hermitcore/rusty-loader
+          file: rusty-loader-x86_64
       - name: Test dev profile
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
             -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-            -kernel loader/target/x86_64/release/rusty-loader \
+            -kernel rusty-loader-x86_64 \
             -initrd target/x86_64-unknown-hermit/debug/rusty_demo
       - name: Build release profile
         run:
@@ -65,7 +67,7 @@ jobs:
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
             -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-            -kernel loader/target/x86_64/release/rusty-loader \
+            -kernel rusty-loader-x86_64 \
             -initrd target/x86_64-unknown-hermit/release/rusty_demo
       - name: Build httpd with DHCP support
         run:
@@ -74,7 +76,7 @@ jobs:
         run: |
           qemu-system-x86_64 -smp 1 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
             -device isa-debug-exit,iobase=0xf4,iosize=0x04 -display none -m 128M -serial stdio \
-            -kernel loader/target/x86_64/release/rusty-loader \
+            -kernel rusty-loader-x86_64 \
             -initrd target/x86_64-unknown-hermit/debug/httpd \
             -netdev user,id=u1,hostfwd=tcp::9975-:9975,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
             -device rtl8139,netdev=u1 &
