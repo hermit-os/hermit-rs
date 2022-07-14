@@ -28,15 +28,17 @@ jobs:
         username: hermitcore
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build demo
-      run: |
-        cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --no-default-features -p rusty_demo --release
-        cd loader
-        cargo xtask build --arch x86_64 --release
+      run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --no-default-features -p rusty_demo --release
+    - name: Download loader
+      uses: dsaltares/fetch-gh-release-asset@1.0.0
+      with:
+        repo: hermitcore/rusty-loader
+        file: rusty-loader-x86_64
     - name: Create dockerfile
       run: |
         cat << END > Dockerfile
         FROM scratch
-        COPY loader/target/x86_64/release/rusty-loader hermit/rusty-loader
+        COPY rusty-loader-x86_64 hermit/rusty-loader
         COPY target/x86_64-unknown-hermit/release/rusty_demo hermit/rusty_demo
         CMD ["/hermit/rusty_demo"]
         END

@@ -106,24 +106,16 @@ More details can be found in the [uhyve README](https://github.com/hermitcore/uh
 It is also possible to run RustyHermit within [Qemu](https://www.qemu.org).
 RustyHermit produces 64-bit binaries, but Qemu's x86 emulation cannot boot them directly.
 Therefore, the loader [rusty-loader](https://github.com/hermitcore/rusty-loader) is required to boot the application.
-To build the loader, the assembler [nasm](https://www.nasm.us) is required.
-After the installation, the loader can be built as follows.
+A prebuilt loader binary can be found at [rusty-loader releases](https://github.com/hermitcore/rusty-loader/releases).
 
-```bash
-git clone https://github.com/hermitcore/rusty-loader.git
-cd rusty-loader
-cargo xtask build --arch x86_64
-```
-
-Afterwards, the loader is stored in `target/x86_64/debug/` as `rusty-loader`.
-As final step, the unikernel application `app` can be booted with following command:
+The unikernel application `app` can be booted with the following command:
 
 ```bash
 qemu-system-x86_64 -smp 1 \
     -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     -display none -m 64M -serial stdio -enable-kvm \
-    -kernel path_to_loader/rusty-loader \
+    -kernel path_to_loader/rusty-loader-x86_64 \
     -initrd path_to_app/app
 ```
 
