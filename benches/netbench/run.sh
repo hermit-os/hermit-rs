@@ -8,7 +8,7 @@ set -o errexit
 
 netbench_dir="${0%/*}"
 root_dir="$netbench_dir"/../..
-rusty_loader_dir="$root_dir"/loader
+rusty_loader_dir="$root_dir"/../rusty-loader
 
 bin=$2
 args="--bytes 1048576 --rounds 1000"
