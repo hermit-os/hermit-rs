@@ -43,13 +43,23 @@ FROM hermit-toolchain as ci-runner
 RUN set -eux; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
+        # Build dependencies
         # For SMP:
         nasm \
-        # For sfdisk:
-        util-linux \
+        \
+        # Test dependencies
+        qemu-system-x86 \
+        # For qemu-img:
+        qemu-utils \
         # For kvm-ok:
 		cpu-checker \
-        qemu-system-x86 \
+        # For sfdisk:
+        fdisk \
+        kpartx \
+        # For grub-install:
+        grub2-common \
+        # For GRUB modules:
+        grub-pc-bin \
     ; \
 	rm -rf /var/lib/apt/lists/*;
 COPY --from=stable-deps $CARGO_HOME/bin/uhyve $CARGO_HOME/bin/uhyve
