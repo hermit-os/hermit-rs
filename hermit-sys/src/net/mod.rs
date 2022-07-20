@@ -14,7 +14,6 @@ use std::u16;
 #[cfg(target_arch = "aarch64")]
 use aarch64::regs::*;
 use futures_lite::future;
-use lazy_static::lazy_static;
 use smoltcp::iface::{self, SocketHandle};
 use smoltcp::phy::Device;
 #[cfg(feature = "trace")]
@@ -50,9 +49,7 @@ impl NetworkState {
 	}
 }
 
-lazy_static! {
-	static ref NIC: Mutex<NetworkState> = Mutex::new(NetworkState::Missing);
-}
+static NIC: Mutex<NetworkState> = Mutex::new(NetworkState::Missing);
 
 extern "C" {
 	fn sys_yield();

@@ -3,7 +3,7 @@ use crate::net::network_delay;
 use async_task::{Runnable, Task};
 use concurrent_queue::ConcurrentQueue;
 use futures_lite::pin;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use smoltcp::time::{Duration, Instant};
 use std::sync::atomic::Ordering;
 use std::{
@@ -23,9 +23,7 @@ extern "C" {
 	fn sys_block_current_task_with_timeout(timeout: u64);
 }
 
-lazy_static! {
-	static ref QUEUE: ConcurrentQueue<Runnable> = ConcurrentQueue::unbounded();
-}
+static QUEUE: Lazy<ConcurrentQueue<Runnable>> = Lazy::new(ConcurrentQueue::unbounded);
 
 fn run_executor() {
 	// execute all futures and reschedule them
