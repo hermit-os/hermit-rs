@@ -23,7 +23,7 @@ pub(crate) struct MutexGuard<'a, T: ?Sized + 'a> {
 }
 
 impl<T> Mutex<T> {
-	pub fn new(t: T) -> Mutex<T> {
+	pub const fn new(t: T) -> Mutex<T> {
 		Mutex {
 			inner: abi::mutex::Mutex::new(),
 			data: UnsafeCell::new(t),
