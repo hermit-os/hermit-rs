@@ -45,6 +45,8 @@ RUN set -eux; \
 	apt-get install -y --no-install-recommends \
         # For SMP:
         nasm \
+        # For sfdisk:
+        util-linux \
         # For kvm-ok:
 		cpu-checker \
         qemu-system-x86 \
