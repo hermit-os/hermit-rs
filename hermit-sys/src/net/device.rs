@@ -126,7 +126,6 @@ impl NetworkInterface<HermitNet> {
 		NetworkState::Initialized(Self {
 			iface,
 			dhcp_handle,
-			waker: WakerRegistration::new(),
 		})
 	}
 
