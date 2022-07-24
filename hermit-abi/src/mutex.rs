@@ -2,14 +2,13 @@
 extern crate alloc;
 
 use crate::{
-	block_current_task, get_priority, getpid, set_priority, wakeup_task, yield_now, Priority, Tid,
-	NO_PRIORITIES,
+	block_current_task, get_priority, getpid, wakeup_task, yield_now, Priority, Tid, NO_PRIORITIES,
 };
 use alloc::collections::vec_deque::VecDeque;
 use core::cell::UnsafeCell;
+use core::hint;
 use core::ops::{Deref, DerefMut, Drop};
-use core::sync::atomic::{AtomicUsize, Ordering};
-use core::{hint, mem};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 /// This type provides a lock based on busy waiting to realize mutual exclusion
 ///
@@ -22,8 +21,7 @@ use core::{hint, mem};
 #[cfg_attr(target_arch = "x86_64", repr(align(128)))]
 #[cfg_attr(not(target_arch = "x86_64"), repr(align(64)))]
 struct Spinlock<T: ?Sized> {
-	queue: AtomicUsize,
-	dequeue: AtomicUsize,
+	inner: AtomicBool,
 	data: UnsafeCell<T>,
 }
 
@@ -34,24 +32,22 @@ unsafe impl<T: ?Sized + Send> Send for Spinlock<T> {}
 ///
 /// When the guard falls out of scope it will release the lock.
 struct SpinlockGuard<'a, T: ?Sized> {
-	dequeue: &'a AtomicUsize,
+	inner: &'a AtomicBool,
 	data: &'a mut T,
 }
 
 impl<T> Spinlock<T> {
 	pub const fn new(user_data: T) -> Spinlock<T> {
 		Spinlock {
-			queue: AtomicUsize::new(0),
-			dequeue: AtomicUsize::new(1),
+			inner: AtomicBool::new(false),
 			data: UnsafeCell::new(user_data),
 		}
 	}
 
 	#[inline]
 	fn obtain_lock(&self) {
-		let ticket = self.queue.fetch_add(1, Ordering::SeqCst) + 1;
 		let mut counter: u16 = 0;
-		while self.dequeue.load(Ordering::SeqCst) != ticket {
+		while self.inner.swap(true, Ordering::SeqCst) {
 			counter += 1;
 			if counter < 100 {
 				hint::spin_loop();
@@ -65,11 +61,28 @@ impl<T> Spinlock<T> {
 	}
 
 	#[inline]
+	fn try_obtain_lock(&self) -> bool {
+		!self.inner.swap(true, Ordering::SeqCst)
+	}
+
+	#[inline]
 	pub unsafe fn lock(&self) -> SpinlockGuard<'_, T> {
 		self.obtain_lock();
 		SpinlockGuard {
-			dequeue: &self.dequeue,
+			inner: &self.inner,
 			data: &mut *self.data.get(),
+		}
+	}
+
+	#[inline]
+	pub unsafe fn try_lock(&self) -> Result<SpinlockGuard<'_, T>, ()> {
+		if self.try_obtain_lock() {
+			Ok(SpinlockGuard {
+				inner: &self.inner,
+				data: &mut *self.data.get(),
+			})
+		} else {
+			Err(())
 		}
 	}
 }
@@ -96,7 +109,7 @@ impl<'a, T: ?Sized> DerefMut for SpinlockGuard<'a, T> {
 impl<'a, T: ?Sized> Drop for SpinlockGuard<'a, T> {
 	/// The dropping of the SpinlockGuard will release the lock it was created from.
 	fn drop(&mut self) {
-		self.dequeue.fetch_add(1, Ordering::SeqCst);
+		self.inner.swap(false, Ordering::SeqCst);
 	}
 }
 
@@ -157,20 +170,8 @@ impl PriorityQueue {
 	}
 }
 
-enum MutexState {
-	Unlocked,
-	Locked {
-		/// Identifies the task.
-		id: Tid,
-		/// Current priority of the task, which holds the lock
-		current_prio: Priority,
-		/// Original priority of the task, which holds the lock
-		base_prio: Priority,
-	},
-}
-
 struct MutexInner {
-	state: MutexState,
+	locked: bool,
 	/// Priority queue of blocked tasks
 	blocked_tasks: PriorityQueue,
 }
@@ -178,7 +179,7 @@ struct MutexInner {
 impl MutexInner {
 	pub const fn new() -> MutexInner {
 		Self {
-			state: MutexState::Unlocked,
+			locked: false,
 			blocked_tasks: PriorityQueue::new(),
 		}
 	}
@@ -199,40 +200,20 @@ impl Mutex {
 	}
 
 	#[inline]
-	pub unsafe fn init(&mut self) {
-		self.inner = Spinlock::new(MutexInner::new());
-	}
-
-	#[inline]
 	pub unsafe fn lock(&self) {
 		loop {
 			let mut guard = self.inner.lock();
-			match guard.state {
-				MutexState::Unlocked => {
-					let prio = get_priority();
-					guard.state = MutexState::Locked {
-						id: getpid(),
-						current_prio: prio,
-						base_prio: prio,
-					};
-					return;
-				}
-				MutexState::Locked {
-					id,
-					ref mut current_prio,
-					base_prio: _,
-				} => {
-					let prio = get_priority();
+			if !guard.locked {
+				guard.locked = true;
+				return;
+			} else {
+				let prio = get_priority();
+				let id = getpid();
 
-					if *current_prio < prio {
-						set_priority(id, prio);
-						*current_prio = prio;
-					}
-					guard.blocked_tasks.push(prio, getpid());
-					block_current_task();
-					drop(guard);
-					yield_now();
-				}
+				guard.blocked_tasks.push(prio, id);
+				block_current_task();
+				drop(guard);
+				yield_now();
 			}
 		}
 	}
@@ -240,43 +221,24 @@ impl Mutex {
 	#[inline]
 	pub unsafe fn unlock(&self) {
 		let mut guard = self.inner.lock();
-
-		if let MutexState::Locked {
-			id,
-			current_prio,
-			base_prio,
-		} = mem::replace(&mut guard.state, MutexState::Unlocked)
-		{
-			if current_prio != base_prio {
-				set_priority(id, base_prio);
-			}
-
-			guard.state = MutexState::Unlocked;
-
-			if let Some(tid) = guard.blocked_tasks.pop() {
-				wakeup_task(tid);
-			}
+		guard.locked = false;
+		if let Some(tid) = guard.blocked_tasks.pop() {
+			wakeup_task(tid);
 		}
 	}
 
 	#[inline]
 	pub unsafe fn try_lock(&self) -> bool {
-		let mut guard = self.inner.lock();
+		if let Ok(mut guard) = self.inner.try_lock() {
+			if !guard.locked {
+				guard.locked = true;
 
-		if matches!(guard.state, MutexState::Unlocked) {
-			let prio = get_priority();
-			guard.state = MutexState::Locked {
-				id: getpid(),
-				current_prio: prio,
-				base_prio: prio,
-			};
-
-			true
+				true
+			} else {
+				false
+			}
 		} else {
 			false
 		}
 	}
-
-	#[inline]
-	pub unsafe fn destroy(&self) {}
 }
