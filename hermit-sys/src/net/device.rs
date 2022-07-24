@@ -123,10 +123,7 @@ impl NetworkInterface<HermitNet> {
 
 		let dhcp_handle = iface.add_socket(dhcp);
 
-		NetworkState::Initialized(Self {
-			iface,
-			dhcp_handle,
-		})
+		NetworkState::Initialized(Self { iface, dhcp_handle })
 	}
 
 	#[cfg(not(feature = "dhcpv4"))]
