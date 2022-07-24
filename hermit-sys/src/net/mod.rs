@@ -394,7 +394,6 @@ pub(crate) async fn network_run() {
 	future::poll_fn(|cx| match NIC.lock().deref_mut() {
 		NetworkState::Initialized(nic) => {
 			nic.poll_common(Instant::now());
-			drop(nic);
 
 			// this background task will never stop
 			// => wakeup ourself
