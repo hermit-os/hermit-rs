@@ -41,6 +41,17 @@ impl<T: ?Sized> Mutex<T> {
 			data: unsafe { &mut *self.data.get() },
 		}
 	}
+
+	pub fn try_lock(&self) -> Result<MutexGuard<'_, T>, ()> {
+		if unsafe { self.inner.try_lock() } {
+			Ok(MutexGuard {
+				inner: &self.inner,
+				data: unsafe { &mut *self.data.get() },
+			})
+		} else {
+			Err(())
+		}
+	}
 }
 
 impl<T: ?Sized + Default> Default for Mutex<T> {

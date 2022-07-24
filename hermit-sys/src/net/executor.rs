@@ -81,7 +81,7 @@ impl Wake for ThreadNotify {
 
 	fn wake_by_ref(self: &Arc<Self>) {
 		// Make sure the wakeup is remembered until the next `park()`.
-		let unparked = self.unparked.swap(true, Ordering::Relaxed);
+		let unparked = self.unparked.swap(true, Ordering::AcqRel);
 		if !unparked {
 			unsafe {
 				sys_wakeup_task(self.thread);
@@ -100,6 +100,7 @@ where
 	}
 
 	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
+		// Polling mode => no NIC interrupts => NIC thread should not run
 		unsafe { sys_set_network_polling_mode(true) }
 		let start = Instant::now();
 		let waker = thread_notify.clone().into();
@@ -107,8 +108,12 @@ where
 		pin!(future);
 
 		loop {
+			// run background tasks
+			run_executor();
+
 			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
 				unsafe {
+					// allow interrupts => NIC thread is able to run
 					sys_set_network_polling_mode(false);
 				}
 				return Ok(t);
@@ -117,32 +122,28 @@ where
 			if let Some(duration) = timeout {
 				if Instant::now() >= start + duration {
 					unsafe {
+						// allow interrupts => NIC thread is able to run
 						sys_set_network_polling_mode(false);
 					}
 					return Err(());
 				}
 			}
 
-			run_executor();
-
-			let delay = network_delay(start).map(|d| d.total_millis());
-
-			match delay {
-				Some(d) => {
-					if d > 100 {
-						let unparked = thread_notify.unparked.swap(false, Ordering::Acquire);
-						if !unparked {
-							unsafe {
-								sys_set_network_polling_mode(false);
-								sys_block_current_task_with_timeout(d);
-								sys_yield();
-								sys_set_network_polling_mode(true);
-							}
-							thread_notify.unparked.store(false, Ordering::Release);
-						}
+			let now = Instant::now();
+			let delay = network_delay(now).map(|d| d.total_millis()).unwrap_or(0);
+			if delay > 100 {
+				let unparked = thread_notify.unparked.swap(false, Ordering::AcqRel);
+				if !unparked {
+					unsafe {
+						sys_block_current_task_with_timeout(delay);
+						// allow interrupts => NIC thread is able to run
+						sys_set_network_polling_mode(false);
+						// switch to another task
+						sys_yield();
+						// Polling mode => no NIC interrupts => NIC thread should not run
+						sys_set_network_polling_mode(true);
 					}
 				}
-				None => {}
 			}
 		}
 	})

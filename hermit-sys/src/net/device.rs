@@ -14,7 +14,6 @@ use smoltcp::time::Instant;
 use smoltcp::wire::IpAddress;
 use smoltcp::wire::{EthernetAddress, HardwareAddress, IpCidr, Ipv4Address};
 
-use crate::net::waker::WakerRegistration;
 use crate::net::{NetworkInterface, NetworkState};
 
 extern "Rust" {
@@ -196,10 +195,7 @@ impl NetworkInterface<HermitNet> {
 			.routes(routes)
 			.finalize();
 
-		NetworkState::Initialized(Self {
-			iface,
-			waker: WakerRegistration::new(),
-		})
+		NetworkState::Initialized(Self { iface })
 	}
 }
 
