@@ -25,18 +25,15 @@ extern "C" {
 
 static QUEUE: Lazy<ConcurrentQueue<Runnable>> = Lazy::new(ConcurrentQueue::unbounded);
 
-fn run_executor() {
-	// execute all futures and reschedule them
-	// ToDo: don't wake every Runnable immediatly
-	//          -> mark futures safe to be detached, if they
-	//             register a waker before Pending
-	let mut wake_buf = Vec::with_capacity(QUEUE.len());
+fn run_executor_once() {
+	let mut runnables = Vec::with_capacity(QUEUE.len());
+
 	while let Ok(runnable) = QUEUE.pop() {
-		wake_buf.push(runnable.waker());
-		runnable.run();
+		runnables.push(runnable);
 	}
-	for waker in wake_buf {
-		waker.wake()
+
+	for runnable in runnables {
+		runnable.run();
 	}
 }
 
@@ -109,7 +106,7 @@ where
 
 		loop {
 			// run background tasks
-			run_executor();
+			run_executor_once();
 
 			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
 				unsafe {

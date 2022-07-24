@@ -391,9 +391,15 @@ pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
 }
 
 pub(crate) async fn network_run() {
-	future::poll_fn(|_cx| match NIC.lock().deref_mut() {
+	future::poll_fn(|cx| match NIC.lock().deref_mut() {
 		NetworkState::Initialized(nic) => {
 			nic.poll_common(Instant::now());
+			drop(nic);
+
+			// this background task will never stop
+			// => wakeup ourself
+			cx.waker().clone().wake();
+
 			Poll::Pending
 		}
 		_ => Poll::Ready(()),
