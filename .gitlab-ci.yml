@@ -134,11 +134,12 @@ test:httpd_image:
      - docker login --username "${CI_REGISTRY_USER}" --password "${CI_REGISTRY_PASSWORD}" "${CI_REGISTRY}"
    script:
      - wget "https://github.com/hermitcore/rusty-loader/releases/download/v0.3.0/rusty-loader-x86_64"
+     - cp target/x86_64-unknown-hermit/release/httpd .
      - |
        cat << END > ${DOCKER_FILE}
        FROM scratch
        COPY rusty-loader-x86_64 hermit/loader
-       COPY target/x86_64-unknown-hermit/release/httpd hermit/httpd
+       COPY httpd hermit/httpd
        END
      - docker build -f ${DOCKER_FILE} -t ${DOCKER_IMAGE}/httpd_mvm:latest .
      - docker push ${DOCKER_IMAGE}/httpd_mvm:latest
