@@ -1,14 +1,13 @@
 pub mod device;
 mod executor;
 mod mutex;
-mod waker;
 
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::_rdtsc;
 use std::ops::DerefMut;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU16, Ordering};
-use std::task::{Context, Poll};
+use std::task::Poll;
 use std::u16;
 
 #[cfg(target_arch = "aarch64")]
@@ -32,7 +31,6 @@ use tock_registers::interfaces::Readable;
 use crate::net::device::HermitNet;
 use crate::net::executor::{block_on, spawn};
 use crate::net::mutex::Mutex;
-use crate::net::waker::WakerRegistration;
 
 pub(crate) enum NetworkState {
 	Missing,
@@ -61,6 +59,7 @@ extern "C" {
 		selector: isize,
 	) -> i32;
 	fn sys_netwait();
+	fn sys_assign_task_to_nic();
 }
 
 pub type Handle = SocketHandle;
@@ -78,7 +77,6 @@ pub(crate) struct NetworkInterface<T: for<'a> Device<'a>> {
 	pub iface: smoltcp::iface::Interface<'static, T>,
 	#[cfg(feature = "dhcpv4")]
 	dhcp_handle: SocketHandle,
-	waker: WakerRegistration,
 }
 
 impl<T> NetworkInterface<T>
@@ -92,10 +90,6 @@ where
 		let tcp_handle = self.iface.add_socket(tcp_socket);
 
 		Ok(tcp_handle)
-	}
-
-	pub(crate) fn wake(&mut self) {
-		self.waker.wake()
 	}
 
 	pub(crate) fn poll_common(&mut self, timestamp: Instant) {
@@ -145,11 +139,6 @@ where
 		};
 	}
 
-	pub(crate) fn poll(&mut self, cx: &mut Context<'_>, timestamp: Instant) {
-		self.waker.register(cx.waker());
-		self.poll_common(timestamp);
-	}
-
 	pub(crate) fn poll_delay(&mut self, timestamp: Instant) -> Option<Duration> {
 		self.iface.poll_delay(timestamp)
 	}
@@ -170,9 +159,10 @@ impl AsyncSocket {
 			let s = nic.iface.get_socket::<TcpSocket>(self.0);
 			f(s)
 		};
-		nic.wake();
-		// just to flush send buffers
-		let _ = nic.iface.poll(Instant::now());
+		let now = Instant::now();
+		if nic.poll_delay(now).map(|d| d.total_millis()).unwrap_or(0) == 0 {
+			nic.poll_common(now);
+		}
 		res
 	}
 
@@ -183,9 +173,10 @@ impl AsyncSocket {
 			let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
 			f(s, cx)
 		};
-		nic.wake();
-		// just to flush send buffers
-		let _ = nic.iface.poll(Instant::now());
+		let now = Instant::now();
+		if nic.poll_delay(now).map(|d| d.total_millis()).unwrap_or(0) == 0 {
+			nic.poll_common(now);
+		}
 		res
 	}
 
@@ -230,7 +221,7 @@ impl AsyncSocket {
 						| TcpState::FinWait1
 						| TcpState::FinWait2 => Poll::Ready(Err(Error::Illegal)),
 						_ => {
-							socket.register_recv_waker(cx.waker());
+							socket.register_send_waker(cx.waker());
 							Poll::Pending
 						}
 					}
@@ -249,51 +240,94 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
-		future::poll_fn(|cx| {
-			self.with(|socket| match socket.state() {
-				TcpState::FinWait1
-				| TcpState::FinWait2
-				| TcpState::Closed
-				| TcpState::Closing
-				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
-				_ => {
-					if socket.can_recv() {
-						let n = socket.recv_slice(buffer)?;
-						if n > 0 || buffer.is_empty() {
-							return Poll::Ready(Ok(n));
-						}
-					}
+		let len = buffer.len();
+		let mut pos: usize = 0;
 
-					socket.register_recv_waker(cx.waker());
-					Poll::Pending
-				}
+		while pos < len {
+			let n = future::poll_fn(|cx| {
+				self.with(|socket| match socket.state() {
+					TcpState::FinWait1
+					| TcpState::FinWait2
+					| TcpState::Closed
+					| TcpState::Closing
+					| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+					_ => {
+						if socket.can_recv() {
+							let n = socket
+								.recv_slice(&mut buffer[pos..])
+								.map_err(|_| Error::Illegal)?;
+							if n > 0 {
+								return Poll::Ready(Ok(n));
+							}
+						}
+
+						if pos > 0 {
+							// we already receive some data => return 0 as signal to stop the
+							// async read
+							return Poll::Ready(Ok(0));
+						}
+
+						socket.register_recv_waker(cx.waker());
+						Poll::Pending
+					}
+				})
 			})
-		})
-		.await
-		.map_err(|_| Error::Illegal)
+			.await?;
+
+			if n == 0 {
+				return Ok(pos);
+			}
+
+			pos += n;
+		}
+
+		Ok(pos)
 	}
 
 	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
-		future::poll_fn(|cx| {
-			self.with(|socket| match socket.state() {
-				TcpState::FinWait1
-				| TcpState::FinWait2
-				| TcpState::Closed
-				| TcpState::Closing
-				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
-				_ => {
-					if !socket.may_send() {
-						Poll::Ready(Err(Error::Illegal))
-					} else if socket.can_send() {
-						Poll::Ready(socket.send_slice(buffer).map_err(|_| Error::Illegal))
-					} else {
+		let len = buffer.len();
+		let mut pos: usize = 0;
+
+		while pos < len {
+			let n = future::poll_fn(|cx| {
+				self.with(|socket| match socket.state() {
+					TcpState::FinWait1
+					| TcpState::FinWait2
+					| TcpState::Closed
+					| TcpState::Closing
+					| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+					_ => {
+						if !socket.may_send() {
+							return Poll::Ready(Err(Error::Illegal));
+						} else if socket.can_send() {
+							return Poll::Ready(
+								socket
+									.send_slice(&buffer[pos..])
+									.map_err(|_| Error::Illegal),
+							);
+						}
+
+						if pos > 0 {
+							// we already send some data => return 0 as signal to stop the
+							// async write
+							return Poll::Ready(Ok(0));
+						}
+
 						socket.register_send_waker(cx.waker());
 						Poll::Pending
 					}
-				}
+				})
 			})
-		})
-		.await
+			.await?;
+
+			if n == 0 {
+				return Ok(pos);
+			}
+
+			pos += n;
+		}
+
+		Ok(pos)
 	}
 
 	pub(crate) async fn close(&self) -> Result<(), Error> {
@@ -359,7 +393,12 @@ pub(crate) fn network_delay(timestamp: Instant) -> Option<Duration> {
 pub(crate) async fn network_run() {
 	future::poll_fn(|cx| match NIC.lock().deref_mut() {
 		NetworkState::Initialized(nic) => {
-			nic.poll(cx, Instant::now());
+			nic.poll_common(Instant::now());
+
+			// this background task will never stop
+			// => wakeup ourself
+			cx.waker().clone().wake();
+
 			Poll::Pending
 		}
 		_ => Poll::Ready(()),
@@ -368,14 +407,21 @@ pub(crate) async fn network_run() {
 }
 
 extern "C" fn nic_thread(_: usize) {
+	unsafe {
+		sys_assign_task_to_nic();
+	}
+
 	loop {
 		unsafe { sys_netwait() };
 
 		trace!("Network thread checks the devices");
 
-		if let NetworkState::Initialized(nic) = NIC.lock().deref_mut() {
-			nic.poll_common(Instant::now());
-			nic.wake();
+		// if a thread is already checking the interface,
+		// ignore the request
+		if let Ok(mut guard) = NIC.try_lock() {
+			if let NetworkState::Initialized(nic) = guard.deref_mut() {
+				nic.poll_common(Instant::now());
+			}
 		}
 	}
 }
@@ -394,7 +440,7 @@ pub(crate) fn network_init() -> Result<(), ()> {
 		// create thread, which manages the network stack
 		// use a higher priority to reduce the network latency
 		let mut tid: Tid = 0;
-		let ret = unsafe { sys_spawn(&mut tid, nic_thread, 0, 3, 0) };
+		let ret = unsafe { sys_spawn(&mut tid, nic_thread, 0, 3, -1) };
 		if ret >= 0 {
 			debug!("Spawn network thread with id {}", tid);
 		}
@@ -481,6 +527,20 @@ pub fn sys_tcp_stream_duplicate(_handle: Handle) -> Result<Handle, ()> {
 #[no_mangle]
 pub fn sys_tcp_stream_peek(_handle: Handle, _buf: &mut [u8]) -> Result<usize, ()> {
 	Err(())
+}
+
+/// If set, this option disables the Nagle algorithm. This means that segments are
+/// always sent as soon as possible, even if there is only a small amount of data.
+/// When not set, data is buffered until there is a sufficient amount to send out,
+/// thereby avoiding the frequent sending of small packets.
+#[no_mangle]
+pub fn sys_tcp_no_delay(handle: Handle, mode: bool) -> Result<(), ()> {
+	let mut guard = NIC.lock();
+	let nic = guard.as_nic_mut().map_err(drop)?;
+	let socket = nic.iface.get_socket::<TcpSocket>(handle);
+	socket.set_nagle_enabled(!mode);
+
+	Ok(())
 }
 
 #[no_mangle]
