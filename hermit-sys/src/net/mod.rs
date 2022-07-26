@@ -534,7 +534,7 @@ pub fn sys_tcp_stream_peek(_handle: Handle, _buf: &mut [u8]) -> Result<usize, ()
 /// When not set, data is buffered until there is a sufficient amount to send out,
 /// thereby avoiding the frequent sending of small packets.
 #[no_mangle]
-pub fn sys_tcp_no_delay(handle: Handle, mode: bool) -> Result<(), ()> {
+pub fn sys_tcp_set_no_delay(handle: Handle, mode: bool) -> Result<(), ()> {
 	let mut guard = NIC.lock();
 	let nic = guard.as_nic_mut().map_err(drop)?;
 	let socket = nic.iface.get_socket::<TcpSocket>(handle);
