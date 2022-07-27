@@ -127,7 +127,9 @@ where
 			}
 
 			let now = Instant::now();
-			let delay = network_delay(now).map(|d| d.total_millis()).unwrap_or(0);
+			let delay = network_delay(now)
+				.map(|d| d.total_millis())
+				.unwrap_or(30_000);
 			if delay > 100 {
 				let unparked = thread_notify.unparked.swap(false, Ordering::AcqRel);
 				if !unparked {

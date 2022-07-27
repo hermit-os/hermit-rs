@@ -86,7 +86,8 @@ where
 	pub(crate) fn create_handle(&mut self) -> Result<Handle, ()> {
 		let tcp_rx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
 		let tcp_tx_buffer = TcpSocketBuffer::new(vec![0; 65535]);
-		let tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
+		let mut tcp_socket = TcpSocket::new(tcp_rx_buffer, tcp_tx_buffer);
+		tcp_socket.set_nagle_enabled(false);
 		let tcp_handle = self.iface.add_socket(tcp_socket);
 
 		Ok(tcp_handle)
@@ -155,28 +156,38 @@ impl AsyncSocket {
 	fn with<R>(&self, f: impl FnOnce(&mut TcpSocket) -> R) -> R {
 		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
+
 		let res = {
 			let s = nic.iface.get_socket::<TcpSocket>(self.0);
 			f(s)
 		};
+
 		let now = Instant::now();
-		if nic.poll_delay(now).map(|d| d.total_millis()).unwrap_or(0) == 0 {
-			nic.poll_common(now);
+		if let Some(delay) = nic.poll_delay(now).map(|d| d.total_millis()) {
+			if delay == 0 {
+				nic.poll_common(now);
+			}
 		}
+
 		res
 	}
 
 	fn with_context<R>(&self, f: impl FnOnce(&mut TcpSocket, &mut iface::Context<'_>) -> R) -> R {
 		let mut guard = NIC.lock();
 		let nic = guard.as_nic_mut().unwrap();
+
 		let res = {
 			let (s, cx) = nic.iface.get_socket_and_context::<TcpSocket>(self.0);
 			f(s, cx)
 		};
+
 		let now = Instant::now();
-		if nic.poll_delay(now).map(|d| d.total_millis()).unwrap_or(0) == 0 {
-			nic.poll_common(now);
+		if let Some(delay) = nic.poll_delay(now).map(|d| d.total_millis()) {
+			if delay == 0 {
+				nic.poll_common(now);
+			}
 		}
+
 		res
 	}
 
@@ -221,7 +232,7 @@ impl AsyncSocket {
 						| TcpState::FinWait1
 						| TcpState::FinWait2 => Poll::Ready(Err(Error::Illegal)),
 						_ => {
-							socket.register_send_waker(cx.waker());
+							socket.register_recv_waker(cx.waker());
 							Poll::Pending
 						}
 					}
@@ -240,48 +251,27 @@ impl AsyncSocket {
 	}
 
 	pub(crate) async fn read(&self, buffer: &mut [u8]) -> Result<usize, Error> {
-		let len = buffer.len();
-		let mut pos: usize = 0;
-
-		while pos < len {
-			let n = future::poll_fn(|cx| {
-				self.with(|socket| match socket.state() {
-					TcpState::FinWait1
-					| TcpState::FinWait2
-					| TcpState::Closed
-					| TcpState::Closing
-					| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
-					_ => {
-						if socket.can_recv() {
-							let n = socket
-								.recv_slice(&mut buffer[pos..])
-								.map_err(|_| Error::Illegal)?;
-							if n > 0 {
-								return Poll::Ready(Ok(n));
-							}
+		future::poll_fn(|cx| {
+			self.with(|socket| match socket.state() {
+				TcpState::FinWait1
+				| TcpState::FinWait2
+				| TcpState::Closed
+				| TcpState::Closing
+				| TcpState::TimeWait => Poll::Ready(Err(Error::Illegal)),
+				_ => {
+					if socket.can_recv() {
+						let n = socket.recv_slice(buffer).map_err(|_| Error::Illegal)?;
+						if n > 0 || buffer.is_empty() {
+							return Poll::Ready(Ok(n));
 						}
-
-						if pos > 0 {
-							// we already receive some data => return 0 as signal to stop the
-							// async read
-							return Poll::Ready(Ok(0));
-						}
-
-						socket.register_recv_waker(cx.waker());
-						Poll::Pending
 					}
-				})
+
+					socket.register_recv_waker(cx.waker());
+					Poll::Pending
+				}
 			})
-			.await?;
-
-			if n == 0 {
-				return Ok(pos);
-			}
-
-			pos += n;
-		}
-
-		Ok(pos)
+		})
+		.await
 	}
 
 	pub(crate) async fn write(&self, buffer: &[u8]) -> Result<usize, Error> {
