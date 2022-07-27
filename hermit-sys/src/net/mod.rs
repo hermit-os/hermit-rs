@@ -387,7 +387,7 @@ pub(crate) async fn network_run() {
 
 			// this background task will never stop
 			// => wakeup ourself
-			cx.waker().clone().wake();
+			cx.waker().wake_by_ref();
 
 			Poll::Pending
 		}
