@@ -53,7 +53,7 @@ libm = { version = "0.2", default-features = false }
 
 async-task = { version = "4.2", optional = true }
 concurrent-queue = { version = "1.2", optional = true }
-futures-lite = { version = "1.11", optional = true }
+futures-lite = { version = "1.12", optional = true }
 hermit-abi = { version = "0.2.4", optional = true }
 once_cell = { version = "1.13", optional = true }
 
