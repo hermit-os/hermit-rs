@@ -22,6 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    continue-on-error: ${{ matrix.os }} == "windows-latest"
     steps:
       - name: Install CURL, QEMU, NASM (ubuntu)
         if: ${{ matrix.os == 'ubuntu-latest' }}
