@@ -7,8 +7,6 @@ extern crate log;
 mod cmath;
 #[cfg(not(feature = "tcp"))]
 mod dummy;
-#[cfg(feature = "tcp")]
-mod net;
 
 use log::{set_logger, set_max_level, LevelFilter, Metadata, Record};
 
@@ -47,14 +45,5 @@ pub extern "C" fn sys_network_init() -> i32 {
 	};
 	set_max_level(max_level);
 
-	#[cfg(feature = "tcp")]
-	let ret: i32 = if net::network_init().is_ok() { 0 } else { -1 };
-	#[cfg(not(feature = "tcp"))]
-	let ret: i32 = -1;
-
-	if ret < 0 {
-		debug!("uhyve network isn't available!");
-	}
-
-	ret
+	0
 }

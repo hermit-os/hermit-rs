@@ -24,10 +24,7 @@ default = [
 
 aarch64-qemu-stdout = []
 acpi = []
-dhcpv4 = [
-    "smoltcp/proto-dhcpv4",
-    "smoltcp/socket-dhcpv4",
-]
+dhcpv4 = []
 fsgsbase = []
 
 # Build the kernel with function instrument code for mcount-based tracing
@@ -36,52 +33,14 @@ instrument = ["rftrace"]
 pci = []
 pci-ids = ["pci"]
 smp = []
-tcp = [
-    "hermit-abi",
-    "async-task",
-    "concurrent-queue",
-    "futures-lite",
-    "smoltcp",
-    "once_cell",
-]
+tcp = []
 trace = []
 vga = []
 
 [dependencies]
 log = { version = "0.4", default-features = false }
 libm = { version = "0.2", default-features = false }
-
-async-task = { version = "4.2", optional = true }
-concurrent-queue = { version = "1.2", optional = true }
-futures-lite = { version = "1.11", optional = true }
-hermit-abi = { version = "0.2.4", optional = true }
-once_cell = { version = "1.13", optional = true }
-
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
-
-[dependencies.smoltcp]
-version = "0.8"
-optional = true
-default-features = false
-features = [
-    "async",
-    "medium-ethernet",
-    "proto-ipv4",
-    "proto-ipv6",
-    "socket-tcp",
-    "socket-udp",
-    "std",
-    # Enable for increased output
-    # "log",
-    # "verbose",
-]
-
-[target.'cfg(target_arch = "x86_64")'.dependencies]
-x86 = { version = "0.51", default-features = false }
-
-[target.'cfg(target_arch = "aarch64")'.dependencies]
-aarch64 = { version = "0.0.7", default-features = false }
-tock-registers = "0.7"
 
 [build-dependencies]
 flate2 = "1"
