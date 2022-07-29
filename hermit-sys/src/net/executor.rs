@@ -58,16 +58,14 @@ struct ThreadNotify {
 
 impl ThreadNotify {
 	pub fn new() -> Self {
+		thread_local! {
+			static TID: Tid = unsafe { sys_getpid() };
+		}
+
 		Self {
-			thread: unsafe { sys_getpid() },
+			thread: TID.with(|id| *id),
 			unparked: AtomicBool::new(false),
 		}
-	}
-}
-
-impl Drop for ThreadNotify {
-	fn drop(&mut self) {
-		debug!("Dropping ThreadNotify!");
 	}
 }
 
@@ -92,56 +90,54 @@ pub fn block_on<F, T>(future: F, timeout: Option<Duration>) -> Result<T, ()>
 where
 	F: Future<Output = T>,
 {
-	thread_local! {
-		static CURRENT_THREAD_NOTIFY: Arc<ThreadNotify> = Arc::new(ThreadNotify::new());
-	}
+	// Polling mode => no NIC interrupts => NIC thread should not run
+	unsafe { sys_set_network_polling_mode(true) }
 
-	CURRENT_THREAD_NOTIFY.with(|thread_notify| {
-		// Polling mode => no NIC interrupts => NIC thread should not run
-		unsafe { sys_set_network_polling_mode(true) }
-		let start = Instant::now();
-		let waker = thread_notify.clone().into();
-		let mut cx = Context::from_waker(&waker);
-		pin!(future);
+	let start = Instant::now();
+	let thread_notify = Arc::new(ThreadNotify::new());
+	let waker = thread_notify.clone().into();
+	let mut cx = Context::from_waker(&waker);
+	pin!(future);
 
-		loop {
-			// run background tasks
-			run_executor_once();
+	loop {
+		// run background tasks
+		run_executor_once();
 
-			if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
+		if let Poll::Ready(t) = future.as_mut().poll(&mut cx) {
+			unsafe {
+				// allow interrupts => NIC thread is able to run
+				sys_set_network_polling_mode(false);
+			}
+			return Ok(t);
+		}
+
+		if let Some(duration) = timeout {
+			if Instant::now() >= start + duration {
 				unsafe {
 					// allow interrupts => NIC thread is able to run
 					sys_set_network_polling_mode(false);
 				}
-				return Ok(t);
+				return Err(());
 			}
+		}
 
-			if let Some(duration) = timeout {
-				if Instant::now() >= start + duration {
-					unsafe {
-						// allow interrupts => NIC thread is able to run
-						sys_set_network_polling_mode(false);
-					}
-					return Err(());
-				}
-			}
-
-			let now = Instant::now();
-			let delay = network_delay(now).map(|d| d.total_millis()).unwrap_or(0);
-			if delay > 100 {
-				let unparked = thread_notify.unparked.swap(false, Ordering::AcqRel);
-				if !unparked {
-					unsafe {
-						sys_block_current_task_with_timeout(delay);
-						// allow interrupts => NIC thread is able to run
-						sys_set_network_polling_mode(false);
-						// switch to another task
-						sys_yield();
-						// Polling mode => no NIC interrupts => NIC thread should not run
-						sys_set_network_polling_mode(true);
-					}
+		let now = Instant::now();
+		let delay = network_delay(now)
+			.map(|d| d.total_millis())
+			.unwrap_or(10_000);
+		if delay > 100 {
+			let unparked = thread_notify.unparked.swap(false, Ordering::AcqRel);
+			if !unparked {
+				unsafe {
+					sys_block_current_task_with_timeout(delay);
+					// allow interrupts => NIC thread is able to run
+					sys_set_network_polling_mode(false);
+					// switch to another task
+					sys_yield();
+					// Polling mode => no NIC interrupts => NIC thread should not run
+					sys_set_network_polling_mode(true);
 				}
 			}
 		}
-	})
+	}
 }
