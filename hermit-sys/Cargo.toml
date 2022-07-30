@@ -38,7 +38,6 @@ trace = []
 vga = []
 
 [dependencies]
-log = { version = "0.4", default-features = false }
 libm = { version = "0.2", default-features = false }
 
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
