@@ -6,7 +6,6 @@
 #![allow(clippy::result_unit_err)]
 
 pub mod errno;
-pub mod mutex;
 pub mod tcplistener;
 pub mod tcpstream;
 
