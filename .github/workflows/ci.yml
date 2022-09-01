@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -16,6 +16,66 @@ defaults:
     shell: bash
 
 jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Rustup (apply rust-toolchain.toml)
+        run: rustup show
+      - name: Install NASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Rustup (apply rust-toolchain.toml)
+        run: rustup show
+      - name: Format
+        run: cargo fmt -- --check
+
+  kvm_test:
+    name: KVM Test
+    runs-on: [self-hosted]
+
+    steps:
+    - name: Install NASM
+      run: |
+        sudo apt-get update
+        sudo apt-get install nasm
+    - uses: actions/checkout@v3
+      with:
+         submodules: true
+    - name: Rustup (apply rust-toolchain.toml)
+      run: rustup show
+    - name: Build dev profile
+      run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
+    - name: Install uhyve
+      run: cargo install uhyve
+    - name: Check KVM availability
+      shell: bash
+      run: |
+         lscpu
+         kvm-ok
+    - name: Test debug version
+      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
+      env:
+        RUST_LOG: debug
+    - name: Build release profile
+      run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo --release
+    - name: Test release version
+      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/release/rusty_demo
+      env:
+        RUST_LOG: debug
+
   build:
     name: Test
     runs-on: ${{ matrix.os }}
