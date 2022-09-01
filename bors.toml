@@ -1,6 +1,5 @@
 status = [
-  "Test (ubuntu-latest)",
-  "Test (macos-latest)",
+  "Test",
   "Format",
   "Clippy",
   "KVM Test",
