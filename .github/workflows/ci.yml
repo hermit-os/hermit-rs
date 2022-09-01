@@ -22,8 +22,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Rustup (apply rust-toolchain.toml)
-        run: rustup show
       - name: Install NASM
         run: |
           sudo apt-get update
@@ -36,8 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Rustup (apply rust-toolchain.toml)
-        run: rustup show
       - name: Format
         run: cargo fmt -- --check
 
@@ -53,8 +49,6 @@ jobs:
     - uses: actions/checkout@v3
       with:
          submodules: true
-    - name: Rustup (apply rust-toolchain.toml)
-      run: rustup show
     - name: Build dev profile
       run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
     - name: Install uhyve
@@ -105,8 +99,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Rustup (apply rust-toolchain.toml)
-        run: rustup show
       - name: Build dev profile
         run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
       - name: Download loader
