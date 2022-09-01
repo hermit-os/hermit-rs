@@ -2,6 +2,7 @@ status = [
   "Test",
   "Format",
   "Clippy",
+  "Check docs",
   "KVM Test",
   "ci/gitlab/git.rwth-aachen.de",
 ]
