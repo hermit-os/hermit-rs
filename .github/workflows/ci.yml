@@ -50,10 +50,9 @@ jobs:
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
-  kvm_test:
-    name: KVM Test
+  uhyve:
+    name: Uhyve
     runs-on: [self-hosted]
-
     steps:
     - name: Install NASM
       run: |
@@ -82,8 +81,8 @@ jobs:
       env:
         RUST_LOG: debug
 
-  build:
-    name: Test
+  qemu:
+    name: QEMU
     runs-on: ubuntu-latest
     steps:
       - name: Install CURL, QEMU, NASM
