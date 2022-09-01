@@ -9,6 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
 
 jobs:
   clippy:
@@ -23,7 +24,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install nasm
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --all-targets
 
   format:
     name: Format
