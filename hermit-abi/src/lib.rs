@@ -32,6 +32,13 @@ extern "C" {
 	fn sys_read(fd: i32, buf: *mut u8, len: usize) -> isize;
 	fn sys_write(fd: i32, buf: *const u8, len: usize) -> isize;
 	fn sys_close(fd: i32) -> i32;
+	fn sys_futex_wait(
+		address: *mut u32,
+		expected: u32,
+		timeout: *const timespec,
+		flags: u32,
+	) -> i32;
+	fn sys_futex_wake(address: *mut u32, count: i32) -> i32;
 	fn sys_sem_init(sem: *mut *const c_void, value: u32) -> i32;
 	fn sys_sem_destroy(sem: *const c_void) -> i32;
 	fn sys_sem_post(sem: *const c_void) -> i32;
@@ -101,6 +108,7 @@ pub const LOW_PRIO: Priority = Priority::from(1);
 pub struct Handle(usize);
 
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
+pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
 pub const STDIN_FILENO: libc::c_int = 0;
@@ -243,6 +251,33 @@ pub unsafe fn write(fd: i32, buf: *const u8, len: usize) -> isize {
 #[inline(always)]
 pub unsafe fn close(fd: i32) -> i32 {
 	sys_close(fd)
+}
+
+/// If the value at address matches the expected value, park the current thread until it is either
+/// woken up with [`futex_wake`] (returns 0) or an optional timeout elapses (returns -ETIMEDOUT).
+///
+/// Setting `timeout` to null means the function will only return if [`futex_wake`] is called.
+/// Otherwise, `timeout` is interpreted as an absolute time measured with [`CLOCK_MONOTONIC`].
+/// If [`FUTEX_RELATIVE_TIMEOUT`] is set in `flags` the timeout is understood to be relative
+/// to the current time.
+///
+/// Returns -EINVAL if `address` is null, the timeout is negative or `flags` contains unknown values.
+#[inline(always)]
+pub unsafe fn futex_wait(
+	address: *mut u32,
+	expected: u32,
+	timeout: *const timespec,
+	flags: u32,
+) -> i32 {
+	sys_futex_wait(address, expected, timeout, flags)
+}
+
+/// Wake `count` threads waiting on the futex at `address`. Returns the number of threads
+/// woken up (saturates to `i32::MAX`). If `count` is `i32::MAX`, wake up all matching
+/// waiting threads. If `count` is negative or `address` is null, returns -EINVAL.
+#[inline(always)]
+pub unsafe fn futex_wake(address: *mut u32, count: i32) -> i32 {
+	sys_futex_wake(address, count)
 }
 
 /// sem_init() initializes the unnamed semaphore at the address
