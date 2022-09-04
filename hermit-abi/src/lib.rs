@@ -108,7 +108,7 @@ pub const LOW_PRIO: Priority = Priority::from(1);
 pub struct Handle(usize);
 
 pub const NSEC_PER_SEC: u64 = 1_000_000_000;
-pub const FUTEX_RELATIVE_TIMEOUT: usize = 1;
+pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
 pub const STDIN_FILENO: libc::c_int = 0;
