@@ -31,7 +31,7 @@ impl KernelSrc {
 	fn local() -> Option<Self> {
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("libhermit-rs");
-		src_dir.exists().then(|| Self { src_dir })
+		src_dir.exists().then_some(Self { src_dir })
 	}
 
 	fn download() -> Self {
@@ -82,7 +82,7 @@ impl KernelSrc {
 			.arg("build")
 			.arg("--arch")
 			.arg(&arch)
-			.args(&[
+			.args([
 				"--profile",
 				match profile.as_str() {
 					"debug" => "dev",
@@ -148,6 +148,6 @@ fn has_feature(feature: &str) -> bool {
 fn forward_features<'a>(cmd: &mut Command, features: impl Iterator<Item = &'a str>) {
 	let features = features.filter(|f| has_feature(f)).collect::<Vec<_>>();
 	if !features.is_empty() {
-		cmd.args(&["--features", &features.join(" ")]);
+		cmd.args(["--features", &features.join(" ")]);
 	}
 }
