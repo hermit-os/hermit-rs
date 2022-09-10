@@ -31,7 +31,7 @@ impl KernelSrc {
 	fn local() -> Option<Self> {
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("libhermit-rs");
-		src_dir.exists().then(|| Self { src_dir })
+		src_dir.exists().then_some(Self { src_dir })
 	}
 
 	fn download() -> Self {
