@@ -11,7 +11,7 @@ pub mod tcpstream;
 
 use core::mem::MaybeUninit;
 
-use libc::c_void;
+use core::ffi::{c_int, c_void};
 
 // sysmbols, which are part of the library operating system
 
@@ -111,9 +111,9 @@ pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
-pub const STDIN_FILENO: libc::c_int = 0;
-pub const STDOUT_FILENO: libc::c_int = 1;
-pub const STDERR_FILENO: libc::c_int = 2;
+pub const STDIN_FILENO: c_int = 0;
+pub const STDOUT_FILENO: c_int = 1;
+pub const STDERR_FILENO: c_int = 2;
 pub const O_RDONLY: i32 = 0o0;
 pub const O_WRONLY: i32 = 0o1;
 pub const O_RDWR: i32 = 0o2;
@@ -123,7 +123,7 @@ pub const O_TRUNC: i32 = 0o1000;
 pub const O_APPEND: i32 = 0o2000;
 
 /// returns true if file descriptor `fd` is a tty
-pub fn isatty(_fd: libc::c_int) -> bool {
+pub fn isatty(_fd: c_int) -> bool {
 	false
 }
 
