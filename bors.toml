@@ -1,9 +1,9 @@
 status = [
-  "Test (ubuntu-latest)",
-  "Test (macos-latest)",
-  "Format",
+  "Check docs",
   "Clippy",
-  "KVM Test",
+  "Format",
+  "QEMU",
+  "Uhyve",
   "ci/gitlab/git.rwth-aachen.de",
 ]
 delete_merged_branches = true

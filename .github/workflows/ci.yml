@@ -1,53 +1,97 @@
-name: Test
+name: CI
 
 on:
   push:
     branches:
-      - master
       - staging
       - trying
   pull_request:
 
 env:
+  CARGO_INCREMENTAL: 0
   CARGO_TERM_COLOR: always
-
-defaults:
-  run:
-    shell: bash
+  RUSTFLAGS: -Dwarnings
+  RUSTDOCFLAGS: -Dwarnings
 
 jobs:
-  build:
-    name: Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
     steps:
-      - name: Install CURL, QEMU, NASM (ubuntu)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install qemu-system-x86 nasm curl
-      - name: Install CURL, QEMU, NASM (macos)
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: |
-          brew update
-          brew install qemu nasm curl
-      - name: Install CURL, QEMU, NASM (windows)
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          choco install qemu --version 2021.12.15
-          echo "C:\Program Files\qemu" >> $GITHUB_PATH
-          choco install nasm
-          echo "C:\Program Files\NASM" >> $GITHUB_PATH
-          choco install curl
-          echo "C:\Program Files\curl" >> $GITHUB_PATH
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Rustup (apply rust-toolchain.toml)
-        run: rustup show
+      - name: Install NASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
+      - name: Clippy
+        run: cargo clippy --all-targets
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Format
+        run: cargo fmt -- --check
+
+  check-docs:
+    name: Check docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Install NASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm
+      - name: Check docs
+        run: cargo doc --no-deps --document-private-items
+
+  uhyve:
+    name: Uhyve
+    runs-on: [self-hosted]
+    steps:
+    - name: Install NASM
+      run: |
+        sudo apt-get update
+        sudo apt-get install nasm
+    - uses: actions/checkout@v3
+      with:
+         submodules: true
+    - name: Build dev profile
+      run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
+    - name: Install uhyve
+      run: cargo install uhyve
+    - name: Check KVM availability
+      shell: bash
+      run: |
+         lscpu
+         kvm-ok
+    - name: Test debug version
+      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
+      env:
+        RUST_LOG: debug
+    - name: Build release profile
+      run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo --release
+    - name: Test release version
+      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/release/rusty_demo
+      env:
+        RUST_LOG: debug
+
+  qemu:
+    name: QEMU
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install CURL, QEMU, NASM
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-system-x86 nasm curl
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Build dev profile
         run: cargo build -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit --package rusty_demo
       - name: Download loader
