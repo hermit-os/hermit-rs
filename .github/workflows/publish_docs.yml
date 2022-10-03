@@ -23,7 +23,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install nasm
       - name: Generate documentation
-        run: cargo doc -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target x86_64-unknown-hermit
+        run: cargo doc -Zbuild-std=core,alloc,std,panic_abort --target x86_64-unknown-hermit
       - name: Generate index.html
         run: |
           cat > target/x86_64-unknown-hermit/doc/index.html <<EOL
