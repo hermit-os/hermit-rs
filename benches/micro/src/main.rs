@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 #![feature(test)]
-#![feature(bench_black_box)]
 
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
