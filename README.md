@@ -24,7 +24,7 @@ The repository contains following directories and submodules:
 HermitCore was a research unikernel written in C ([libhermit](https://github.com/hermitcore/libhermit)).
 
 The ownership  model of Rust guarantees memory/thread-safety and enables us to eliminate many classes of bugs at compile-time.
-Consequently, the use of Rust for kernel development promises less vulnerabilities in comparison to common programming languages.
+Consequently, the use of Rust for kernel development promises fewer vulnerabilities in comparison to common programming languages.
 
 The kernel and the integration into the Rust runtime are entirely written in Rust and do not use any C/C++ Code.
 We extended the Rust toolchain so that the build process is similar to Rust's usual workflow.
