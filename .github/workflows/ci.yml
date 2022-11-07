@@ -95,7 +95,7 @@ jobs:
       - name: Build dev profile
         run: cargo build -Zbuild-std=core,alloc,std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
       - name: Download loader
-        uses: dsaltares/fetch-gh-release-asset@1.0.0
+        uses: dsaltares/fetch-gh-release-asset@1.1.0
         with:
           repo: hermitcore/rusty-loader
           file: rusty-loader-x86_64
