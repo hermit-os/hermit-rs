@@ -11,7 +11,7 @@ description = "A Rust program to measure bandwidth or latency over a Rust TCP co
 [dependencies]
 bytes = "1.1"
 clap = "2.34"
-core_affinity = "0.7"
+core_affinity = "0.5"
 hdrhist = "0.5"
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
