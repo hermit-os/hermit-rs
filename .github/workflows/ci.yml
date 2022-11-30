@@ -27,7 +27,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install nasm
       - name: Clippy
-        run: cargo clippy --all-targets
+        run: |
+          cargo clippy --all-targets
+          cargo clippy -Zbuild-std=std,panic_abort --target=x86_64-unknown-hermit --all-targets
 
   format:
     name: Format
