@@ -16,7 +16,7 @@ pub fn send_message(n_bytes: usize, stream: &mut TcpStream, wbuf: &[u8]) {
 			Ok(n) => send += n,
 			Err(err) => match err.kind() {
 				WouldBlock => {}
-				_ => panic!("Error occurred while writing: {:?}", err),
+				_ => panic!("Error occurred while writing: {err:?}"),
 			},
 		}
 	}
@@ -32,7 +32,7 @@ pub fn receive_message(n_bytes: usize, stream: &mut TcpStream, rbuf: &mut [u8]) 
 			Ok(n) => recv += n,
 			Err(err) => match err.kind() {
 				WouldBlock => {}
-				_ => panic!("Error occurred while reading: {:?}", err),
+				_ => panic!("Error occurred while reading: {err:?}"),
 			},
 		}
 	}
@@ -65,10 +65,7 @@ pub fn close_connection(stream: &TcpStream) {
 /// Starts listening on given port and return first connection to that port as a stream.
 pub fn server_listen_and_get_first_connection(port: &str) -> TcpStream {
 	let listener = TcpListener::bind("0.0.0.0:".to_owned() + port).unwrap();
-	println!(
-		"Server running, listening for connection on 0.0.0.0:{}",
-		port
-	);
+	println!("Server running, listening for connection on 0.0.0.0:{port}");
 	let stream = listener.incoming().next().unwrap().unwrap();
 	println!(
 		"Connection established with {:?}!",

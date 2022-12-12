@@ -58,7 +58,7 @@ fn main() {
 				print_utils::print_summary(hist);
 			}
 			Err(error) => {
-				println!("Couldn't connect to server, retrying... Error {}", error);
+				println!("Couldn't connect to server, retrying... Error {error}");
 				thread::sleep(time::Duration::from_secs(1));
 			}
 		}
