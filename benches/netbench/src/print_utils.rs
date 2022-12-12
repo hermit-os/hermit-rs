@@ -15,6 +15,6 @@ pub fn print_summary(hist: hdrhist::HDRHist) {
 	print_line();
 	println!("CDF summary:\n");
 	for entry in hist.ccdf_upper_bound() {
-		println!("{:?}", entry);
+		println!("{entry:?}");
 	}
 }

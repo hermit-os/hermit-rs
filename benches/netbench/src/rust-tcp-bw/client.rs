@@ -28,7 +28,7 @@ fn main() {
 				let bytes_written = match stream.write(&buf[pos..]) {
 					Ok(len) => len,
 					Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => 0,
-					Err(e) => panic!("encountered IO error: {}", e),
+					Err(e) => panic!("encountered IO error: {e}"),
 				};
 				pos += bytes_written;
 			}
