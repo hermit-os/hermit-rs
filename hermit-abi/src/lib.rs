@@ -190,9 +190,9 @@ pub struct sockaddr_in6 {
 #[derive(Debug, Copy, Clone)]
 pub struct addrinfo {
 	pub ai_flags: i32,
-    pub ai_family: i32,
-    pub ai_socktype: i32,
-    pub ai_protocol: i32,
+	pub ai_family: i32,
+	pub ai_socktype: i32,
+	pub ai_protocol: i32,
 	pub ai_addrlen: socklen_t,
 	pub ai_addr: *mut sockaddr,
 	pub ai_canonname: *mut u8,
@@ -202,38 +202,38 @@ pub struct addrinfo {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct sockaddr_storage {
-    pub s2_len: u8,
-    pub ss_family: sa_family_t,
-    pub s2_data1: [i8; 2usize],
-    pub s2_data2: [u32; 3usize],
+	pub s2_len: u8,
+	pub ss_family: sa_family_t,
+	pub s2_data1: [i8; 2usize],
+	pub s2_data2: [u32; 3usize],
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ip_mreq {
-    pub imr_multiaddr: in_addr,
-    pub imr_interface: in_addr,
+	pub imr_multiaddr: in_addr,
+	pub imr_interface: in_addr,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ipv6_mreq {
-    pub ipv6mr_multiaddr: in6_addr,
-    pub ipv6mr_interface: u32,
+	pub ipv6mr_multiaddr: in6_addr,
+	pub ipv6mr_interface: u32,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct linger {
-    pub l_onoff: i32,
-    pub l_linger: i32,
+	pub l_onoff: i32,
+	pub l_linger: i32,
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct timeval {
-    pub tv_sec: time_t,
-    pub tv_usec: suseconds_t,
+	pub tv_sec: time_t,
+	pub tv_usec: suseconds_t,
 }
 
 // sysmbols, which are part of the library operating system
@@ -479,15 +479,15 @@ extern "C" {
 	#[link_name = "sys_wakeup_taskt"]
 	pub fn wakeup_task(tid: Tid);
 
-    #[link_name = "sys_accept"]
-    pub fn accept(s: i32, addr: *mut sockaddr, addrlen: *mut socklen_t) -> i32;
+	#[link_name = "sys_accept"]
+	pub fn accept(s: i32, addr: *mut sockaddr, addrlen: *mut socklen_t) -> i32;
 
 	/// bind a name to a socket
-    #[link_name = "sys_bind"]
-    pub fn bind(s: i32, name: *const sockaddr, namelen: socklen_t) -> i32;
+	#[link_name = "sys_bind"]
+	pub fn bind(s: i32, name: *const sockaddr, namelen: socklen_t) -> i32;
 
-    #[link_name = "sys_connect"]
-    pub fn connect(s: i32, name: *const sockaddr, namelen: socklen_t) -> i32;
+	#[link_name = "sys_connect"]
+	pub fn connect(s: i32, name: *const sockaddr, namelen: socklen_t) -> i32;
 
 	/// read from a file descriptor
 	///
@@ -513,105 +513,104 @@ extern "C" {
 	pub fn close(fd: i32) -> i32;
 
 	/// duplicate an existing file descriptor
-    #[link_name = "sys_dup"]
-    pub fn dup(fd: i32) -> i32;
+	#[link_name = "sys_dup"]
+	pub fn dup(fd: i32) -> i32;
 
-    #[link_name = "sys_getpeername"]
-    pub fn getpeername(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
+	#[link_name = "sys_getpeername"]
+	pub fn getpeername(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
 
-    #[link_name = "sys_getsockname"]
-    pub fn getsockname(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
+	#[link_name = "sys_getsockname"]
+	pub fn getsockname(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
 
-    #[link_name = "sys_getsockopt"]
-    pub fn getsockopt(
-        s: i32,
-        level: i32,
-        optname: i32,
-        optval: *mut c_void,
-        optlen: *mut socklen_t,
-    ) -> i32;
+	#[link_name = "sys_getsockopt"]
+	pub fn getsockopt(
+		s: i32,
+		level: i32,
+		optname: i32,
+		optval: *mut c_void,
+		optlen: *mut socklen_t,
+	) -> i32;
 
-    #[link_name = "sys_setsockopt"]
-    pub fn setsockopt(
-        s: i32,
-        level: i32,
-        optname: i32,
-        optval: *const c_void,
-        optlen: socklen_t,
-    ) -> i32;
+	#[link_name = "sys_setsockopt"]
+	pub fn setsockopt(
+		s: i32,
+		level: i32,
+		optname: i32,
+		optval: *const c_void,
+		optlen: socklen_t,
+	) -> i32;
 
-    #[link_name = "sys_ioctl"]
-    pub fn ioctl(s: i32, cmd: i32, argp: *mut c_void) -> i32;
+	#[link_name = "sys_ioctl"]
+	pub fn ioctl(s: i32, cmd: i32, argp: *mut c_void) -> i32;
 
 	/// listen for connections on a socket
-	/// 
+	///
 	/// The `backlog` parameter defines the maximum length for the queue of pending
 	/// connections. Currently, the `backlog` must be one.
-    #[link_name = "sys_listen"]
-    pub fn listen(s: i32, backlog: i32) -> i32;
+	#[link_name = "sys_listen"]
+	pub fn listen(s: i32, backlog: i32) -> i32;
 
-    #[link_name = "sys_recv"]
-    pub fn recv(s: i32, mem: *mut c_void, len: usize, flags: i32) -> isize;
+	#[link_name = "sys_recv"]
+	pub fn recv(s: i32, mem: *mut c_void, len: usize, flags: i32) -> isize;
 
-    /*#[link_name = "SOLID_NET_Readv"]
-    pub fn readv(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
+	/*#[link_name = "SOLID_NET_Readv"]
+	pub fn readv(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
 
-    #[link_name = "SOLID_NET_RecvFrom"]
-    pub fn recvfrom(
-        s: c_int,
-        mem: *mut c_void,
-        len: size_t,
-        flags: c_int,
-        from: *mut sockaddr,
-        fromlen: *mut socklen_t,
-    ) -> ssize_t;*/
+	#[link_name = "SOLID_NET_RecvFrom"]
+	pub fn recvfrom(
+		s: c_int,
+		mem: *mut c_void,
+		len: size_t,
+		flags: c_int,
+		from: *mut sockaddr,
+		fromlen: *mut socklen_t,
+	) -> ssize_t;*/
 
-    #[link_name = "sys_send"]
-    pub fn send(s: i32, mem: *const c_void, len: usize, flags: i32) -> isize;
+	#[link_name = "sys_send"]
+	pub fn send(s: i32, mem: *const c_void, len: usize, flags: i32) -> isize;
 
-    //#[link_name = "SOLID_NET_SendMsg"]
-    //pub fn sendmsg(s: c_int, message: *const msghdr, flags: i32) -> isize;
+	//#[link_name = "SOLID_NET_SendMsg"]
+	//pub fn sendmsg(s: c_int, message: *const msghdr, flags: i32) -> isize;
 
 	#[link_name = "sys_sendto"]
-    pub fn sendto(
-        s: i32,
-        mem: *const c_void,
-        len: usize,
-        flags: i32,
-        to: *const sockaddr,
-        tolen: socklen_t,
-    ) -> isize;
+	pub fn sendto(
+		s: i32,
+		mem: *const c_void,
+		len: usize,
+		flags: i32,
+		to: *const sockaddr,
+		tolen: socklen_t,
+	) -> isize;
 
 	/// shut down part of a full-duplex connection
-    #[link_name = "sys_shutdown_socket"]
-    pub fn shutdown_socket(s: i32, how: i32) -> i32;
+	#[link_name = "sys_shutdown_socket"]
+	pub fn shutdown_socket(s: i32, how: i32) -> i32;
 
-    #[link_name = "sys_socket"]
-    pub fn socket(domain: i32, type_: i32, protocol: i32) -> i32;
+	#[link_name = "sys_socket"]
+	pub fn socket(domain: i32, type_: i32, protocol: i32) -> i32;
 
-    //#[link_name = "SOLID_NET_Writev"]
-    //pub fn writev(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
+	//#[link_name = "SOLID_NET_Writev"]
+	//pub fn writev(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
 
-    #[link_name = "sys_freeaddrinfo"]
-    pub fn freeaddrinfo(ai: *mut addrinfo);
+	#[link_name = "sys_freeaddrinfo"]
+	pub fn freeaddrinfo(ai: *mut addrinfo);
 
-    #[link_name = "sys_getaddrinfo"]
-    pub fn getaddrinfo(
-        nodename: *const i8,
-        servname: *const u8,
-        hints: *const addrinfo,
-        res: *mut *mut addrinfo,
-    ) -> i32;
+	#[link_name = "sys_getaddrinfo"]
+	pub fn getaddrinfo(
+		nodename: *const i8,
+		servname: *const u8,
+		hints: *const addrinfo,
+		res: *mut *mut addrinfo,
+	) -> i32;
 
-    /*#[link_name = "sys_select"]
-    pub fn select(
-        maxfdp1: c_int,
-        readset: *mut fd_set,
-        writeset: *mut fd_set,
-        exceptset: *mut fd_set,
-        timeout: *mut timeval,
-    ) -> i32;*/
-
+	/*#[link_name = "sys_select"]
+	pub fn select(
+		maxfdp1: c_int,
+		readset: *mut fd_set,
+		writeset: *mut fd_set,
+		exceptset: *mut fd_set,
+		timeout: *mut timeval,
+	) -> i32;*/
 
 	fn sys_secure_rand32(value: *mut u32) -> i32;
 	fn sys_secure_rand64(value: *mut u64) -> i32;
