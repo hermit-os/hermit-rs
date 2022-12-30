@@ -139,12 +139,22 @@ pub const EAI_SERVICE: i32 = -2201;
 pub const EAI_FAIL: i32 = -2202;
 pub const EAI_MEMORY: i32 = -2203;
 pub const EAI_FAMILY: i32 = -2204;
+pub const POLLIN: i16 = 0x1;
+pub const POLLPRI: i16 = 0x2;
+pub const POLLOUT: i16 = 0x4;
+pub const POLLERR: i16 = 0x8;
+pub const POLLHUP: i16 = 0x10;
+pub const POLLNVAL: i16 = 0x20;
+pub const POLLRDNORM: i16 = 0x040;
+pub const POLLRDBAND: i16 = 0x080;
+pub const POLLRDHUP: i16 = 0x2000;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
 pub type in_port_t = u16;
 pub type time_t = i64;
 pub type suseconds_t = i64;
+pub type nfds_t = usize;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -236,6 +246,14 @@ pub struct timeval {
 	pub tv_usec: suseconds_t,
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct pollfd {
+	pub fd: i32,      /* file descriptor */
+	pub events: i16,  /* events to look for */
+	pub revents: i16, /* events returned */
+}
+
 // sysmbols, which are part of the library operating system
 extern "C" {
 	/// If the value at address matches the expected value, park the current thread until it is either
@@ -298,24 +316,6 @@ extern "C" {
 	/// means infinity waiting time.
 	#[link_name = "sys_timedwait"]
 	pub fn sem_timedwait(sem: *const c_void, ms: u32) -> i32;
-
-	/*
-	#[doc(hidden)]
-	#[link_name = "sys_recmutex_init"]
-	pub fn recmutex_init(recmutex: *mut *const c_void) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_recmutex_destroy"]
-	pub fn recmutex_destroy(recmutex: *const c_void) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_recmutex_lock"]
-	pub fn recmutex_lock(recmutex: *const c_void) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_recmutex_unlock"]
-	pub fn recmutex_unlock(recmutex: *const c_void) -> i32;
-	*/
 
 	/// Determines the id of the current thread
 	#[link_name = "sys_getpid"]
@@ -497,6 +497,21 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
+	/// receive() a message from a socket
+	#[link_name = "sys_recv"]
+	pub fn recv(socket: i32, buf: *mut u8, len: usize, flags: i32) -> isize;
+
+	/// receive() a message from a socket
+	#[link_name = "sys_recvfrom"]
+	pub fn recvfrom(
+		socket: i32,
+		buf: *mut u8,
+		len: usize,
+		flags: i32,
+		addr: *mut sockaddr,
+		addrlen: *mut socklen_t,
+	) -> isize;
+
 	/// write to a file descriptor
 	///
 	/// write() attempts to write `len` of data to the object
@@ -543,6 +558,9 @@ extern "C" {
 	#[link_name = "sys_ioctl"]
 	pub fn ioctl(s: i32, cmd: i32, argp: *mut c_void) -> i32;
 
+	#[link_name = "sys_pool"]
+	pub fn poll(fds: *mut pollfd, nfds: nfds_t, timeout: i32) -> i32;
+
 	/// listen for connections on a socket
 	///
 	/// The `backlog` parameter defines the maximum length for the queue of pending
@@ -550,27 +568,8 @@ extern "C" {
 	#[link_name = "sys_listen"]
 	pub fn listen(s: i32, backlog: i32) -> i32;
 
-	#[link_name = "sys_recv"]
-	pub fn recv(s: i32, mem: *mut c_void, len: usize, flags: i32) -> isize;
-
-	/*#[link_name = "SOLID_NET_Readv"]
-	pub fn readv(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
-
-	#[link_name = "SOLID_NET_RecvFrom"]
-	pub fn recvfrom(
-		s: c_int,
-		mem: *mut c_void,
-		len: size_t,
-		flags: c_int,
-		from: *mut sockaddr,
-		fromlen: *mut socklen_t,
-	) -> ssize_t;*/
-
 	#[link_name = "sys_send"]
 	pub fn send(s: i32, mem: *const c_void, len: usize, flags: i32) -> isize;
-
-	//#[link_name = "SOLID_NET_SendMsg"]
-	//pub fn sendmsg(s: c_int, message: *const msghdr, flags: i32) -> isize;
 
 	#[link_name = "sys_sendto"]
 	pub fn sendto(
@@ -589,9 +588,6 @@ extern "C" {
 	#[link_name = "sys_socket"]
 	pub fn socket(domain: i32, type_: i32, protocol: i32) -> i32;
 
-	//#[link_name = "SOLID_NET_Writev"]
-	//pub fn writev(s: c_int, bufs: *const iovec, bufcnt: c_int) -> ssize_t;
-
 	#[link_name = "sys_freeaddrinfo"]
 	pub fn freeaddrinfo(ai: *mut addrinfo);
 
@@ -602,15 +598,6 @@ extern "C" {
 		hints: *const addrinfo,
 		res: *mut *mut addrinfo,
 	) -> i32;
-
-	/*#[link_name = "sys_select"]
-	pub fn select(
-		maxfdp1: c_int,
-		readset: *mut fd_set,
-		writeset: *mut fd_set,
-		exceptset: *mut fd_set,
-		timeout: *mut timeval,
-	) -> i32;*/
 
 	fn sys_secure_rand32(value: *mut u32) -> i32;
 	fn sys_secure_rand64(value: *mut u64) -> i32;
