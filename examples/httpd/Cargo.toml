@@ -8,6 +8,11 @@ publish = false
 [dependencies]
 tiny_http = "0.12"
 
+[dependencies.chrono]
+version = "0.4"
+default-features = false
+features = ["std", "clock"]
+
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
 path = "../../hermit-sys"
 default-features = false
