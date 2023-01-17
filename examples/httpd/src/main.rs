@@ -6,10 +6,6 @@ use hermit_sys as _;
 
 fn main() {
 	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];
-	let text = format!(
-		"Hello from RustyHermit {}",
-		String::from_utf8(crab).unwrap_or_default()
-	);
 
 	let server = tiny_http::Server::http("0.0.0.0:9975").unwrap();
 	println!("Now listening on port 9975");
@@ -25,6 +21,7 @@ fn main() {
 			request.headers()
 		);
 
+		let now: DateTime<Utc> = Utc::now();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab).unwrap_or_default(),
@@ -43,6 +40,7 @@ fn main() {
 			request.headers()
 		);
 
+		let now: DateTime<Utc> = Utc::now();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab).unwrap_or_default(),
