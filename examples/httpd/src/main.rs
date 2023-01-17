@@ -24,7 +24,7 @@ fn main() {
 		let now: DateTime<Utc> = Utc::now();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
-			String::from_utf8(crab).unwrap_or_default(),
+			String::from_utf8(crab.clone()).unwrap_or_default(),
 			now.format("%Y-%m-%d %H:%M:%S")
 		);
 		let response = tiny_http::Response::from_string(text);
@@ -43,7 +43,7 @@ fn main() {
 		let now: DateTime<Utc> = Utc::now();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
-			String::from_utf8(crab).unwrap_or_default(),
+			String::from_utf8(crab.clone()).unwrap_or_default(),
 			now.format("%Y-%m-%d %H:%M:%S")
 		);
 		let response = tiny_http::Response::from_string(text);
