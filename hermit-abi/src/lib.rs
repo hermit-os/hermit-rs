@@ -10,8 +10,6 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
-use core::mem::MaybeUninit;
-
 use core::ffi::{c_int, c_void};
 
 /// A thread handle type
