@@ -453,16 +453,6 @@ extern "C" {
 	#[link_name = "sys_network_init"]
 	pub fn network_init() -> i32;
 
-	/// The function computes a sequence of pseudo-random integers
-	/// in the range of 0 to RAND_MAX
-	#[link_name = "sys_rand"]
-	pub fn rand() -> u32;
-
-	/// The function sets its argument as the seed for a new sequence
-	/// of pseudo-random numbers to be returned by `rand`
-	#[link_name = "sys_srand"]
-	pub fn srand(seed: u32);
-
 	/// Add current task to the queue of blocked tasks. After calling `block_current_task`,
 	/// call `yield_now` to switch to another task.
 	#[link_name = "sys_block_current_task"]
@@ -496,6 +486,14 @@ extern "C" {
 	/// to by `buf`.
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
+
+	/// Fill `len` bytes in `buf` with cryptographically secure random data.
+	///
+	/// Returns either the number of bytes written to buf (a positive value) or
+	/// * `-EINVAL` if `flags` contains unknown flags.
+	/// * `-ENOSYS` if the system does not support random data generation.
+	#[link_name = "sys_read_entropy"]
+	pub fn read_entropy(buf: *mut u8, len: usize, flags: u32) -> isize;
 
 	/// receive() a message from a socket
 	#[link_name = "sys_recv"]
@@ -599,30 +597,8 @@ extern "C" {
 		res: *mut *mut addrinfo,
 	) -> i32;
 
-	fn sys_secure_rand32(value: *mut u32) -> i32;
-	fn sys_secure_rand64(value: *mut u64) -> i32;
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);
-}
-
-/// Create a cryptographicly secure 32bit random number with the support of
-/// the underlying hardware. If the required hardware isn't available,
-/// the function returns `None`.
-#[inline(always)]
-pub unsafe fn secure_rand32() -> Option<u32> {
-	let mut rand = MaybeUninit::uninit();
-	let res = sys_secure_rand32(rand.as_mut_ptr());
-	(res == 0).then(|| rand.assume_init())
-}
-
-/// Create a cryptographicly secure 64bit random number with the support of
-/// the underlying hardware. If the required hardware isn't available,
-/// the function returns `None`.
-#[inline(always)]
-pub unsafe fn secure_rand64() -> Option<u64> {
-	let mut rand = MaybeUninit::uninit();
-	let res = sys_secure_rand64(rand.as_mut_ptr());
-	(res == 0).then(|| rand.assume_init())
 }
 
 /// Determine the priority of the current thread
