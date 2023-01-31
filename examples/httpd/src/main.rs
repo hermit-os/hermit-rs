@@ -1,6 +1,5 @@
 /// Example is derived from tiny-http example
 /// https://github.com/tiny-http/tiny-http/blob/master/examples/hello-world.rs
-use chrono::{DateTime, Utc};
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
 
@@ -21,11 +20,11 @@ fn main() {
 			request.headers()
 		);
 
-		let now: DateTime<Utc> = Utc::now();
+        let now = time::OffsetDateTime::now_utc();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab.clone()).unwrap_or_default(),
-			now.format("%Y-%m-%d %H:%M:%S")
+			now
 		);
 		let response = tiny_http::Response::from_string(text);
 		request.respond(response).expect("Responded");
@@ -40,11 +39,11 @@ fn main() {
 			request.headers()
 		);
 
-		let now: DateTime<Utc> = Utc::now();
+		let now = time::OffsetDateTime::now_utc();
 		let text = format!(
 			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab.clone()).unwrap_or_default(),
-			now.format("%Y-%m-%d %H:%M:%S")
+			now
 		);
 		let response = tiny_http::Response::from_string(text);
 		request.respond(response).expect("Responded");
