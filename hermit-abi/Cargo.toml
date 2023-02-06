@@ -21,9 +21,4 @@ compiler_builtins = { version = "0.1", optional = true }
 
 [features]
 default = []
-docs = []
 rustc-dep-of-std = ["core", "alloc", "compiler_builtins/rustc-dep-of-std"]
-
-[package.metadata.docs.rs]
-features = ["docs"]
-default-target = "x86_64-unknown-hermit"
