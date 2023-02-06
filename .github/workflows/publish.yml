@@ -45,7 +45,7 @@ jobs:
         CMD ["/hermit/rusty_demo"]
         END
     - name: Build and push container
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         context: .
         push: true
