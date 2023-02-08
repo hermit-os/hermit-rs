@@ -3,7 +3,6 @@ name = "hermit-abi"
 version = "0.3.0"
 authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
-readme = "README.md"
 edition = "2021"
 description = """
 hermit-abi is small interface to call functions from the unikernel RustyHermit.
