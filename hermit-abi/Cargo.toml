@@ -4,10 +4,7 @@ version = "0.3.0"
 authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-description = """
-hermit-abi is small interface to call functions from the unikernel RustyHermit.
-It is used to build the target `x86_64-unknown-hermit`.
-"""
+description = "Hermit system calls definitions."
 repository = "https://github.com/hermitcore/rusty-hermit"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
