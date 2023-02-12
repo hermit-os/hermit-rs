@@ -24,7 +24,7 @@ dhcpv4 = []
 fsgsbase = []
 
 # Build the kernel with function instrument code for mcount-based tracing
-instrument = ["rftrace"]
+instrument = []
 
 pci = []
 pci-ids = ["pci"]
@@ -32,9 +32,6 @@ smp = []
 tcp = []
 trace = []
 vga = []
-
-[dependencies]
-rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
 [build-dependencies]
 flate2 = "1"
