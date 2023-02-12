@@ -11,7 +11,6 @@ categories = ["os"]
 links = "hermit"
 build = "build.rs"
 edition = "2021"
-documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
 default = [
