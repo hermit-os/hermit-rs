@@ -5,7 +5,6 @@ authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 description = "FFI bindings to HermitCore"
 repository = "https://github.com/hermitcore/rusty-hermit"
-readme = "README.md"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
 links = "hermit"
