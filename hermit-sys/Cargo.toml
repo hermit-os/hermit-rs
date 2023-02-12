@@ -9,7 +9,6 @@ readme = "README.md"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
 links = "hermit"
-build = "build.rs"
 edition = "2021"
 
 [features]
