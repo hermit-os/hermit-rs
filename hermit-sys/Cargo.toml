@@ -38,8 +38,6 @@ trace = []
 vga = []
 
 [dependencies]
-libm = { version = "0.2", default-features = false }
-
 rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
 [build-dependencies]
