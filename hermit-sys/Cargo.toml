@@ -19,7 +19,6 @@ default = [
     "fsgsbase",
 ]
 
-aarch64-qemu-stdout = []
 acpi = []
 dhcpv4 = []
 fsgsbase = []
