@@ -1,7 +1,6 @@
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::new_ret_no_self)]
 
-mod cmath;
 #[cfg(not(feature = "tcp"))]
 mod dummy;
 

@@ -5,7 +5,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
     # Manually sync this with rust-toolchain.toml!
-    RUST_VERSION=nightly-2022-12-12 \
+    RUST_VERSION=nightly-2023-02-14 \
     RUST_COMPONENTS="rust-src"
 
 RUN set -eux; \
