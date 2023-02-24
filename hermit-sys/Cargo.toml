@@ -5,13 +5,10 @@ authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 description = "FFI bindings to HermitCore"
 repository = "https://github.com/hermitcore/rusty-hermit"
-readme = "README.md"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
 links = "hermit"
-build = "build.rs"
 edition = "2021"
-documentation = "https://hermitcore.github.io/rusty-hermit/hermit_sys"
 
 [features]
 default = [
@@ -22,13 +19,12 @@ default = [
     "fsgsbase",
 ]
 
-aarch64-qemu-stdout = []
 acpi = []
 dhcpv4 = []
 fsgsbase = []
 
 # Build the kernel with function instrument code for mcount-based tracing
-instrument = ["rftrace"]
+instrument = []
 
 pci = []
 pci-ids = ["pci"]
@@ -36,9 +32,6 @@ smp = []
 tcp = []
 trace = []
 vga = []
-
-[dependencies]
-rftrace = { version = "0.1", optional = true, features = ["autokernel", "buildcore", "interruptsafe"] }
 
 [build-dependencies]
 flate2 = "1"
