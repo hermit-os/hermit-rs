@@ -104,7 +104,7 @@ pub fn read_file() -> Result<(), std::io::Error> {
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
 		let mut file = File::create("foo.txt")?;
-		file.write_all(b"Hello, world!!!!")?;
+		file.write_all(b"Hello, world!")?;
 	}
 
 	let content = {
@@ -117,7 +117,7 @@ pub fn create_file() -> Result<(), std::io::Error> {
 	// delete temporary file
 	std::fs::remove_file("foo.txt")?;
 
-	if content == "Hello, world!!!!" {
+	if content == "Hello, world!" {
 		Ok(())
 	} else {
 		println!("Read invalid content: {} (len {})", content, content.len());
