@@ -104,22 +104,23 @@ pub fn read_file() -> Result<(), std::io::Error> {
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
 		let mut file = File::create("foo.txt")?;
-		file.write_all(b"Hello, world!")?;
+		file.write_all(b"Hello, world!!!!")?;
 	}
 
-	let contents = {
+	let content = {
 		let mut file = File::open("foo.txt")?;
-		let mut contents = String::new();
-		file.read_to_string(&mut contents)?;
-		contents
+		let mut content = String::new();
+		file.read_to_string(&mut content)?;
+		content
 	};
 
 	// delete temporary file
 	std::fs::remove_file("foo.txt")?;
 
-	if contents == "Hello, world!" {
+	if content == "Hello, world!!!!" {
 		Ok(())
 	} else {
+		println!("Read invalid content: {} (len {})", content, content.len());
 		let kind = std::io::ErrorKind::Other;
 		Err(std::io::Error::from(kind))
 	}
