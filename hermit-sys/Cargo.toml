@@ -28,6 +28,10 @@ instrument = []
 
 pci = []
 pci-ids = ["pci"]
+
+# Enables -Z randomize-layout in the kernel
+randomize-layout = []
+
 smp = []
 tcp = []
 trace = []

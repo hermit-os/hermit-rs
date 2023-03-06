@@ -96,6 +96,10 @@ impl KernelSrc {
 			cmd.arg("--instrument-mcount");
 		}
 
+		if has_feature("randomize-layout") {
+			cmd.arg("--randomize-layout");
+		}
+
 		// Control enabled features via this crate's features
 		cmd.arg("--no-default-features");
 		forward_features(
