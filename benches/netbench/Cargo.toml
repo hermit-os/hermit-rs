@@ -10,7 +10,7 @@ description = "A Rust program to measure bandwidth or latency over a Rust TCP co
 
 [dependencies]
 bytes = "1.1"
-clap = "2.34"
+clap = {verstion ="4.1", features = ["derive"] }
 core_affinity = "0.8"
 hdrhist = "0.5"
 
