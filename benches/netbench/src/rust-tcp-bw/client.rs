@@ -3,12 +3,13 @@
 #[cfg(target_os = "hermit")]
 use hermit_sys as _;
 
-use rust_tcp_io_perf::config;
+use clap::Parser;
+use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::connection;
 use std::io::{self, Write};
 
 fn main() {
-	let args = config::parse_config();
+	let args = Config::parse();
 
 	println!("Connecting to the server {}...", args.address);
 	let n_rounds = args.n_rounds;

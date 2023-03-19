@@ -9,3 +9,6 @@ members = [
     "examples/demo",
 ]
 exclude = ["target", "libhermit-rs"]
+
+[patch.crates-io]
+os_str_bytes = { git = 'https://github.com/hermitcore/os_str_bytes.git', branch = 'hermit' }

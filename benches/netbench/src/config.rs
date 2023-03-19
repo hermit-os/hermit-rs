@@ -1,135 +1,61 @@
-use clap::{App, Arg};
+use clap::Parser;
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+#[command(next_line_help = true)]
 pub struct Config {
+	#[arg(
+		long,
+		short,
+		default_value = "127.0.0.1",
+		help = "IP4 address to connect to"
+	)]
 	pub address: String,
-	pub port: String,
+	#[arg(
+		long,
+		short,
+		default_value_t = 7878,
+		help = "port to connect to, like port 7878 if you want to connect to 127.0.0.1:7878"
+	)]
+	pub port: u16,
+	#[arg(
+		long = "bytes",
+		short = 'k',
+		default_value_t = 1,
+		help = "number of bytes to transfer every round"
+	)]
 	pub n_bytes: usize,
+	#[arg(
+		long = "rounds",
+		short = 'r',
+		default_value_t = 100000,
+		help = "number of rounds of transfer to perform"
+	)]
 	pub n_rounds: usize,
+	#[arg(
+		long = "nodelay",
+		short = 'd',
+		default_value_t = true,
+		help = "sets TCP in no-delay mode. Any int > 0 for true, 0 for false"
+	)]
 	pub no_delay: bool,
+	#[arg(
+		long = "nonblocking",
+		short = 'b',
+		default_value_t = true,
+		help = "sets TCP in non-blocking mode. Any int > 0 for true, 0 for false"
+	)]
 	pub non_blocking: bool,
+	#[arg(
+		long = "thread",
+		short = 't',
+		help = "id of process to pin thread to, -1 for no pinning"
+	)]
 	pub p_id: i8,
 }
 
 impl Config {
 	pub fn address_and_port(&self) -> String {
 		format!("{}:{}", &self.address, &self.port)
-	}
-}
-/// Extract the configuration from Command line
-pub fn parse_config() -> Config {
-	let matches = App::new("Config")
-		.arg(
-			Arg::with_name("address")
-				.short("a")
-				.long("address")
-				.value_name("address")
-				.help("IP4 address to connect to")
-				.takes_value(true)
-				.default_value("127.0.0.1"),
-		)
-		.arg(
-			Arg::with_name("port")
-				.short("p")
-				.long("port")
-				.value_name("port")
-				.help("port to connect to, like port 7878 if you want to connect to 127.0.0.1:7878")
-				.takes_value(true)
-				.default_value("7878"),
-		)
-		.arg(
-			Arg::with_name("n_bytes")
-				.short("k")
-				.long("bytes")
-				.value_name("n_bytes")
-				.help("number of bytes to transfer every round")
-				.takes_value(true)
-				.default_value("1"),
-		)
-		.arg(
-			Arg::with_name("rounds")
-				.short("r")
-				.long("rounds")
-				.value_name("rounds")
-				.help("number of rounds of transfer to perform")
-				.takes_value(true)
-				.default_value("100000"),
-		)
-		.arg(
-			Arg::with_name("nodelay")
-				.short("d")
-				.long("nodelay")
-				.value_name("nodelay")
-				.help("sets TCP in no-delay mode. Any int > 0 for true, 0 for false")
-				.takes_value(true)
-				.default_value("1"),
-		)
-		.arg(
-			Arg::with_name("nonblocking")
-				.short("b")
-				.long("nonblocking")
-				.value_name("nonblocking")
-				.help("sets TCP in non-blocking mode. Any int > 0 for true, 0 for false")
-				.takes_value(true)
-				.default_value("1"),
-		)
-		.arg(
-			Arg::with_name("thread")
-				.short("t")
-				.long("thread")
-				.value_name("thread")
-				.help("id of process to pin thread to, -1 for no pinning")
-				.takes_value(true)
-				.default_value("-1"),
-		)
-		.get_matches();
-
-	// Gets a value for config if supplied by user, or defaults to "default.conf"
-	let address = String::from(matches.value_of("address").unwrap());
-	let port = String::from(matches.value_of("port").unwrap());
-	let n_bytes = matches
-		.value_of("n_bytes")
-		.unwrap()
-		.parse::<usize>()
-		.unwrap();
-	let n_rounds = matches
-		.value_of("rounds")
-		.unwrap()
-		.parse::<usize>()
-		.unwrap();
-	let no_delay = matches
-		.value_of("nodelay")
-		.unwrap()
-		.parse::<usize>()
-		.unwrap()
-		> 0;
-	let non_blocking = matches
-		.value_of("nonblocking")
-		.unwrap()
-		.parse::<usize>()
-		.unwrap()
-		> 0;
-	let p_id = matches.value_of("thread").unwrap().parse::<i8>().unwrap();
-
-	// Don't kill machines
-	if n_bytes > 100_000_000 {
-		panic!(
-			"More than 100 MB per round is probably too much data you want to send, \
-        you may kill one of the machines. Try with maybe 100MB but more rounds"
-		)
-	}
-
-	// Very improbable case error handling
-	if (n_bytes * 1000000) as u128 * n_rounds as u128 > u64::max_value().into() {
-		panic!("There's going to be too much data. Make sure n_bytes * n_rounds is < u128::MAX")
-	}
-
-	Config {
-		address,
-		port,
-		n_bytes,
-		n_rounds,
-		no_delay,
-		non_blocking,
-		p_id,
 	}
 }
