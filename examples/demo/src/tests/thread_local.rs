@@ -1,9 +1,9 @@
 pub fn test_thread_local() -> Result<(), ()> {
-	#[repr(align(0x1000))]
-	struct OverAligned(u8);
+	#[repr(align(0x10))]
+	struct Aligned(u8);
 
 	thread_local! {
-		static THREAD_LOCAL: OverAligned = const { OverAligned(0x42) };
+		static THREAD_LOCAL: Aligned = const { Aligned(0x42) };
 	}
 
 	THREAD_LOCAL.with(|thread_local| {
