@@ -1,6 +1,6 @@
 [package]
 name = "hermit-sys"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 description = "FFI bindings to HermitCore"
