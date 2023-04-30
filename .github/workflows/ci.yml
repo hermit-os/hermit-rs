@@ -88,7 +88,7 @@ jobs:
         RUST_LOG: debug
 
   run-aarch64:
-    name: Run Qemu (aarch64)
+    name: QEMU (aarch64)
     runs-on: ubuntu-latest
     steps:
       - name: Install CURL, QEMU

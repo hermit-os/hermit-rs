@@ -2,7 +2,8 @@ status = [
   "Check docs",
   "Clippy",
   "Format",
-  "QEMU",
+  "QEMU (x86_64)",
+  "QEMU (aarch64)",
   "Uhyve",
   "ci/gitlab/git.rwth-aachen.de",
 ]
