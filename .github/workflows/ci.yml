@@ -87,8 +87,41 @@ jobs:
       env:
         RUST_LOG: debug
 
-  qemu:
-    name: QEMU
+  run-aarch64:
+    name: Run Qemu (aarch64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install CURL, QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install qemu-system-aarch64 curl
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Download loader
+        uses: dsaltares/fetch-gh-release-asset@1.1.1
+        with:
+          repo: hermitcore/rusty-loader
+          file: rusty-loader-aarch64
+      - name: Build dev profile
+        run: cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --package hello_world
+      - name: Test dev profile
+        run: |
+          qemu-system-aarch64 -semihosting \
+            -kernel rusty-loader-aarch64 -machine virt,gic-version=max \
+            -m 512M -cpu max -smp 1 -display none -serial stdio -kernel rusty-loader-aarch64 \
+            -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/debug/hello_world
+      - name: Build release profile
+        run: cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --package hello_world --release
+      - name: Test release profile
+        run: |
+          qemu-system-aarch64 -semihosting \
+            -kernel rusty-loader-aarch64 -machine virt,gic-version=max \
+            -m 512M -cpu max -smp 1 -display none -serial stdio -kernel rusty-loader-aarch64 \
+            -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/release/hello_world
+  
+  qemu-x86_64:
+    name: QEMU (x86_64)
     runs-on: ubuntu-latest
     steps:
       - name: Install CURL, QEMU, NASM
@@ -98,13 +131,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Build dev profile
-        run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
       - name: Download loader
         uses: dsaltares/fetch-gh-release-asset@1.1.0
         with:
           repo: hermitcore/rusty-loader
           file: rusty-loader-x86_64
+      - name: Build dev profile
+        run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
       - name: Test dev profile
         run: |
           qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
