@@ -9,7 +9,7 @@ use std::io::Write;
 use std::net::{TcpListener, TcpStream};
 use std::str;
 use std::thread;
-use std::time::Instant;
+use std::time::{self, Instant};
 use std::vec;
 
 mod laplace;
@@ -18,6 +18,22 @@ mod thread_local;
 
 pub use matmul::test_matmul_strassen;
 pub use thread_local::test_thread_local;
+
+pub fn test_sleep() -> Result<(), ()> {
+	let one_sec = time::Duration::from_millis(1000);
+	let now = time::Instant::now();
+
+	thread::sleep(one_sec);
+
+	let elapsed = now.elapsed().as_millis();
+	println!("Measured time for 1 second sleep: {} ms", elapsed);
+
+	if !(985..=1015).contains(&elapsed) {
+		Err(())
+	} else {
+		Ok(())
+	}
+}
 
 pub fn thread_creation() -> Result<(), ()> {
 	const N: usize = 10;
