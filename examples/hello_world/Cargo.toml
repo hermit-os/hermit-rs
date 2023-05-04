@@ -13,6 +13,7 @@ default-features = false
 default = ["pci", "acpi"]
 vga = ["hermit-sys/vga"]
 pci = ["hermit-sys/pci"]
+pci-ids = ["hermit-sys/pci-ids"]
 acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
