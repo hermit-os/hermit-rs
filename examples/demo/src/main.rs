@@ -20,6 +20,11 @@ fn main() {
 	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
 	println!(
 		"Test {} ... {}",
+		stringify!(sleep),
+		test_result(test_sleep())
+	);
+	println!(
+		"Test {} ... {}",
 		stringify!(test_thread_local),
 		test_result(test_thread_local())
 	);
