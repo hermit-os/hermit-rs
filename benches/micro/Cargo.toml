@@ -23,6 +23,7 @@ syscalls = { version = "0.6", default-features = false }
 default = ["pci", "acpi", "smp"]
 vga = ["hermit-sys/vga"]
 pci = ["hermit-sys/pci"]
+pci-ids = ["hermit-sys/pci-ids"]
 acpi = ["hermit-sys/acpi"]
 fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
