@@ -51,19 +51,24 @@ jobs:
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
-  uhyve:
-    name: Uhyve
+  kvm:
+    name: KVM
     runs-on: [self-hosted]
     steps:
     - name: Install NASM
       run: |
         sudo apt-get update
-        sudo apt-get install nasm
+        sudo apt-get install -y nasm qemu-kvm
     - uses: actions/checkout@v3
       with:
          submodules: true
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
+    - name: Download loader
+      uses: dsaltares/fetch-gh-release-asset@1.1.1
+      with:
+        repo: hermitcore/rusty-loader
+        file: rusty-loader-x86_64
     - name: Build dev profile
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
     - name: Install uhyve
@@ -73,16 +78,28 @@ jobs:
       run: |
          lscpu
          kvm-ok
-    - name: Test debug version
+    - name: Test debug version (Uhyve)
       run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
       env:
         RUST_LOG: debug
+    - name: Test debug profile (Qemu)
+      run: |
+        qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
+          -enable-kvm -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
+          -kernel rusty-loader-x86_64 \
+          -initrd target/x86_64-unknown-hermit/debug/rusty_demo
     - name: Build release profile
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo --release
-    - name: Test release version
+    - name: Test release version (Uhyve)
       run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/release/rusty_demo
       env:
         RUST_LOG: debug
+    - name: Test release profile (Qemu)
+      run: |
+        qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
+          -enable-kvm -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
+          -kernel rusty-loader-x86_64 \
+          -initrd target/x86_64-unknown-hermit/release/rusty_demo
 
   run-aarch64:
     name: QEMU (aarch64)
