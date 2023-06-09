@@ -409,6 +409,12 @@ extern "C" {
 	#[link_name = "sys_open"]
 	pub fn open(name: *const i8, flags: i32, mode: i32) -> i32;
 
+	/// open a directory
+	///
+	/// The opendir() system call opens the directory specified by `name`.
+	#[link_name = "sys_opendir"]
+	pub fn opendir(name: *const i8) -> i32;	
+
 	/// delete the file it refers to `name`
 	#[link_name = "sys_unlink"]
 	pub fn unlink(name: *const i8) -> i32;
@@ -484,6 +490,12 @@ extern "C" {
 	/// to by `buf`.
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
+
+	/// 'readdir' returns a pointer to a dirent structure
+    /// representing the next directory entry in the directory stream
+	/// pointed to by the file descriptor
+	#[link_name = "sys_readdir"]
+	pub fn readdir(fd: i32) -> *const u64;
 
 	/// Fill `len` bytes in `buf` with cryptographically secure random data.
 	///
