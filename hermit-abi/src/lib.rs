@@ -252,6 +252,25 @@ pub struct pollfd {
 	pub revents: i16, /* events returned */
 }
 
+#[repr(C)]
+pub struct dirent {
+	pub d_ino: u64,
+	pub d_off: u64,
+	pub d_namelen: u32,
+	pub d_type: u32,
+	pub d_name: [u8; 0],
+}
+
+pub const DT_UNKNOWN: u32 = 0;
+pub const DT_FIFO: u32 = 1;
+pub const DT_CHR: u32 = 2;
+pub const DT_DIR: u32 = 4;
+pub const DT_BLK: u32 = 6;
+pub const DT_REG: u32 = 8;
+pub const DT_LNK: u32 = 10;
+pub const DT_SOCK: u32 = 12;
+pub const DT_WHT: u32 = 14;
+
 // sysmbols, which are part of the library operating system
 extern "C" {
 	/// If the value at address matches the expected value, park the current thread until it is either
@@ -413,7 +432,7 @@ extern "C" {
 	///
 	/// The opendir() system call opens the directory specified by `name`.
 	#[link_name = "sys_opendir"]
-	pub fn opendir(name: *const i8) -> i32;	
+	pub fn opendir(name: *const i8) -> i32;
 
 	/// delete the file it refers to `name`
 	#[link_name = "sys_unlink"]
@@ -492,10 +511,10 @@ extern "C" {
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
 	/// 'readdir' returns a pointer to a dirent structure
-    /// representing the next directory entry in the directory stream
+	/// representing the next directory entry in the directory stream
 	/// pointed to by the file descriptor
 	#[link_name = "sys_readdir"]
-	pub fn readdir(fd: i32) -> *const u64;
+	pub fn readdir(fd: i32) -> *const dirent;
 
 	/// Fill `len` bytes in `buf` with cryptographically secure random data.
 	///
