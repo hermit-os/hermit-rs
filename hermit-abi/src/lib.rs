@@ -438,6 +438,10 @@ extern "C" {
 	#[link_name = "sys_unlink"]
 	pub fn unlink(name: *const i8) -> i32;
 
+	/// remove directory it refers to `name`
+	#[link_name = "sys_rmdir"]
+	pub fn rmdir(name: *const i8) -> i32;
+
 	/// determines the number of activated processors
 	#[link_name = "sys_processor_count"]
 	pub fn get_processor_count() -> usize;
