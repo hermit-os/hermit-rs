@@ -1,4 +1,4 @@
 [toolchain]
 # Manually sync this with Dockerfile!
-channel = "nightly-2023-04-05"
+channel = "nightly-2023-04-15"
 components = [ "rust-src" ]
