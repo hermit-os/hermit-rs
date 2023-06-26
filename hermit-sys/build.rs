@@ -63,7 +63,15 @@ impl KernelSrc {
 		let arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 
-		let mut cmd = Command::new("cargo");
+		let cargo = {
+			// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
+			// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
+			let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
+			cargo_home.push("bin/cargo");
+			cargo_home
+		};
+
+		let mut cmd = Command::new(cargo);
 
 		// Remove rust-toolchain-specific environment variables from kernel cargo
 		cmd.env_remove("LD_LIBRARY_PATH");
