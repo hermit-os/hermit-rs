@@ -520,6 +520,11 @@ extern "C" {
 	#[link_name = "sys_readdir"]
 	pub fn readdir(fd: i32) -> *const dirent;
 
+	/// 'mkdir' attempts to create a directory,
+	/// it returns 0 on success and -1 on error
+	#[link_name = "sys_mkdir"]
+	pub fn mkdir(fd: i32, name: *const i8, mode: u32) -> i32;
+
 	/// Fill `len` bytes in `buf` with cryptographically secure random data.
 	///
 	/// Returns either the number of bytes written to buf (a positive value) or
