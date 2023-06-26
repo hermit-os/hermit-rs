@@ -118,6 +118,7 @@ jobs:
           repo: hermitcore/rusty-loader
           file: rusty-loader-aarch64
       - uses: mkroening/rust-toolchain-toml@main
+      - uses: Swatinem/rust-cache@v2
       - name: Build dev profile
         run: cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --package rusty_demo
       - name: Test dev profile
@@ -152,6 +153,7 @@ jobs:
           repo: hermitcore/rusty-loader
           file: rusty-loader-x86_64
       - uses: mkroening/rust-toolchain-toml@main
+      - uses: Swatinem/rust-cache@v2
       - name: Build dev profile
         run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
       - name: Test dev profile
