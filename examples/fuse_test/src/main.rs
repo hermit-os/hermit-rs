@@ -6,7 +6,7 @@ use std::fs;
 fn main() {
     let paths = fs::read_dir("/root").unwrap();
 
-    let _ = fs::remove_dir("/root/new_dir/");
+    let _ = fs::create_dir("/root/new_dir/");
 
     for path in paths {
         let path = path.unwrap();
@@ -26,5 +26,8 @@ fn main() {
             println!("Unknown type!\n");
         }
     }
+
+    let _ = fs::remove_dir("new_dir");
+
     println!("Done.");
 }
