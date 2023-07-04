@@ -414,7 +414,7 @@ extern "C" {
 	pub fn unlink(name: *const i8) -> i32;
 
 	/// determines the number of activated processors
-	#[link_name = "sys_processor_count"]
+	#[link_name = "sys_get_processor_count"]
 	pub fn get_processor_count() -> usize;
 
 	#[link_name = "sys_malloc"]
