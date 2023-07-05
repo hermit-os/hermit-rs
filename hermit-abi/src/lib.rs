@@ -261,6 +261,27 @@ pub struct dirent {
 	pub d_name: [u8; 0],
 }
 
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct stat {
+	pub st_dev: u64,
+	pub st_ino: u64,
+	pub st_nlink: u64,
+	pub st_mode: u32,
+	pub st_uid: u32,
+	pub st_gid: u32,
+	pub st_rdev: u64,
+	pub st_size: i64,
+	pub st_blksize: i64,
+	pub st_blocks: i64,
+	pub st_atime: i64,
+	pub st_atime_nsec: i64,
+	pub st_mtime: i64,
+	pub st_mtime_nsec: i64,
+	pub st_ctime: i64,
+	pub st_ctime_nsec: i64,
+}
+
 pub const DT_UNKNOWN: u32 = 0;
 pub const DT_FIFO: u32 = 1;
 pub const DT_CHR: u32 = 2;
@@ -270,6 +291,11 @@ pub const DT_REG: u32 = 8;
 pub const DT_LNK: u32 = 10;
 pub const DT_SOCK: u32 = 12;
 pub const DT_WHT: u32 = 14;
+
+pub const S_IFDIR: u32 = 16384;
+pub const S_IFREG: u32 = 32768;
+pub const S_IFLNK: u32 = 40960;
+pub const S_IFMT: u32 = 61440;
 
 // sysmbols, which are part of the library operating system
 extern "C" {
@@ -428,6 +454,14 @@ extern "C" {
 	#[link_name = "sys_open"]
 	pub fn open(name: *const i8, flags: i32, mode: i32) -> i32;
 
+	/// get errno
+	#[link_name = "sys_get_errno"]
+	pub fn get_errno() -> i32;
+
+	/// set errno
+	#[link_name = "sys_set_errno"]
+	pub fn set_errno(e: i32);
+
 	/// open a directory
 	///
 	/// The opendir() system call opens the directory specified by `name`.
@@ -441,6 +475,18 @@ extern "C" {
 	/// remove directory it refers to `name`
 	#[link_name = "sys_rmdir"]
 	pub fn rmdir(name: *const i8) -> i32;
+
+	/// stat
+	#[link_name = "sys_stat"]
+	pub fn stat(name: *const i8, stat: *mut stat) -> i32;
+
+	/// lstat
+	#[link_name = "sys_lstat"]
+	pub fn lstat(name: *const i8, stat: *mut stat) -> i32;
+
+	/// fstat
+	#[link_name = "sys_fstat"]
+	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
 
 	/// determines the number of activated processors
 	#[link_name = "sys_processor_count"]
