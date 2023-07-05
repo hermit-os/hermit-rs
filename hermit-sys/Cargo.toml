@@ -17,6 +17,7 @@ default = [
     "pci-ids",
     "smp",
     "fsgsbase",
+    "tcp",
 ]
 
 acpi = []
