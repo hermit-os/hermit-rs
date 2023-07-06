@@ -2,7 +2,7 @@
 
 # RustyHermit - A Rust-based, lightweight unikernel
 
-[![Slack Status](https://matrix.osbyexample.com:3008/badge.svg)](https://matrix.osbyexample.com:3008)
+[![Zulip Badge](https://img.shields.io/badge/chat-hermit-57A37C?logo=zulip)](https://hermit.zulipchat.com/)
 
 [RustyHermit](http://www.hermitcore.org) is a [unikernel](http://unikernel.org) targeting a scalable and predictable runtime for high-performance and cloud computing.
 Unikernel means, you bundle your application directly with the kernel library, so that it can run without any installed operating system.
@@ -82,7 +82,7 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 RustyHermit is being developed on [GitHub](https://github.com/hermitcore/rusty-hermit).
-Create your own fork, send us a pull request, and chat with us on [Slack](https://matrix.osbyexample.com:3008)
+Create your own fork, send us a pull request, and chat with us on [Zulip](https://hermit.zulipchat.com/).
 
 ## Publications
 
