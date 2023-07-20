@@ -37,6 +37,12 @@ fn get_timestamp() -> u64 {
 	CNTPCT_EL0.get()
 }
 
+#[cfg(target_arch = "riscv64")]
+#[inline]
+fn get_timestamp() -> u64 {
+	riscv::register::time::read64()
+}
+
 extern "C" {
 	#[cfg(target_os = "hermit")]
 	fn sys_getpid() -> u32;
