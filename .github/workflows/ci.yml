@@ -72,7 +72,7 @@ jobs:
     - name: Build dev profile
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
     - name: Install uhyve
-      run: cargo install --locked uhyve
+      run: cargo +stable install --locked uhyve
     - name: Check KVM availability
       shell: bash
       run: |
