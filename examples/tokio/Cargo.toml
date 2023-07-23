@@ -1,0 +1,26 @@
+[package]
+name = "tokio-minimal"
+authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+tokio = { version = "1.19", default-features = false, features = ["rt", "rt-multi-thread", "macros"] }
+
+[target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
+path = "../../hermit-sys"
+default-features = false
+
+[features]
+default = ["pci", "pci-ids", "acpi", "dhcpv4", "tcp"]
+vga = ["hermit-sys/vga"]
+dhcpv4 = ["hermit-sys/dhcpv4"]
+pci = ["hermit-sys/pci"]
+pci-ids = ["hermit-sys/pci-ids"]
+acpi = ["hermit-sys/acpi"]
+fsgsbase = ["hermit-sys/fsgsbase"]
+smp = ["hermit-sys/smp"]
+tcp = ["hermit-sys/tcp"]
+instrument = ["hermit-sys/instrument"]
+trace = ["hermit-sys/trace"]

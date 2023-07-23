@@ -5,6 +5,7 @@ members = [
     "hermit-sys",
     "benches/netbench",
     "benches/micro",
+    "examples/tokio",
     "examples/hello_world",
     "examples/httpd",
     "examples/demo",
