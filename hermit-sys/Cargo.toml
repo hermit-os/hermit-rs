@@ -39,6 +39,9 @@ tcp = []
 trace = []
 vga = []
 
+# if this feature isn't set, the Virtio interface will be used
+rtl8139 = ["tcp", "pci"]
+
 [build-dependencies]
 flate2 = "1"
 ureq = "2.4"

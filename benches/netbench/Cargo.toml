@@ -29,6 +29,7 @@ fsgsbase = ["hermit-sys/fsgsbase"]
 smp = ["hermit-sys/smp"]
 tcp = ["hermit-sys/tcp"]
 instrument = ["hermit-sys/instrument"]
+rtl8139 = ["hermit-sys/rtl8139"]
 
 [[bin]]
 name = "server-bw"
