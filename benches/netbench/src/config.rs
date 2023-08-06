@@ -35,22 +35,23 @@ pub struct Config {
 	#[arg(
 		long = "nodelay",
 		short = 'd',
-		default_value_t = true,
-		help = "sets TCP in no-delay mode. Any int > 0 for true, 0 for false"
+		action,
+		help = "sets TCP in no-delay mode"
 	)]
 	pub no_delay: bool,
 	#[arg(
 		long = "nonblocking",
 		short = 'b',
-		default_value_t = true,
-		help = "sets TCP in non-blocking mode. Any int > 0 for true, 0 for false"
+		action,
+		help = "sets TCP in non-blocking mode"
 	)]
 	pub non_blocking: bool,
 	#[arg(
-		long = "thread",
-		short = 't',
-		help = "id of process to pin thread to, -1 for no pinning"
-	)]
+        long = "thread",
+        short = 't',
+        default_value_t = -1,
+        help = "id of process to pin thread to, -1 for no pinning"
+    )]
 	pub p_id: i8,
 }
 
