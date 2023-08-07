@@ -35,14 +35,12 @@ pub struct Config {
 	#[arg(
 		long = "nodelay",
 		short = 'd',
-		action,
 		help = "sets TCP in no-delay mode"
 	)]
 	pub no_delay: bool,
 	#[arg(
 		long = "nonblocking",
 		short = 'b',
-		action,
 		help = "sets TCP in non-blocking mode"
 	)]
 	pub non_blocking: bool,
