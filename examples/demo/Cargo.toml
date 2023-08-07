@@ -30,9 +30,10 @@ version = "0.0.10"
 default-features = false
 
 [features]
-default = ["pci", "acpi", "smp"]
+default = ["pci", "acpi", "smp", "fs"]
 vga = ["hermit-sys/vga"]
 pci = ["hermit-sys/pci"]
+fs = ["hermit-sys/fs"]
 acpi = ["hermit-sys/acpi"]
 pci-ids = ["hermit-sys/pci-ids"]
 fsgsbase = ["hermit-sys/fsgsbase"]

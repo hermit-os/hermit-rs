@@ -19,6 +19,7 @@ default = [
     "fsgsbase",
     "tcp",
     "dhcpv4",
+    "fs",
 ]
 
 acpi = []
@@ -38,6 +39,7 @@ smp = []
 tcp = []
 trace = []
 vga = []
+fs = []
 
 # if this feature isn't set, the Virtio interface will be used
 rtl8139 = ["tcp", "pci"]
