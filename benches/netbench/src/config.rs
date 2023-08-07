@@ -32,11 +32,7 @@ pub struct Config {
 		help = "number of rounds of transfer to perform"
 	)]
 	pub n_rounds: usize,
-	#[arg(
-		long = "nodelay",
-		short = 'd',
-		help = "sets TCP in no-delay mode"
-	)]
+	#[arg(long = "nodelay", short = 'd', help = "sets TCP in no-delay mode")]
 	pub no_delay: bool,
 	#[arg(
 		long = "nonblocking",
