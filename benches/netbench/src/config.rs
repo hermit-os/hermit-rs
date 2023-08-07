@@ -32,25 +32,20 @@ pub struct Config {
 		help = "number of rounds of transfer to perform"
 	)]
 	pub n_rounds: usize,
-	#[arg(
-		long = "nodelay",
-		short = 'd',
-		default_value_t = true,
-		help = "sets TCP in no-delay mode. Any int > 0 for true, 0 for false"
-	)]
+	#[arg(long = "nodelay", short = 'd', help = "sets TCP in no-delay mode")]
 	pub no_delay: bool,
 	#[arg(
 		long = "nonblocking",
 		short = 'b',
-		default_value_t = true,
-		help = "sets TCP in non-blocking mode. Any int > 0 for true, 0 for false"
+		help = "sets TCP in non-blocking mode"
 	)]
 	pub non_blocking: bool,
 	#[arg(
-		long = "thread",
-		short = 't',
-		help = "id of process to pin thread to, -1 for no pinning"
-	)]
+        long = "thread",
+        short = 't',
+        default_value_t = -1,
+        help = "id of process to pin thread to, -1 for no pinning"
+    )]
 	pub p_id: i8,
 }
 
