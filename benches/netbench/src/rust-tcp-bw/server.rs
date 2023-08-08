@@ -18,7 +18,7 @@ fn main() {
 	let mut buf = vec![0; n_bytes];
 
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port.to_string());
-	connection::setup(&args, &mut stream);
+	connection::setup(&args, &stream);
 
 	let start = Instant::now();
 	for _i in 0..args.n_rounds {

@@ -39,7 +39,7 @@ pub fn receive_message(n_bytes: usize, stream: &mut TcpStream, rbuf: &mut [u8]) 
 }
 
 /// Setup the streams and eventually pins the thread according to the configuration.
-pub fn setup(config: &Config, stream: &mut TcpStream) {
+pub fn setup(config: &Config, stream: &TcpStream) {
 	if config.no_delay {
 		stream
 			.set_nodelay(true)
