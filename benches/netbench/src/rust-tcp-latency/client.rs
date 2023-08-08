@@ -29,7 +29,7 @@ fn main() {
 	while !connected {
 		match connection::client_connect(args.address_and_port()) {
 			Ok(mut stream) => {
-				connection::setup(&args, &mut stream);
+				connection::setup(&args, &stream);
 				threading::setup(&args);
 				connected = true;
 				let mut hist = hdrhist::HDRHist::new();

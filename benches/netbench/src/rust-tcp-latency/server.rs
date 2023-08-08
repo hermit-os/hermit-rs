@@ -15,7 +15,7 @@ fn main() {
 	let mut buf = vec![0; n_bytes];
 
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port.to_string());
-	connection::setup(&args, &mut stream);
+	connection::setup(&args, &stream);
 	threading::setup(&args);
 
 	// Make sure n_rounds is the same between client and server
