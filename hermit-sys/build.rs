@@ -35,7 +35,7 @@ impl KernelSrc {
 	}
 
 	fn download() -> Self {
-		let version = "0.6.2";
+		let version = "0.6.3";
 		let out_dir = out_dir();
 		let src_dir = out_dir.join(format!("libhermit-rs-{version}"));
 
