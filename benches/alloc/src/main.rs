@@ -32,7 +32,7 @@ SOFTWARE.
 #![feature(slice_ptr_get)]
 
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 use std::alloc::{alloc, dealloc, Layout};
 use std::time::Instant;

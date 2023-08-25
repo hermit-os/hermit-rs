@@ -1,7 +1,7 @@
 /// Example is derived from tiny-http example
 /// https://github.com/tiny-http/tiny-http/blob/master/examples/hello-world.rs
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 fn main() {
 	let crab = vec![0xF0_u8, 0x9F_u8, 0xA6_u8, 0x80_u8];

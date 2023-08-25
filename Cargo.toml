@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "hermit-abi",
-    "hermit-sys",
+    "hermit",
     "benches/alloc",
     "benches/netbench",
     "benches/micro",

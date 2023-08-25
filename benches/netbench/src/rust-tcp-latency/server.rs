@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 use clap::Parser;
 use rust_tcp_io_perf::config::Config;

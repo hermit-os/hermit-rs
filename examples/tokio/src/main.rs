@@ -1,7 +1,7 @@
 // A minimal tokio example. Network support is currently not supported.
 
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 async fn say_world() {
 	println!("world");

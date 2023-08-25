@@ -5,17 +5,17 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 publish = false
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit-sys]
-path = "../../hermit-sys"
+[target.'cfg(target_os = "hermit")'.dependencies.hermit]
+path = "../../hermit"
 default-features = false
 
 [features]
 default = ["pci", "acpi"]
-vga = ["hermit-sys/vga"]
-pci = ["hermit-sys/pci"]
-pci-ids = ["hermit-sys/pci-ids"]
-acpi = ["hermit-sys/acpi"]
-fsgsbase = ["hermit-sys/fsgsbase"]
-smp = ["hermit-sys/smp"]
-instrument = ["hermit-sys/instrument"]
-fs = ["hermit-sys/fs"]
+vga = ["hermit/vga"]
+pci = ["hermit/pci"]
+pci-ids = ["hermit/pci-ids"]
+acpi = ["hermit/acpi"]
+fsgsbase = ["hermit/fsgsbase"]
+smp = ["hermit/smp"]
+instrument = ["hermit/instrument"]
+fs = ["hermit/fs"]

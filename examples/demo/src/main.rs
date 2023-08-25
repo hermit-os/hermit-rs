@@ -3,7 +3,7 @@
 #![feature(thread_id_value)]
 
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 mod tests;
 
