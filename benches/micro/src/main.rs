@@ -3,7 +3,7 @@
 #![feature(test)]
 
 #[cfg(target_os = "hermit")]
-use hermit_sys as _;
+use hermit as _;
 
 mod benches;
 

@@ -1,5 +1,5 @@
 [package]
-name = "hermit-sys"
+name = "hermit"
 version = "0.5.3"
 authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
