@@ -2,7 +2,7 @@
 
 This repo contains programs to benchmark how much bandwidth we effectively have available on a communication channel and what's the latency on that channel.
 
-It is froked from [rust-tcp-io-perf](https://github.com/LorenzoMartini/rust-tcp-io-perf) and used to measure the network performance of RustyHermit.
+It is froked from [rust-tcp-io-perf](https://github.com/LorenzoMartini/rust-tcp-io-perf) and used to measure the network performance of Hermit.
 
 ## Bandwidth measure
 

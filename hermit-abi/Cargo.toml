@@ -5,7 +5,7 @@ authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
 description = "Hermit system calls definitions."
-repository = "https://github.com/hermitcore/rusty-hermit"
+repository = "https://github.com/hermitcore/hermit-rs"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
 

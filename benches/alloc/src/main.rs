@@ -25,7 +25,7 @@ SOFTWARE.
 /* Heavily modified by Shaun Beautement. All errors are probably my own. */
 
 /*
- * This benchmark was revised for RustyHermit by Stefan Lankes.
+ * This benchmark was revised for Hermit by Stefan Lankes.
  * The original code is part of the crate `talc`.
  */
 
