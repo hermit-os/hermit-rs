@@ -1,5 +1,5 @@
 //! `hermit-abi` is small interface to call functions from the unikernel
-//! [RustyHermit](https://github.com/hermitcore/libhermit-rs).
+//! [RustyHermit](https://github.com/hermitcore/kernel).
 
 #![no_std]
 #![allow(nonstandard_style)]

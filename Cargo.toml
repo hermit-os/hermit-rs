@@ -11,4 +11,4 @@ members = [
     "examples/httpd",
     "examples/demo",
 ]
-exclude = ["target", "libhermit-rs"]
+exclude = ["target", "kernel"]
