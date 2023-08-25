@@ -4,9 +4,9 @@
 [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/rusty-hermit/hermit_sys/)
 [![License](https://img.shields.io/crates/l/hermit-sys.svg)](https://img.shields.io/crates/l/hermit-sys.svg)
 
-This is a container for the library operating system [RustyHermit](https://github.com/hermitcore/libhermit-rs) and is used to link the libos to the application.
+This is a container for the library operating system [RustyHermit](https://github.com/hermitcore/kernel) and is used to link the libos to the application.
 
-Please read the README of [RustyHermit](https://github.com/hermitcore/libhermit-rs) for more information.
+Please read the README of [RustyHermit](https://github.com/hermitcore/kernel) for more information.
 
 ## License
 

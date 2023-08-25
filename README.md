@@ -15,7 +15,7 @@ The repository contains following directories and submodules:
 1. _demo_ is a small demo application based on the data-parallelism library [Rayon](https://github.com/rayon-rs/rayon)
 2. _hermit-abi_ contains the platform APIs and builds the interface between library operating system and the application
 3. _hermit-sys_ contains a crate to automate the build process of the library operating systems
-4. _libhermit-rs_ is the kernel itself
+4. _kernel_ is the kernel itself
 5. _netbench_ provides some basic network benchmarks
 
 ## Background

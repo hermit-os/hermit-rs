@@ -30,19 +30,18 @@ struct KernelSrc {
 impl KernelSrc {
 	fn local() -> Option<Self> {
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-		src_dir.set_file_name("libhermit-rs");
+		src_dir.set_file_name("kernel");
 		src_dir.exists().then_some(Self { src_dir })
 	}
 
 	fn download() -> Self {
 		let version = "0.6.4";
 		let out_dir = out_dir();
-		let src_dir = out_dir.join(format!("libhermit-rs-{version}"));
+		let src_dir = out_dir.join(format!("hermit-kernel-{version}"));
 
 		if !src_dir.exists() {
-			let url = format!(
-				"https://github.com/hermitcore/libhermit-rs/archive/refs/tags/v{version}.tar.gz"
-			);
+			let url =
+				format!("https://github.com/hermitcore/kernel/archive/refs/tags/v{version}.tar.gz");
 			let response = ureq::get(url.as_str()).call().unwrap().into_reader();
 			let tar = GzDecoder::new(response);
 			let mut archive = Archive::new(tar);

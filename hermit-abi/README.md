@@ -4,9 +4,9 @@
 [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/rusty-hermit/hermit_abi/)
 [![License](https://img.shields.io/crates/l/hermit-abi.svg)](https://img.shields.io/crates/l/hermit-abi.svg)
 
-This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/libhermit-rs).
+This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/kernel).
 
-Please read the README of [RustyHermit](https://github.com/hermitcore/libhermit-rs) for more information.
+Please read the README of [RustyHermit](https://github.com/hermitcore/kernel) for more information.
 
 ## License
 
