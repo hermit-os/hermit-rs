@@ -113,7 +113,7 @@ impl KernelSrc {
 			&mut cmd,
 			[
 				"acpi", "dhcpv4", "fsgsbase", "pci", "pci-ids", "smp", "tcp", "trace", "vga",
-				"rtl8139", "fs",
+				"rtl8139", "fs", "vsock",
 			]
 			.into_iter(),
 		);
