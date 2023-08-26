@@ -37,7 +37,7 @@ impl KernelSrc {
 	fn download() -> Self {
 		let version = "0.6.4";
 		let out_dir = out_dir();
-		let src_dir = out_dir.join(format!("hermit-kernel-{version}"));
+		let src_dir = out_dir.join(format!("kernel-{version}"));
 
 		if !src_dir.exists() {
 			let url =
