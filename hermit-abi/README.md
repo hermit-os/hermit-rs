@@ -1,12 +1,12 @@
 # hermit-abi
 
 [![Crates.io](https://img.shields.io/crates/v/hermit-abi.svg)](https://crates.io/crates/hermit-abi)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/rusty-hermit/hermit_abi/)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/hermit-rs/hermit_abi/)
 [![License](https://img.shields.io/crates/l/hermit-abi.svg)](https://img.shields.io/crates/l/hermit-abi.svg)
 
-This is small interface to call functions from the unikernel [RustyHermit](https://github.com/hermitcore/kernel).
+This is small interface to call functions from the [Hermit kernel](https://github.com/hermitcore/kernel).
 
-Please read the README of [RustyHermit](https://github.com/hermitcore/kernel) for more information.
+Please read the README of the [Hermit kernel](https://github.com/hermitcore/kernel) for more information.
 
 ## License
 

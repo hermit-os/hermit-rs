@@ -43,7 +43,7 @@ spec:
       volumes:
       - name: containerdisk
         containerDisk:
-          image: registry.git.rwth-aachen.de/acs/public/hermitcore/rusty-hermit/httpd:latest
+          image: registry.git.rwth-aachen.de/acs/public/hermitcore/hermit-rs/httpd:latest
 ---
 kind: Service
 apiVersion: v1
@@ -72,10 +72,10 @@ metadata:
 spec:
   tls:
     - hosts:
-      - rusty-hermit.k8s.eonerc.rwth-aachen.de
-      secretName: letsencrypt-prod-rusty-hermit
+      - hermit-rs.k8s.eonerc.rwth-aachen.de
+      secretName: letsencrypt-prod-hermit-rs
   rules:
-  - host: rusty-hermit.k8s.eonerc.rwth-aachen.de
+  - host: hermit-rs.k8s.eonerc.rwth-aachen.de
     http:
       paths:
       - backend:

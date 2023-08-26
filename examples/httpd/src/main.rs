@@ -22,7 +22,7 @@ fn main() {
 
 		let now = time::OffsetDateTime::now_utc();
 		let text = format!(
-			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
+			"Hello from Hermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab.clone()).unwrap_or_default(),
 			now
 		);
@@ -41,7 +41,7 @@ fn main() {
 
 		let now = time::OffsetDateTime::now_utc();
 		let text = format!(
-			"Hello from RustyHermit {}!\nThe current UTC time is {}!\n",
+			"Hello from Hermit {}!\nThe current UTC time is {}!\n",
 			String::from_utf8(crab.clone()).unwrap_or_default(),
 			now
 		);
