@@ -1,7 +1,10 @@
 [package]
 name = "hermit"
 version = "0.5.3"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+authors = [
+    "Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
+    "Martin Kröning <mkroening@posteo.net>",
+]
 license = "MIT OR Apache-2.0"
 description = "FFI bindings to HermitCore"
 repository = "https://github.com/hermitcore/hermit-rs"
