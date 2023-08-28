@@ -1,5 +1,5 @@
 [package]
-name = "hermit"
+name = "hermit-sys"
 version = "0.6.0"
 authors = [
     "Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
@@ -11,43 +11,3 @@ repository = "https://github.com/hermitcore/hermit-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
-links = "hermit"
-
-[features]
-default = [
-    "acpi",
-    "dhcpv4",
-    "fs",
-    "fsgsbase",
-    "pci",
-    "pci-ids",
-    "smp",
-    "tcp",
-]
-
-acpi = []
-dhcpv4 = []
-fs = []
-fsgsbase = []
-
-# Build the kernel with function instrument code for mcount-based tracing
-instrument = []
-
-pci = []
-pci-ids = ["pci"]
-
-# Enables -Z randomize-layout in the kernel
-randomize-layout = []
-
-# if this feature isn't set, the Virtio interface will be used
-rtl8139 = ["tcp", "pci"]
-
-smp = []
-tcp = []
-trace = []
-vga = []
-
-[build-dependencies]
-flate2 = "1"
-ureq = "2.4"
-tar = "0.4"
