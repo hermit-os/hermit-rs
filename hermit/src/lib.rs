@@ -1,12 +1,8 @@
-#![allow(clippy::large_enum_variant)]
-#![allow(clippy::new_ret_no_self)]
+#![doc = include_str!("../README.md")]
 
-#[cfg(not(feature = "tcp"))]
-mod dummy;
-
+// FIXME: Remove once removed from std:
+// https://github.com/rust-lang/rust/pull/115309
 #[no_mangle]
-pub extern "C" fn sys_network_init() -> i32 {
-	// nothing to do
-
+extern "C" fn sys_network_init() -> i32 {
 	0
 }
