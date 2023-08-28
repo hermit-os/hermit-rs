@@ -6,7 +6,7 @@ authors = [
     "Martin Kröning <mkroening@posteo.net>",
 ]
 license = "MIT OR Apache-2.0"
-description = "FFI bindings to HermitCore"
+description = "The Hermit unikernel for Rust."
 repository = "https://github.com/hermitcore/hermit-rs"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
