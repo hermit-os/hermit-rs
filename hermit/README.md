@@ -1,8 +1,7 @@
 # hermit
 
 [![Crates.io](https://img.shields.io/crates/v/hermit.svg)](https://crates.io/crates/hermit)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermitcore.github.io/hermit-rs/hermit/)
-[![License](https://img.shields.io/crates/l/hermit.svg)](https://img.shields.io/crates/l/hermit.svg)
+[![docs.rs](https://img.shields.io/docsrs/hermit)](https://docs.rs/hermit)
 
 This is a container for the [Hermit kernel](https://github.com/hermitcore/kernel) and is used to link the libos to the application.
 
