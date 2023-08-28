@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 // FIXME: Remove once removed from std:
 // https://github.com/rust-lang/rust/pull/115309
 #[no_mangle]
