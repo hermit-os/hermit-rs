@@ -23,7 +23,7 @@ fn main() {
 			}
 			Ok(received) => {
 				print!("read {}", std::str::from_utf8(&buf[..received]).unwrap());
-				if n == 0 {
+				if received == 0 {
 					break;
 				}
 			}

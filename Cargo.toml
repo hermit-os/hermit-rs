@@ -11,5 +11,6 @@ members = [
     "examples/httpd",
     "examples/demo",
     "examples/testtcp",
+    "examples/testudp",
 ]
 exclude = ["target", "kernel"]
