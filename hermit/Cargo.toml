@@ -23,6 +23,7 @@ default = [
     "pci-ids",
     "smp",
     "tcp",
+    "udp",
 ]
 
 acpi = []
@@ -40,10 +41,11 @@ pci-ids = ["pci"]
 randomize-layout = []
 
 # if this feature isn't set, the Virtio interface will be used
-rtl8139 = ["tcp", "pci"]
+rtl8139 = ["pci"]
 
 smp = []
 tcp = []
+udp = []
 trace = []
 vga = []
 
