@@ -130,7 +130,22 @@ impl KernelSrc {
 		println!("cargo:rustc-link-search=native={}", lib_location.display());
 		println!("cargo:rustc-link-lib=static=hermit");
 
-		println!("cargo:rerun-if-changed={}", self.src_dir.display());
+		let rerun_if_changed = |path| {
+			println!(
+				"cargo:rerun-if-changed={}",
+				self.src_dir.join(path).display()
+			);
+		};
+
+		rerun_if_changed(".cargo");
+		rerun_if_changed("hermit-builtins/src");
+		rerun_if_changed("hermit-builtins/Cargo.lock");
+		rerun_if_changed("hermit-builtins/Cargo.toml");
+		rerun_if_changed("src");
+		rerun_if_changed("xtask");
+		rerun_if_changed("Cargo.lock");
+		rerun_if_changed("Cargo.toml");
+		rerun_if_changed("rust-toolchain.toml");
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 	}
