@@ -7,11 +7,11 @@ use std::net::TcpListener;
 // demo program to test the tcp interface
 //
 // The program is used to demonstrate issue hermit-os/kernel#880
-// Use `socat - TCP:localhost:8080` to communicate with the
+// Use `socat - TCP:localhost:9975` to communicate with the
 // unikernel.
 
 fn main() {
-	let listener = TcpListener::bind("0.0.0.0:8080").unwrap();
+	let listener = TcpListener::bind("0.0.0.0:9975").unwrap();
 	let (mut socket, _) = listener.accept().unwrap();
 	let mut buf = [0u8; 1000];
 	loop {

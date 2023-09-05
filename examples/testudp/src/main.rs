@@ -5,11 +5,11 @@ use std::net::UdpSocket;
 
 // demo program to test the udp interface
 //
-// Use `socat - UDP:localhost:8080` to communicate with the
+// Use `socat - UDP:localhost:9975` to communicate with the
 // unikernel.
 
 fn main() {
-	let socket = UdpSocket::bind("0.0.0.0:8080").expect("couldn't bind to address");
+	let socket = UdpSocket::bind("0.0.0.0:9975").expect("couldn't bind to address");
 	let mut buf = [0; 1000];
 
 	loop {
