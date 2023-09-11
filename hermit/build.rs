@@ -1,7 +1,8 @@
 use std::env;
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::str;
 
 use flate2::read::GzDecoder;
 use tar::Archive;
@@ -62,25 +63,10 @@ impl KernelSrc {
 		let arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 
-		let cargo = {
-			// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
-			// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
-			let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
-			cargo_home.push("bin/cargo");
-			cargo_home
-		};
+		let mut cargo = cargo();
 
-		let mut cmd = Command::new(cargo);
-
-		// Remove rust-toolchain-specific environment variables from kernel cargo
-		cmd.env_remove("LD_LIBRARY_PATH");
-		env::vars()
-			.filter(|(key, _value)| key.starts_with("CARGO") || key.starts_with("RUST"))
-			.for_each(|(key, _value)| {
-				cmd.env_remove(&key);
-			});
-
-		cmd.current_dir(&self.src_dir)
+		cargo
+			.current_dir(&self.src_dir)
 			.arg("run")
 			.arg("--package=xtask")
 			.arg("--target-dir")
@@ -100,17 +86,17 @@ impl KernelSrc {
 			.arg(&target_dir);
 
 		if has_feature("instrument") {
-			cmd.arg("--instrument-mcount");
+			cargo.arg("--instrument-mcount");
 		}
 
 		if has_feature("randomize-layout") {
-			cmd.arg("--randomize-layout");
+			cargo.arg("--randomize-layout");
 		}
 
 		// Control enabled features via this crate's features
-		cmd.arg("--no-default-features");
+		cargo.arg("--no-default-features");
 		forward_features(
-			&mut cmd,
+			&mut cargo,
 			[
 				"acpi", "dhcpv4", "fsgsbase", "pci", "pci-ids", "smp", "tcp", "udp", "trace",
 				"vga", "rtl8139", "fs",
@@ -118,7 +104,7 @@ impl KernelSrc {
 			.into_iter(),
 		);
 
-		let status = cmd.status().expect("failed to start kernel build");
+		let status = cargo.status().expect("failed to start kernel build");
 		assert!(status.success());
 
 		let lib_location = target_dir
@@ -130,25 +116,68 @@ impl KernelSrc {
 		println!("cargo:rustc-link-search=native={}", lib_location.display());
 		println!("cargo:rustc-link-lib=static=hermit");
 
-		let rerun_if_changed = |path| {
-			println!(
-				"cargo:rerun-if-changed={}",
-				self.src_dir.join(path).display()
-			);
-		};
+		self.rerun_if_changed_cargo(&self.src_dir.join("Cargo.toml"));
+		self.rerun_if_changed_cargo(&self.src_dir.join("hermit-builtins/Cargo.toml"));
 
-		rerun_if_changed(".cargo");
-		rerun_if_changed("hermit-builtins/src");
-		rerun_if_changed("hermit-builtins/Cargo.lock");
-		rerun_if_changed("hermit-builtins/Cargo.toml");
-		rerun_if_changed("src");
-		rerun_if_changed("xtask");
-		rerun_if_changed("Cargo.lock");
-		rerun_if_changed("Cargo.toml");
-		rerun_if_changed("rust-toolchain.toml");
+		println!(
+			"cargo:rerun-if-changed={}",
+			self.src_dir.join("rust-toolchain.toml").display()
+		);
+
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 	}
+
+	fn rerun_if_changed_cargo(&self, cargo_toml: &Path) {
+		let mut cargo = cargo();
+
+		let output = cargo
+			.arg("tree")
+			.arg(format!("--manifest-path={}", cargo_toml.display()))
+			.arg("--prefix=none")
+			.arg("--workspace")
+			.output()
+			.unwrap();
+
+		let output = str::from_utf8(&output.stdout).unwrap();
+
+		let path_deps = output.lines().filter_map(|dep| {
+			let mut split = dep.split(&['(', ')']);
+			split.next();
+			let path = split.next()?;
+			path.starts_with('/').then_some(path)
+		});
+
+		for path_dep in path_deps {
+			println!("cargo:rerun-if-changed={path_dep}/src");
+			println!("cargo:rerun-if-changed={path_dep}/Cargo.toml");
+			if Path::new(path_dep).join("Cargo.lock").exists() {
+				println!("cargo:rerun-if-changed={path_dep}/Cargo.lock");
+			}
+		}
+	}
+}
+
+fn cargo() -> Command {
+	let cargo = {
+		// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
+		// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
+		let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
+		cargo_home.push("bin/cargo");
+		cargo_home
+	};
+
+	let mut cargo = Command::new(cargo);
+
+	// Remove rust-toolchain-specific environment variables from kernel cargo
+	cargo.env_remove("LD_LIBRARY_PATH");
+	env::vars()
+		.filter(|(key, _value)| key.starts_with("CARGO") || key.starts_with("RUST"))
+		.for_each(|(key, _value)| {
+			cargo.env_remove(&key);
+		});
+
+	cargo
 }
 
 fn out_dir() -> PathBuf {
