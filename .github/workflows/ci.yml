@@ -13,7 +13,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - uses: mkroening/rust-toolchain-toml@main
@@ -31,7 +31,7 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: mkroening/rust-toolchain-toml@main
       - run: rustup component add rustfmt
       - name: Format
@@ -41,7 +41,7 @@ jobs:
     name: Check docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Install NASM
@@ -60,7 +60,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y nasm qemu-kvm
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
          submodules: true
     - uses: mkroening/rust-toolchain-toml@main
@@ -109,7 +109,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install qemu-system-aarch64 curl
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Download loader
@@ -144,7 +144,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install qemu-system-x86 nasm curl
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Download loader
