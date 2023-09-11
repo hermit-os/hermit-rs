@@ -62,25 +62,10 @@ impl KernelSrc {
 		let arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
 
-		let cargo = {
-			// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
-			// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
-			let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
-			cargo_home.push("bin/cargo");
-			cargo_home
-		};
+		let mut cargo = cargo();
 
-		let mut cmd = Command::new(cargo);
-
-		// Remove rust-toolchain-specific environment variables from kernel cargo
-		cmd.env_remove("LD_LIBRARY_PATH");
-		env::vars()
-			.filter(|(key, _value)| key.starts_with("CARGO") || key.starts_with("RUST"))
-			.for_each(|(key, _value)| {
-				cmd.env_remove(&key);
-			});
-
-		cmd.current_dir(&self.src_dir)
+		cargo
+			.current_dir(&self.src_dir)
 			.arg("run")
 			.arg("--package=xtask")
 			.arg("--target-dir")
@@ -100,17 +85,17 @@ impl KernelSrc {
 			.arg(&target_dir);
 
 		if has_feature("instrument") {
-			cmd.arg("--instrument-mcount");
+			cargo.arg("--instrument-mcount");
 		}
 
 		if has_feature("randomize-layout") {
-			cmd.arg("--randomize-layout");
+			cargo.arg("--randomize-layout");
 		}
 
 		// Control enabled features via this crate's features
-		cmd.arg("--no-default-features");
+		cargo.arg("--no-default-features");
 		forward_features(
-			&mut cmd,
+			&mut cargo,
 			[
 				"acpi", "dhcpv4", "fsgsbase", "pci", "pci-ids", "smp", "tcp", "udp", "trace",
 				"vga", "rtl8139", "fs",
@@ -118,7 +103,7 @@ impl KernelSrc {
 			.into_iter(),
 		);
 
-		let status = cmd.status().expect("failed to start kernel build");
+		let status = cargo.status().expect("failed to start kernel build");
 		assert!(status.success());
 
 		let lib_location = target_dir
@@ -149,6 +134,28 @@ impl KernelSrc {
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 	}
+}
+
+fn cargo() -> Command {
+	let cargo = {
+		// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
+		// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
+		let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
+		cargo_home.push("bin/cargo");
+		cargo_home
+	};
+
+	let mut cargo = Command::new(cargo);
+
+	// Remove rust-toolchain-specific environment variables from kernel cargo
+	cargo.env_remove("LD_LIBRARY_PATH");
+	env::vars()
+		.filter(|(key, _value)| key.starts_with("CARGO") || key.starts_with("RUST"))
+		.for_each(|(key, _value)| {
+			cargo.env_remove(&key);
+		});
+
+	cargo
 }
 
 fn out_dir() -> PathBuf {
