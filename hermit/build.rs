@@ -1,7 +1,8 @@
 use std::env;
 use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::str;
 
 use flate2::read::GzDecoder;
 use tar::Archive;
@@ -115,24 +116,45 @@ impl KernelSrc {
 		println!("cargo:rustc-link-search=native={}", lib_location.display());
 		println!("cargo:rustc-link-lib=static=hermit");
 
-		let rerun_if_changed = |path| {
-			println!(
-				"cargo:rerun-if-changed={}",
-				self.src_dir.join(path).display()
-			);
-		};
+		self.rerun_if_changed_cargo(&self.src_dir.join("Cargo.toml"));
+		self.rerun_if_changed_cargo(&self.src_dir.join("hermit-builtins/Cargo.toml"));
 
-		rerun_if_changed(".cargo");
-		rerun_if_changed("hermit-builtins/src");
-		rerun_if_changed("hermit-builtins/Cargo.lock");
-		rerun_if_changed("hermit-builtins/Cargo.toml");
-		rerun_if_changed("src");
-		rerun_if_changed("xtask");
-		rerun_if_changed("Cargo.lock");
-		rerun_if_changed("Cargo.toml");
-		rerun_if_changed("rust-toolchain.toml");
+		println!(
+			"cargo:rerun-if-changed={}",
+			self.src_dir.join("rust-toolchain.toml").display()
+		);
+
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
+	}
+
+	fn rerun_if_changed_cargo(&self, cargo_toml: &Path) {
+		let mut cargo = cargo();
+
+		let output = cargo
+			.arg("tree")
+			.arg(format!("--manifest-path={}", cargo_toml.display()))
+			.arg("--prefix=none")
+			.arg("--workspace")
+			.output()
+			.unwrap();
+
+		let output = str::from_utf8(&output.stdout).unwrap();
+
+		let path_deps = output.lines().filter_map(|dep| {
+			let mut split = dep.split(&['(', ')']);
+			split.next();
+			let path = split.next()?;
+			path.starts_with('/').then_some(path)
+		});
+
+		for path_dep in path_deps {
+			println!("cargo:rerun-if-changed={path_dep}/src");
+			println!("cargo:rerun-if-changed={path_dep}/Cargo.toml");
+			if Path::new(path_dep).join("Cargo.lock").exists() {
+				println!("cargo:rerun-if-changed={path_dep}/Cargo.lock");
+			}
+		}
 	}
 }
 
