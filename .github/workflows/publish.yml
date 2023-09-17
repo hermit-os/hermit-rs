@@ -34,7 +34,7 @@ jobs:
     - name: Download loader
       uses: dsaltares/fetch-gh-release-asset@1.1.1
       with:
-        repo: hermitcore/rusty-loader
+        repo: hermit-os/loader
         file: rusty-loader-x86_64
     - name: Create dockerfile
       run: |
@@ -49,4 +49,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/hermitcore/rusty_demo:latest
+        tags: ghcr.io/hermit-os/rusty_demo:latest
