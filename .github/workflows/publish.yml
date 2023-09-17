@@ -3,7 +3,7 @@ name: Publish container image
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
   CARGO_TERM_COLOR: always
