@@ -252,6 +252,58 @@ pub struct pollfd {
 	pub revents: i16, /* events returned */
 }
 
+#[repr(C)]
+pub struct dirent {
+	pub d_ino: u64,
+	pub d_off: u64,
+	pub d_namelen: u32,
+	pub d_type: u32,
+	pub d_name: [u8; 0],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub enum DirectoryEntry {
+	Invalid(i32),
+	Valid(*const dirent),
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct stat {
+	pub st_dev: u64,
+	pub st_ino: u64,
+	pub st_nlink: u64,
+	pub st_mode: u32,
+	pub st_uid: u32,
+	pub st_gid: u32,
+	pub st_rdev: u64,
+	pub st_size: i64,
+	pub st_blksize: i64,
+	pub st_blocks: i64,
+	pub st_atime: i64,
+	pub st_atime_nsec: i64,
+	pub st_mtime: i64,
+	pub st_mtime_nsec: i64,
+	pub st_ctime: i64,
+	pub st_ctime_nsec: i64,
+}
+
+pub const DT_UNKNOWN: u32 = 0;
+pub const DT_FIFO: u32 = 1;
+pub const DT_CHR: u32 = 2;
+pub const DT_DIR: u32 = 4;
+pub const DT_BLK: u32 = 6;
+pub const DT_REG: u32 = 8;
+pub const DT_LNK: u32 = 10;
+pub const DT_SOCK: u32 = 12;
+pub const DT_WHT: u32 = 14;
+
+pub const S_IFDIR: u32 = 16384;
+pub const S_IFREG: u32 = 32768;
+pub const S_IFLNK: u32 = 40960;
+pub const S_IFMT: u32 = 61440;
+
 // sysmbols, which are part of the library operating system
 extern "C" {
 	/// If the value at address matches the expected value, park the current thread until it is either
@@ -409,9 +461,31 @@ extern "C" {
 	#[link_name = "sys_open"]
 	pub fn open(name: *const i8, flags: i32, mode: i32) -> i32;
 
+	/// open a directory
+	///
+	/// The opendir() system call opens the directory specified by `name`.
+	#[link_name = "sys_opendir"]
+	pub fn opendir(name: *const i8) -> i32;
+
 	/// delete the file it refers to `name`
 	#[link_name = "sys_unlink"]
 	pub fn unlink(name: *const i8) -> i32;
+
+	/// remove directory it refers to `name`
+	#[link_name = "sys_rmdir"]
+	pub fn rmdir(name: *const i8) -> i32;
+
+	/// stat
+	#[link_name = "sys_stat"]
+	pub fn stat(name: *const i8, stat: *mut stat) -> i32;
+
+	/// lstat
+	#[link_name = "sys_lstat"]
+	pub fn lstat(name: *const i8, stat: *mut stat) -> i32;
+
+	/// fstat
+	#[link_name = "sys_fstat"]
+	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
 
 	/// determines the number of activated processors
 	#[link_name = "sys_get_processor_count"]
@@ -484,6 +558,17 @@ extern "C" {
 	/// to by `buf`.
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
+
+	/// 'readdir' returns a pointer to a dirent structure
+	/// representing the next directory entry in the directory stream
+	/// pointed to by the file descriptor
+	#[link_name = "sys_readdir"]
+	pub fn readdir(fd: i32) -> DirectoryEntry;
+
+	/// 'mkdir' attempts to create a directory,
+	/// it returns 0 on success and -1 on error
+	#[link_name = "sys_mkdir"]
+	pub fn mkdir(name: *const i8, mode: u32) -> i32;
 
 	/// Fill `len` bytes in `buf` with cryptographically secure random data.
 	///

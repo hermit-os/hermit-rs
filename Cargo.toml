@@ -1,16 +1,18 @@
 [workspace]
 resolver = "2"
 members = [
-    "hermit-abi",
-    "hermit",
     "benches/alloc",
-    "benches/netbench",
     "benches/micro",
-    "examples/tokio",
+    "benches/netbench",
+    "examples/demo",
+    "examples/fuse_test",
     "examples/hello_world",
     "examples/httpd",
-    "examples/demo",
     "examples/testtcp",
     "examples/testudp",
+    "examples/tokio",
+    "examples/webserver",
+    "hermit",
+    "hermit-abi",
 ]
 exclude = ["target", "kernel"]

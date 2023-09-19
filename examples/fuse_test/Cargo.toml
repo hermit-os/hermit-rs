@@ -1,0 +1,20 @@
+[package]
+name = "fuse_test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[target.'cfg(target_os = "hermit")'.dependencies.hermit]
+path = "../../hermit"
+default-features = false
+
+[features]
+default = ["pci", "acpi", "fs"]
+vga = ["hermit/vga"]
+fs = ["hermit/fs"]
+pci = ["hermit/pci"]
+pci-ids = ["hermit/pci-ids"]
+acpi = ["hermit/acpi"]
+fsgsbase = ["hermit/fsgsbase"]
+smp = ["hermit/smp"]
+instrument = ["hermit/instrument"]
