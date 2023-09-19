@@ -11,6 +11,7 @@ members = [
     "examples/testtcp",
     "examples/testudp",
     "examples/tokio",
+    "examples/webserver",
     "hermit",
     "hermit-abi",
 ]
