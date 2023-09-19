@@ -5,6 +5,7 @@ members = [
     "benches/micro",
     "benches/netbench",
     "examples/demo",
+    "examples/fuse_test",
     "examples/hello_world",
     "examples/httpd",
     "examples/testtcp",
