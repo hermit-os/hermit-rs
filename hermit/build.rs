@@ -154,6 +154,9 @@ impl KernelSrc {
 			if Path::new(path_dep).join("Cargo.lock").exists() {
 				println!("cargo:rerun-if-changed={path_dep}/Cargo.lock");
 			}
+			if Path::new(path_dep).join("build.rs").exists() {
+				println!("cargo:rerun-if-changed={path_dep}/build.rs");
+			}
 		}
 	}
 }
