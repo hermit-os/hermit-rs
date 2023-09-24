@@ -51,7 +51,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/rusty_demo:latest
     - name: Build httpd
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features dhcpv4 --release
     - name: Copy httpd out of target dir
       run: cp target/x86_64-unknown-hermit/release/httpd .
     - name: Create dockerfile for httpd
