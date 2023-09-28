@@ -68,3 +68,36 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/hermit-os/httpd:latest
+    - name: Build webserver
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features dhcpv4 --release
+    - name: Copy webserver out of target dir
+      run: cp target/x86_64-unknown-hermit/release/webserver .
+    - name: Create static website
+      run: |
+        mkdir -p root
+        cat << END > root/index.html
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>Hermit-OS</title>
+        </head>
+        <body>
+        <p>Hello from Hermit-OS! 🦀</p>
+        </body>
+        </html>
+        END
+    - name: Create dockerfile for webserver
+      run: |
+        cat << END > Dockerfile
+        FROM scratch
+        COPY root root
+        COPY rusty-loader-x86_64 hermit/rusty-loader
+        COPY webserver hermit/webserver
+        CMD ["/hermit/webserver"]
+        END
+    - name: Build and push container
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/hermit-os/webserver:latest
