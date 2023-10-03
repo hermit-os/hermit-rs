@@ -46,12 +46,6 @@ Have a look at [rusty-demo](https://github.com/hermitcore/rusty-demo).
 
 If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating system, please take a look at [https://github.com/hermitcore/hermit-playground](https://github.com/hermitcore/hermit-playground).
 
-## Missing features
-
-* Multikernel support (might be coming)
-* Virtio support (partly available)
-* Network support (partly available)
-
 ## Wiki
 
 Please use the [Wiki](https://github.com/hermitcore/hermit-rs/wiki) to get further information and configuration options.
