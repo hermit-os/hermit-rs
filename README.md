@@ -35,7 +35,6 @@ Rust applications that use the Rust runtime and do not directly use OS services 
 ## Requirements
 
 * [`rustup`](https://www.rust-lang.org/tools/install)
-* [NASM](https://nasm.us/) (only for SMP on x86_64)
 
 ## Building your own applications
 
