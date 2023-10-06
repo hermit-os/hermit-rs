@@ -32,9 +32,9 @@ fn get_timestamp() -> u64 {
 #[cfg(target_arch = "aarch64")]
 #[inline]
 fn get_timestamp() -> u64 {
-	use tock_registers::interfaces::Readable;
+	use aarch64::regs::{Readable, CNTPCT_EL0};
 
-	aarch64::regs::CNTPCT_EL0.get()
+	CNTPCT_EL0.get()
 }
 
 extern "C" {
