@@ -31,12 +31,12 @@ jobs:
       uses: dsaltares/fetch-gh-release-asset@1.1.1
       with:
         repo: hermit-os/loader
-        file: rusty-loader-x86_64
+        file: hermit-loader-x86_64
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
         FROM scratch
-        COPY rusty-loader-x86_64 hermit/rusty-loader
+        COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY rusty_demo hermit/rusty_demo
         CMD ["/hermit/rusty_demo"]
         END
@@ -54,7 +54,7 @@ jobs:
       run: |
         cat << END > Dockerfile
         FROM scratch
-        COPY rusty-loader-x86_64 hermit/rusty-loader
+        COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY httpd hermit/httpd
         CMD ["/hermit/httpd"]
         END
@@ -87,7 +87,7 @@ jobs:
         cat << END > Dockerfile
         FROM scratch
         COPY root root
-        COPY rusty-loader-x86_64 hermit/rusty-loader
+        COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY webserver hermit/webserver
         CMD ["/hermit/webserver"]
         END
