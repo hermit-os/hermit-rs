@@ -1,4 +1,4 @@
-<img width="256" align="right" src="https://github.com/hermitcore/.github/blob/main/img/Hermit.svg" />
+<img width="256" align="right" src="https://github.com/hermitcore/.github/blob/main/logo/hermit-logo.svg" />
 
 # Hermit for Rust
 
