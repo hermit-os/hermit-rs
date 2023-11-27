@@ -104,6 +104,7 @@ impl KernelSrc {
 			.into_iter(),
 		);
 
+		println!("cargo:warning=$ {cargo:?}");
 		let status = cargo.status().expect("failed to start kernel build");
 		assert!(status.success());
 
