@@ -168,7 +168,11 @@ fn cargo() -> Command {
 		// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
 		let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
 		cargo_home.push("bin/cargo");
-		cargo_home
+		if cargo_home.exists() {
+			cargo_home
+		} else {
+			PathBuf::from("cargo")
+		}
 	};
 
 	let mut cargo = Command::new(cargo);
