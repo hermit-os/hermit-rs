@@ -1,6 +1,6 @@
 [package]
 name = "hermit"
-version = "0.7.1"
+version = "0.7.2"
 authors = [
     "Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
     "Martin Kröning <mkroening@posteo.net>",
