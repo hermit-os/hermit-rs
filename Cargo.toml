@@ -15,4 +15,3 @@ members = [
     "hermit",
     "hermit-abi",
 ]
-exclude = ["target", "kernel"]
