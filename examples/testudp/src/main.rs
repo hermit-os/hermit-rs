@@ -20,7 +20,7 @@ fn main() {
 				let msg = std::str::from_utf8(&buf[..received]).unwrap();
 
 				// print msg without suffix `\n`
-				match msg.strip_suffix("\n") {
+				match msg.strip_suffix('\n') {
 					Some(striped_msg) => {
 						println!("received {} from {}", striped_msg, addr);
 					}
