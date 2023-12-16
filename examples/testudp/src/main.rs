@@ -29,6 +29,11 @@ fn main() {
 					}
 				}
 
+				// send message back
+				socket
+					.send_to(msg.as_bytes(), addr)
+					.expect("Unable to send message back");
+
 				if msg.starts_with("exit") {
 					break;
 				}
