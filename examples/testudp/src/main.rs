@@ -22,10 +22,10 @@ fn main() {
 				// print msg without suffix `\n`
 				match msg.strip_suffix('\n') {
 					Some(striped_msg) => {
-						println!("received {} from {}", striped_msg, addr);
+						println!("received \"{}\" from {}", striped_msg, addr);
 					}
 					_ => {
-						println!("received {} from {}", msg, addr);
+						println!("received \"{}\" from {}", msg, addr);
 					}
 				}
 
