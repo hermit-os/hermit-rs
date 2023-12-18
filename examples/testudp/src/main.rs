@@ -15,11 +15,25 @@ fn main() {
 	loop {
 		// Receives a single datagram message on the socket.
 		// If `buf` is too small to hold, the message, it will be cut off.
-		println!("about to recv");
-		match socket.recv(&mut buf) {
-			Ok(received) => {
+		match socket.recv_from(&mut buf) {
+			Ok((received, addr)) => {
 				let msg = std::str::from_utf8(&buf[..received]).unwrap();
-				print!("received {}", msg);
+
+				// print msg without suffix `\n`
+				match msg.strip_suffix('\n') {
+					Some(striped_msg) => {
+						println!("received \"{}\" from {}", striped_msg, addr);
+					}
+					_ => {
+						println!("received \"{}\" from {}", msg, addr);
+					}
+				}
+
+				// send message back
+				socket
+					.send_to(msg.as_bytes(), addr)
+					.expect("Unable to send message back");
+
 				if msg.starts_with("exit") {
 					break;
 				}
