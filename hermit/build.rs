@@ -1,5 +1,4 @@
 use std::env;
-use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
@@ -8,12 +7,10 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 
 fn main() {
-	// TODO: Replace with is_some_with once stabilized
-	// https://github.com/rust-lang/rust/issues/93050
 	let targets_hermit =
-		matches!(env::var_os("CARGO_CFG_TARGET_OS"), Some(os) if os == OsStr::new("hermit"));
+		env::var_os("CARGO_CFG_TARGET_OS").is_some_and(|target_os| target_os == "hermit");
 	let runs_clippy =
-		matches!(env::var_os("CARGO_CFG_FEATURE"), Some(os) if os == OsStr::new("cargo-clippy"));
+		env::var_os("CARGO_CFG_FEATURE").is_some_and(|feature| feature == "cargo-clippy");
 	let is_docs_rs = env::var_os("DOCS_RS").is_some();
 	if !targets_hermit || runs_clippy || is_docs_rs {
 		return;
