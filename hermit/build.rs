@@ -11,7 +11,8 @@ fn main() {
 	let runs_clippy =
 		env::var_os("CARGO_CFG_FEATURE").is_some_and(|feature| feature == "cargo-clippy");
 	let is_docs_rs = env::var_os("DOCS_RS").is_some();
-	if !targets_hermit || runs_clippy || is_docs_rs {
+	let is_common_os = has_feature("common-os");
+	if !targets_hermit || runs_clippy || is_docs_rs || is_common_os {
 		return;
 	}
 
