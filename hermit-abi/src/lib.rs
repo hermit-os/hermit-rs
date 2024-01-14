@@ -253,40 +253,49 @@ pub struct pollfd {
 }
 
 #[repr(C)]
-pub struct dirent {
-	pub d_ino: u64,
-	pub d_off: u64,
-	pub d_namelen: u32,
-	pub d_type: u32,
-	pub d_name: [u8; 0],
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub enum DirectoryEntry {
-	Invalid(i32),
-	Valid(*const dirent),
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct stat {
+#[derive(Debug, Default, Copy, Clone)]
+pub struct FileAttr {
 	pub st_dev: u64,
 	pub st_ino: u64,
 	pub st_nlink: u64,
+	/// access permissions
 	pub st_mode: u32,
+	/// user id
 	pub st_uid: u32,
+	/// group id
 	pub st_gid: u32,
+	/// device id
 	pub st_rdev: u64,
-	pub st_size: i64,
+	/// size in bytes
+	pub st_size: u64,
+	/// block size
 	pub st_blksize: i64,
+	/// size in blocks
 	pub st_blocks: i64,
-	pub st_atime: i64,
-	pub st_atime_nsec: i64,
-	pub st_mtime: i64,
-	pub st_mtime_nsec: i64,
-	pub st_ctime: i64,
-	pub st_ctime_nsec: i64,
+	/// time of last access
+	pub st_atime: u64,
+	pub st_atime_nsec: u64,
+	/// time of last modification
+	pub st_mtime: u64,
+	pub st_mtime_nsec: u64,
+	/// time of last status change
+	pub st_ctime: u64,
+	pub st_ctime_nsec: u64,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct Dirent64 {
+	/// 64-bit inode number
+	pub d_ino: u64,
+	/// 64-bit offset to next structure
+	pub d_off: i64,
+	/// Size of this dirent
+	pub d_reclen: u16,
+	/// File type
+	pub d_type: u8,
+	/// Filename (null-terminated)
+	pub d_name: core::marker::PhantomData<u8>,
 }
 
 pub const DT_UNKNOWN: u32 = 0;
@@ -477,15 +486,15 @@ extern "C" {
 
 	/// stat
 	#[link_name = "sys_stat"]
-	pub fn stat(name: *const i8, stat: *mut stat) -> i32;
+	pub fn stat(name: *const i8, stat: *mut FileAttr) -> i32;
 
 	/// lstat
 	#[link_name = "sys_lstat"]
-	pub fn lstat(name: *const i8, stat: *mut stat) -> i32;
+	pub fn lstat(name: *const i8, stat: *mut FileAttr) -> i32;
 
 	/// fstat
 	#[link_name = "sys_fstat"]
-	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
+	pub fn fstat(fd: i32, stat: *mut FileAttr) -> i32;
 
 	/// determines the number of activated processors
 	#[link_name = "sys_get_processor_count"]
@@ -559,11 +568,10 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
-	/// 'readdir' returns a pointer to a dirent structure
-	/// representing the next directory entry in the directory stream
-	/// pointed to by the file descriptor
-	#[link_name = "sys_readdir"]
-	pub fn readdir(fd: i32) -> DirectoryEntry;
+	/// `getdents64` reads directory entries from the directory referenced
+	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
+	#[link_name = "sys_getdents64"]
+	pub fn getdents64(fd: i32, dirp: *mut Dirent64, count: usize) -> i64;
 
 	/// 'mkdir' attempts to create a directory,
 	/// it returns 0 on success and -1 on error
