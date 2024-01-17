@@ -61,8 +61,6 @@ Hermit is derived from following tutorials and software distributions:
 [kidd]: http://www.randomhacks.net/bare-metal-rust/
 [eduos]: http://rwth-os.github.io/eduOS-rs/
 
-HermitCore's Emoji is provided for free by [EmojiOne](https://www.gfxmag.com/crab-emoji-vector-icon/).
-
 ## License
 
 Licensed under either of
