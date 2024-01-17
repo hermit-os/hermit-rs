@@ -117,6 +117,15 @@ pub fn read_file() -> Result<(), std::io::Error> {
 	Ok(())
 }
 
+pub fn read_dir() -> Result<(), std::io::Error> {
+	for entry in std::fs::read_dir("/proc")? {
+		let entry = entry?;
+		println!("Found {:?} in /proc", entry.file_name());
+	}
+
+	Ok(())
+}
+
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
 		let mut file = File::create("foo.txt")?;
