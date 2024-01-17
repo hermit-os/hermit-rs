@@ -108,11 +108,11 @@ pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
 }
 
 pub fn read_file() -> Result<(), std::io::Error> {
-	let mut file = File::open("/etc/hostname")?;
+	let mut file = File::open("/proc/version")?;
 	let mut contents = String::new();
 	file.read_to_string(&mut contents)?;
 
-	println!("Hostname: {contents}");
+	println!("Version: {contents}");
 
 	Ok(())
 }
