@@ -50,6 +50,11 @@ fn main() {
 	);
 	println!(
 		"Test {} ... {}",
+		stringify!(read_dir),
+		test_result(read_dir())
+	);
+	println!(
+		"Test {} ... {}",
 		stringify!(create_file),
 		test_result(create_file())
 	);

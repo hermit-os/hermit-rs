@@ -10,7 +10,8 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
-use core::ffi::{c_int, c_void};
+pub use self::errno::*;
+pub use core::ffi::{c_int, c_short, c_void};
 
 /// A thread handle type
 pub type Tid = u32;
@@ -54,6 +55,12 @@ pub const O_CREAT: i32 = 0o100;
 pub const O_EXCL: i32 = 0o200;
 pub const O_TRUNC: i32 = 0o1000;
 pub const O_APPEND: i32 = 0o2000;
+pub const F_DUPFD: i32 = 0;
+pub const F_GETFD: i32 = 1;
+pub const F_SETFD: i32 = 2;
+pub const F_GETFL: i32 = 3;
+pub const F_SETFL: i32 = 4;
+pub const FD_CLOEXEC: i32 = 1;
 
 /// returns true if file descriptor `fd` is a tty
 pub fn isatty(_fd: c_int) -> bool {
@@ -145,6 +152,8 @@ pub const POLLHUP: i16 = 0x10;
 pub const POLLNVAL: i16 = 0x20;
 pub const POLLRDNORM: i16 = 0x040;
 pub const POLLRDBAND: i16 = 0x080;
+pub const POLLWRNORM: u16 = 0x0100;
+pub const POLLWRBAND: u16 = 0x0200;
 pub const POLLRDHUP: i16 = 0x2000;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
@@ -253,40 +262,49 @@ pub struct pollfd {
 }
 
 #[repr(C)]
-pub struct dirent {
-	pub d_ino: u64,
-	pub d_off: u64,
-	pub d_namelen: u32,
-	pub d_type: u32,
-	pub d_name: [u8; 0],
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub enum DirectoryEntry {
-	Invalid(i32),
-	Valid(*const dirent),
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct stat {
 	pub st_dev: u64,
 	pub st_ino: u64,
 	pub st_nlink: u64,
+	/// access permissions
 	pub st_mode: u32,
+	/// user id
 	pub st_uid: u32,
+	/// group id
 	pub st_gid: u32,
+	/// device id
 	pub st_rdev: u64,
-	pub st_size: i64,
+	/// size in bytes
+	pub st_size: u64,
+	/// block size
 	pub st_blksize: i64,
+	/// size in blocks
 	pub st_blocks: i64,
-	pub st_atime: i64,
-	pub st_atime_nsec: i64,
-	pub st_mtime: i64,
-	pub st_mtime_nsec: i64,
-	pub st_ctime: i64,
-	pub st_ctime_nsec: i64,
+	/// time of last access
+	pub st_atime: u64,
+	pub st_atime_nsec: u64,
+	/// time of last modification
+	pub st_mtime: u64,
+	pub st_mtime_nsec: u64,
+	/// time of last status change
+	pub st_ctime: u64,
+	pub st_ctime_nsec: u64,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct dirent64 {
+	/// 64-bit inode number
+	pub d_ino: u64,
+	/// 64-bit offset to next structure
+	pub d_off: i64,
+	/// Size of this dirent
+	pub d_reclen: u16,
+	/// File type
+	pub d_type: u8,
+	/// Filename (null-terminated)
+	pub d_name: core::marker::PhantomData<u8>,
 }
 
 pub const DT_UNKNOWN: u32 = 0;
@@ -299,10 +317,10 @@ pub const DT_LNK: u32 = 10;
 pub const DT_SOCK: u32 = 12;
 pub const DT_WHT: u32 = 14;
 
-pub const S_IFDIR: u32 = 16384;
-pub const S_IFREG: u32 = 32768;
-pub const S_IFLNK: u32 = 40960;
-pub const S_IFMT: u32 = 61440;
+pub const S_IFDIR: u32 = 0x4000;
+pub const S_IFREG: u32 = 0x8000;
+pub const S_IFLNK: u32 = 0xA000;
+pub const S_IFMT: u32 = 0xF000;
 
 // sysmbols, which are part of the library operating system
 extern "C" {
@@ -559,11 +577,10 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
-	/// 'readdir' returns a pointer to a dirent structure
-	/// representing the next directory entry in the directory stream
-	/// pointed to by the file descriptor
-	#[link_name = "sys_readdir"]
-	pub fn readdir(fd: i32) -> DirectoryEntry;
+	/// `getdents64` reads directory entries from the directory referenced
+	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
+	#[link_name = "sys_getdents64"]
+	pub fn getdents64(fd: i32, dirp: *mut dirent64, count: usize) -> i64;
 
 	/// 'mkdir' attempts to create a directory,
 	/// it returns 0 on success and -1 on error
