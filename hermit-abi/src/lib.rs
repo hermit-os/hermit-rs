@@ -10,8 +10,8 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
-pub use core::ffi::{c_int, c_short, c_void};
 pub use self::errno::*;
+pub use core::ffi::{c_int, c_short, c_void};
 
 /// A thread handle type
 pub type Tid = u32;
@@ -56,10 +56,10 @@ pub const O_EXCL: i32 = 0o200;
 pub const O_TRUNC: i32 = 0o1000;
 pub const O_APPEND: i32 = 0o2000;
 pub const F_DUPFD: i32 = 0;
-pub const  F_GETFD: i32 = 1;
-pub const  F_SETFD: i32 = 2;
-pub const  F_GETFL: i32 = 3;
-pub const  F_SETFL: i32 = 4;
+pub const F_GETFD: i32 = 1;
+pub const F_SETFD: i32 = 2;
+pub const F_GETFL: i32 = 3;
+pub const F_SETFL: i32 = 4;
 pub const FD_CLOEXEC: i32 = 1;
 
 /// returns true if file descriptor `fd` is a tty
