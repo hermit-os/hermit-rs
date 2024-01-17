@@ -10,7 +10,8 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
-use core::ffi::{c_int, c_void};
+pub use core::ffi::{c_int, c_short, c_void};
+pub use self::errno::*;
 
 /// A thread handle type
 pub type Tid = u32;
@@ -54,6 +55,12 @@ pub const O_CREAT: i32 = 0o100;
 pub const O_EXCL: i32 = 0o200;
 pub const O_TRUNC: i32 = 0o1000;
 pub const O_APPEND: i32 = 0o2000;
+pub const F_DUPFD: i32 = 0;
+pub const  F_GETFD: i32 = 1;
+pub const  F_SETFD: i32 = 2;
+pub const  F_GETFL: i32 = 3;
+pub const  F_SETFL: i32 = 4;
+pub const FD_CLOEXEC: i32 = 1;
 
 /// returns true if file descriptor `fd` is a tty
 pub fn isatty(_fd: c_int) -> bool {
@@ -145,6 +152,8 @@ pub const POLLHUP: i16 = 0x10;
 pub const POLLNVAL: i16 = 0x20;
 pub const POLLRDNORM: i16 = 0x040;
 pub const POLLRDBAND: i16 = 0x080;
+pub const POLLWRNORM: u16 = 0x0100;
+pub const POLLWRBAND: u16 = 0x0200;
 pub const POLLRDHUP: i16 = 0x2000;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
@@ -254,7 +263,7 @@ pub struct pollfd {
 
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone)]
-pub struct FileAttr {
+pub struct stat {
 	pub st_dev: u64,
 	pub st_ino: u64,
 	pub st_nlink: u64,
@@ -285,7 +294,7 @@ pub struct FileAttr {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
-pub struct Dirent64 {
+pub struct dirent64 {
 	/// 64-bit inode number
 	pub d_ino: u64,
 	/// 64-bit offset to next structure
@@ -486,15 +495,15 @@ extern "C" {
 
 	/// stat
 	#[link_name = "sys_stat"]
-	pub fn stat(name: *const i8, stat: *mut FileAttr) -> i32;
+	pub fn stat(name: *const i8, stat: *mut stat) -> i32;
 
 	/// lstat
 	#[link_name = "sys_lstat"]
-	pub fn lstat(name: *const i8, stat: *mut FileAttr) -> i32;
+	pub fn lstat(name: *const i8, stat: *mut stat) -> i32;
 
 	/// fstat
 	#[link_name = "sys_fstat"]
-	pub fn fstat(fd: i32, stat: *mut FileAttr) -> i32;
+	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
 
 	/// determines the number of activated processors
 	#[link_name = "sys_get_processor_count"]
@@ -571,7 +580,7 @@ extern "C" {
 	/// `getdents64` reads directory entries from the directory referenced
 	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
 	#[link_name = "sys_getdents64"]
-	pub fn getdents64(fd: i32, dirp: *mut Dirent64, count: usize) -> i64;
+	pub fn getdents64(fd: i32, dirp: *mut dirent64, count: usize) -> i64;
 
 	/// 'mkdir' attempts to create a directory,
 	/// it returns 0 on success and -1 on error
