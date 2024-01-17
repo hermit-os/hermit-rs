@@ -317,10 +317,10 @@ pub const DT_LNK: u32 = 10;
 pub const DT_SOCK: u32 = 12;
 pub const DT_WHT: u32 = 14;
 
-pub const S_IFDIR: u32 = 16384;
-pub const S_IFREG: u32 = 32768;
-pub const S_IFLNK: u32 = 40960;
-pub const S_IFMT: u32 = 61440;
+pub const S_IFDIR: u32 = 0x4000;
+pub const S_IFREG: u32 = 0x8000;
+pub const S_IFLNK: u32 = 0xA000;
+pub const S_IFMT: u32 = 0xF000;
 
 // sysmbols, which are part of the library operating system
 extern "C" {
