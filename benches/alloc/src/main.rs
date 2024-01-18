@@ -74,6 +74,8 @@ fn benchmark_allocator() -> BenchRunResults {
 		);
 		value
 	};
+	#[cfg(target_arch = "riscv64")]
+	let now_fn = riscv::register::time::read64;
 
 	let mut active_allocations = Vec::new();
 

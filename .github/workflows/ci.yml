@@ -22,6 +22,8 @@ jobs:
         run: |
           cargo clippy --all-targets
           cargo clippy -Zbuild-std=std,panic_abort --target=x86_64-unknown-hermit --all-targets
+          cargo clippy -Zbuild-std=std,panic_abort --target=aarch64-unknown-hermit --all-targets
+          cargo clippy -Zbuild-std=std,panic_abort --target=riscv64gc-unknown-hermit --all-targets
 
   format:
     name: Format
@@ -93,90 +95,64 @@ jobs:
           -kernel hermit-loader-x86_64 \
           -initrd target/x86_64-unknown-hermit/release/rusty_demo
 
-  run-aarch64:
-    name: QEMU (aarch64)
+  run-hermit:
+    name: Run
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kernel
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64, riscv64]
+        package: [rusty_demo, httpd]
+        profile: [dev, release]
+        include:
+          - arch: x86_64
+            packages: qemu-system-x86
+          - arch: aarch64
+            packages: qemu-system-aarch64
+          - arch: riscv64
+            packages: qemu-system-misc
+            flags: --no-default-features
+          - package: httpd
+            netdev: rtl8139
+            flags: --features ci,dhcpv4
+        exclude:
+          - arch: aarch64
+            package: httpd
+          - arch: riscv64
+            package: httpd
     steps:
-      - name: Install CURL, QEMU
-        run: |
-          sudo apt-get update
-          sudo apt-get install qemu-system-aarch64 curl
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Download loader
-        uses: dsaltares/fetch-gh-release-asset@1.1.1
-        with:
-          repo: hermit-os/loader
-          file: hermit-loader-aarch64
-      - uses: mkroening/rust-toolchain-toml@main
-      - uses: Swatinem/rust-cache@v2
-      - name: Build dev profile
-        run: cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --package rusty_demo
-      - name: Test dev profile
-        run: |
-          qemu-system-aarch64 -semihosting \
-            -kernel hermit-loader-aarch64 -machine virt,gic-version=max \
-            -m 512M -cpu max -smp 1 -display none -serial stdio -kernel hermit-loader-aarch64 \
-            -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/debug/rusty_demo
-      - name: Build release profile
-        run: cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --package rusty_demo --release
-      - name: Test release profile
-        run: |
-          qemu-system-aarch64 -semihosting \
-            -kernel hermit-loader-aarch64 -machine virt,gic-version=max \
-            -m 512M -cpu max -smp 1 -display none -serial stdio -kernel hermit-loader-aarch64 \
-            -device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/release/rusty_demo
-  
-  qemu-x86_64:
-    name: QEMU (x86_64)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install CURL, QEMU
+      - name: Install Packages
         run: |
           sudo apt-get update
-          sudo apt-get install qemu-system-x86 curl
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
+          sudo apt-get install ${{ matrix.packages }}
       - name: Download loader
-        uses: dsaltares/fetch-gh-release-asset@1.1.1
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: hermit-os/loader
-          file: hermit-loader-x86_64
+          file: hermit-loader-${{ matrix.arch }}
       - uses: mkroening/rust-toolchain-toml@main
+      - uses: mkroening/rust-toolchain-toml@main
+        with:
+          toolchain-file: 'kernel/rust-toolchain.toml'
       - uses: Swatinem/rust-cache@v2
-      - name: Build dev profile
-        run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
-      - name: Test dev profile
-        run: |
-          qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-            -kernel hermit-loader-x86_64 \
-            -initrd target/x86_64-unknown-hermit/debug/rusty_demo
-      - name: Build release profile
-        run:
-          cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo --release
-      - name: Test release profile
-        run: |
-          qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-            -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-            -kernel hermit-loader-x86_64 \
-            -initrd target/x86_64-unknown-hermit/release/rusty_demo
-      - name: Build httpd with DHCP support
-        run:
-          cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package httpd --features rtl8139,ci,dhcpv4
-      - name: Test httpd with DHCP support
-        run: |
-          qemu-system-x86_64 -smp 1 -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-            -device isa-debug-exit,iobase=0xf4,iosize=0x04 -display none -m 128M -serial stdio \
-            -kernel hermit-loader-x86_64 \
-            -initrd target/x86_64-unknown-hermit/debug/httpd \
-            -netdev user,id=u1,hostfwd=tcp::9975-:9975,net=192.168.76.0/24,dhcpstart=192.168.76.9 \
-            -device rtl8139,netdev=u1 &
-            sleep 5
-            curl http://127.0.0.1:9975/help
-            sleep 1
-      - name: Build httpd without DHCP support
-        run:
-          cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package httpd
+        with:
+          key: ${{ matrix.arch }}-${{ matrix.profile }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+          workspaces: |
+            .
+            kernel
+            kernel/hermit-builtins
+      - name: Run Hermit
+        run: >
+          cargo xtask ci qemu
+          --arch ${{ matrix.arch }}
+          --package ${{ matrix.package }}
+          --profile ${{ matrix.profile }}
+          ${{ matrix.netdev == 'rtl8139' && '--features rtl8139' || '' }}
+          ${{ matrix.netdev && format('--netdev {0}', matrix.netdev) || '' }}
+          ${{ matrix.flags }}
