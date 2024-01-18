@@ -13,7 +13,7 @@ path = "../../hermit"
 default-features = false
 
 [target.'cfg(target_arch = "riscv64")'.dependencies]
-riscv = "0.10"
+riscv = "0.11"
 
 [features]
 default = ["pci", "acpi"]
