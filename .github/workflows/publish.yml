@@ -29,12 +29,15 @@ jobs:
     - name: Copy demo out of target dir
       run: cp target/x86_64-unknown-hermit/release/rusty_demo .
     - name: Download loader
-      run: gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
+      run: |
+        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
+        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64-fc
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
         FROM scratch
         COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY rusty_demo hermit/rusty_demo
         CMD ["/hermit/rusty_demo"]
         END
@@ -53,6 +56,7 @@ jobs:
         cat << END > Dockerfile
         FROM scratch
         COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY httpd hermit/httpd
         CMD ["/hermit/httpd"]
         END
@@ -86,6 +90,7 @@ jobs:
         FROM scratch
         COPY root root
         COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY webserver hermit/webserver
         CMD ["/hermit/webserver"]
         END
