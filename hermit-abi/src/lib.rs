@@ -164,19 +164,19 @@ pub type suseconds_t = i64;
 pub type nfds_t = usize;
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct in_addr {
 	pub s_addr: u32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct in6_addr {
 	pub s6_addr: [u8; 16],
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct sockaddr {
 	pub sa_len: u8,
 	pub sa_family: sa_family_t,
@@ -184,7 +184,7 @@ pub struct sockaddr {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct sockaddr_in {
 	pub sin_len: u8,
 	pub sin_family: sa_family_t,
@@ -194,7 +194,7 @@ pub struct sockaddr_in {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct sockaddr_in6 {
 	pub sin6_family: sa_family_t,
 	pub sin6_port: u16,
@@ -217,7 +217,7 @@ pub struct addrinfo {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct sockaddr_storage {
 	pub s2_len: u8,
 	pub ss_family: sa_family_t,
@@ -226,35 +226,35 @@ pub struct sockaddr_storage {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct ip_mreq {
 	pub imr_multiaddr: in_addr,
 	pub imr_interface: in_addr,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct ipv6_mreq {
 	pub ipv6mr_multiaddr: in6_addr,
 	pub ipv6mr_interface: u32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct linger {
 	pub l_onoff: i32,
 	pub l_linger: i32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct timeval {
 	pub tv_sec: time_t,
 	pub tv_usec: suseconds_t,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct pollfd {
 	/// file descriptor
 	pub fd: i32,
@@ -296,7 +296,7 @@ pub struct stat {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct dirent64 {
 	/// 64-bit inode number
 	pub d_ino: u64,
