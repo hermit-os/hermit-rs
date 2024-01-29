@@ -256,9 +256,12 @@ pub struct timeval {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct pollfd {
-	pub fd: i32,      /* file descriptor */
-	pub events: i16,  /* events to look for */
-	pub revents: i16, /* events returned */
+	/// file descriptor
+	pub fd: i32,
+	/// events to look for
+	pub events: i16,
+	/// events returned
+	pub revents: i16,
 }
 
 #[repr(C)]
@@ -656,7 +659,7 @@ extern "C" {
 	#[link_name = "sys_ioctl"]
 	pub fn ioctl(s: i32, cmd: i32, argp: *mut c_void) -> i32;
 
-	#[link_name = "sys_pool"]
+	#[link_name = "sys_poll"]
 	pub fn poll(fds: *mut pollfd, nfds: nfds_t, timeout: i32) -> i32;
 
 	/// listen for connections on a socket
