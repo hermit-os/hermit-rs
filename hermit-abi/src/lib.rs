@@ -256,9 +256,12 @@ pub struct timeval {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct pollfd {
-	pub fd: i32,      /* file descriptor */
-	pub events: i16,  /* events to look for */
-	pub revents: i16, /* events returned */
+	/// file descriptor
+	pub fd: i32,
+	/// events to look for
+	pub events: i16,
+	/// events returned
+	pub revents: i16,
 }
 
 #[repr(C)]
