@@ -88,4 +88,9 @@ fn main() {
 		stringify!(thread_creation),
 		test_result(thread_creation())
 	);
+	println!(
+		"Test {} ... {}",
+		stringify!(io_poll),
+		test_result(io_poll())
+	);
 }

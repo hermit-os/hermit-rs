@@ -151,6 +151,35 @@ pub fn create_file() -> Result<(), std::io::Error> {
 	}
 }
 
+pub fn io_poll() -> Result<(), std::io::Error> {
+	const TIMEOUT: i32 = 5000;
+	let mut fds: [hermit_abi::pollfd; 2] = [Default::default(); 2];
+
+	/* watch stdin for input */
+	fds[0].fd = hermit_abi::STDIN_FILENO;
+	fds[0].events = hermit_abi::POLLIN;
+
+	/* watch stdout for ability to write */
+	fds[1].fd = hermit_abi::STDOUT_FILENO;
+	fds[1].events = hermit_abi::POLLOUT;
+
+	let ret = unsafe { hermit_abi::poll(fds.as_mut_ptr(), 2, TIMEOUT) };
+	if ret < 0 {
+		let kind = std::io::ErrorKind::Other;
+		return Err(std::io::Error::from(kind));
+	}
+
+	if fds[0].revents & hermit_abi::POLLIN == hermit_abi::POLLIN {
+		println!("stdin is readable");
+	}
+
+	if fds[1].revents & hermit_abi::POLLOUT == hermit_abi::POLLOUT {
+		println!("stdout is writable");
+	}
+
+	Ok(())
+}
+
 pub fn print_argv() -> Result<(), ()> {
 	let args = env::args();
 

@@ -20,6 +20,7 @@ path = "src/matrix_multiplication.rs"
 [dependencies]
 rayon = "1.5"
 num_cpus = "1.13"
+hermit-abi = { path = "../../hermit-abi" }
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit]
 path = "../../hermit"
