@@ -128,19 +128,19 @@ pub fn read_dir() -> Result<(), std::io::Error> {
 
 pub fn create_file() -> Result<(), std::io::Error> {
 	{
-		let mut file = File::create("foo.txt")?;
+		let mut file = File::create("/tmp/foo.txt")?;
 		file.write_all(b"Hello, world!")?;
 	}
 
 	let content = {
-		let mut file = File::open("foo.txt")?;
+		let mut file = File::open("/tmp/foo.txt")?;
 		let mut content = String::new();
 		file.read_to_string(&mut content)?;
 		content
 	};
 
 	// delete temporary file
-	std::fs::remove_file("foo.txt")?;
+	std::fs::remove_file("/tmp/foo.txt")?;
 
 	if content == "Hello, world!" {
 		Ok(())
