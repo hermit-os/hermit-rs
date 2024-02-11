@@ -55,6 +55,7 @@ pub const O_CREAT: i32 = 0o100;
 pub const O_EXCL: i32 = 0o200;
 pub const O_TRUNC: i32 = 0o1000;
 pub const O_APPEND: i32 = 0o2000;
+pub const O_NONBLOCK: i32 = 0o4000;
 pub const F_DUPFD: i32 = 0;
 pub const F_GETFD: i32 = 1;
 pub const F_SETFD: i32 = 2;
@@ -129,6 +130,8 @@ pub const SHUT_WR: i32 = 1;
 pub const SHUT_RDWR: i32 = 2;
 pub const SOCK_DGRAM: i32 = 2;
 pub const SOCK_STREAM: i32 = 1;
+pub const SOCK_NONBLOCK: i32 = 0o4000;
+pub const SOCK_CLOEXEC: i32 = 0o40000;
 pub const SOL_SOCKET: i32 = 4095;
 pub const SO_BROADCAST: i32 = 32;
 pub const SO_ERROR: i32 = 4103;
@@ -152,9 +155,12 @@ pub const POLLHUP: i16 = 0x10;
 pub const POLLNVAL: i16 = 0x20;
 pub const POLLRDNORM: i16 = 0x040;
 pub const POLLRDBAND: i16 = 0x080;
-pub const POLLWRNORM: u16 = 0x0100;
-pub const POLLWRBAND: u16 = 0x0200;
+pub const POLLWRNORM: i16 = 0x0100;
+pub const POLLWRBAND: i16 = 0x0200;
 pub const POLLRDHUP: i16 = 0x2000;
+pub const EFD_SEMAPHORE: i16 = 0o1;
+pub const EFD_NONBLOCK: i16 = 0o4000;
+pub const EFD_CLOEXEC: i16 = 0o40000;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
@@ -659,6 +665,32 @@ extern "C" {
 	#[link_name = "sys_ioctl"]
 	pub fn ioctl(s: i32, cmd: i32, argp: *mut c_void) -> i32;
 
+	#[link_name = "sys_fcntl"]
+	pub fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+
+	/// `eventfd` creates an linux-like "eventfd object" that can be used
+	/// as an event wait/notify mechanism by user-space applications, and by
+	/// the kernel to notify user-space applications of events. The
+	/// object contains an unsigned 64-bit integer counter
+	/// that is maintained by the kernel. This counter is initialized
+	/// with the value specified in the argument `initval`.
+	///
+	/// As its return value, `eventfd` returns a new file descriptor that
+	/// can be used to refer to the eventfd object.
+	///
+	/// The following values may be bitwise set in flags to change the
+	/// behavior of `eventfd`:
+	///
+	/// `EFD_NONBLOCK`: Set the file descriptor in non-blocking mode
+	/// `EFD_SEMAPHORE`: Provide semaphore-like semantics for reads
+	/// from the new file descriptor.
+	#[link_name = "sys_eventfd"]
+	pub fn eventfd(initval: u64, flags: i16) -> i32;
+
+	/// The unix-like `poll` waits for one of a set of file descriptors
+	/// to become ready to perform I/O. The set of file descriptors to be
+	/// monitored is specified in the `fds` argument, which is an array
+	/// of structures of `pollfd`.
 	#[link_name = "sys_poll"]
 	pub fn poll(fds: *mut pollfd, nfds: nfds_t, timeout: i32) -> i32;
 
