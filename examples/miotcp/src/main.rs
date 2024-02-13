@@ -170,6 +170,9 @@ fn handle_connection_event(
 			let received_data = &received_data[..bytes_read];
 			if let Ok(str_buf) = from_utf8(received_data) {
 				println!("Received data: {}", str_buf.trim_end());
+				if str_buf.trim_end() == "exit" {
+					std::process::exit(0);
+				}
 			} else {
 				println!("Received (none UTF-8) data: {:?}", received_data);
 			}
