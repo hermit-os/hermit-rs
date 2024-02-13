@@ -7,6 +7,7 @@ use hermit as _;
 use log::warn;
 use mio::{Events, Interest, Poll, Token};
 use std::io;
+use std::str::from_utf8;
 
 // A token to allow us to identify which event is for the `UdpSocket`.
 const UDP_SOCKET: Token = Token(0);
@@ -63,6 +64,11 @@ fn main() -> io::Result<()> {
 						Ok((packet_size, source_address)) => {
 							// Echo the data.
 							socket.send_to(&buf[..packet_size], source_address)?;
+							if let Ok(str_buf) = from_utf8(&buf) {
+								if str_buf.trim_end() == "exit" {
+									std::process::exit(0);
+								}
+							}
 						}
 						Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
 							// If we get a `WouldBlock` error we know our socket
