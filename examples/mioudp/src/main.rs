@@ -64,7 +64,7 @@ fn main() -> io::Result<()> {
 						Ok((packet_size, source_address)) => {
 							// Echo the data.
 							socket.send_to(&buf[..packet_size], source_address)?;
-							if let Ok(str_buf) = from_utf8(&buf) {
+							if let Ok(str_buf) = from_utf8(&buf[..packet_size]) {
 								if str_buf.trim_end() == "exit" {
 									std::process::exit(0);
 								}
