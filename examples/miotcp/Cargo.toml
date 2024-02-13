@@ -1,0 +1,30 @@
+[package]
+name = "miotcp"
+authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+mio = { git = "https://github.com/hermit-os/mio.git", branch = "hermit", features = ["net", "os-poll"] }
+env_logger = { version = "0.9.3", default-features = false }
+log = { version = "0.4.8" }
+
+[target.'cfg(target_os = "hermit")'.dependencies.hermit]
+path = "../../hermit"
+default-features = false
+
+[features]
+default = ["pci", "pci-ids", "acpi", "tcp"]
+vga = ["hermit/vga"]
+dhcpv4 = ["hermit/dhcpv4"]
+pci = ["hermit/pci"]
+pci-ids = ["hermit/pci-ids"]
+acpi = ["hermit/acpi"]
+fsgsbase = ["hermit/fsgsbase"]
+smp = ["hermit/smp"]
+tcp = ["hermit/tcp"]
+udp = ["hermit/udp"]
+instrument = ["hermit/instrument"]
+trace = ["hermit/trace"]
+rtl8139 = ["hermit/rtl8139"]

@@ -10,6 +10,8 @@ members = [
     "examples/httpd",
     "examples/testtcp",
     "examples/testudp",
+    "examples/miotcp",
+    "examples/mioudp",
     "examples/tokio",
     "examples/webserver",
     "hermit",
