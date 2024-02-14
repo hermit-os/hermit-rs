@@ -1,7 +1,7 @@
 # hermit-abi
 
 [![Crates.io](https://img.shields.io/crates/v/hermit-abi.svg)](https://crates.io/crates/hermit-abi)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://hermit-os.github.io/hermit-rs/hermit_abi/)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://docs.rs/hermit-abi/latest/hermit_abi/)
 [![License](https://img.shields.io/crates/l/hermit-abi.svg)](https://img.shields.io/crates/l/hermit-abi.svg)
 
 This is small interface to call functions from the [Hermit kernel](https://github.com/hermit-os/kernel).
