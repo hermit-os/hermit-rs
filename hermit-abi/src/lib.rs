@@ -1,5 +1,5 @@
 //! `hermit-abi` is small interface to call functions from the
-//! [Hermit unikernel](https://github.com/hermitcore/kernel).
+//! [Hermit unikernel](https://github.com/hermit-os/kernel).
 
 #![no_std]
 #![allow(nonstandard_style)]

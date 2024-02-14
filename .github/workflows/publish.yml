@@ -22,7 +22,7 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: hermitcore
+        username: hermit-os
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build demo
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --no-default-features -p rusty_demo --release

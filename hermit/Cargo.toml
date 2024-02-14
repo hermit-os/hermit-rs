@@ -7,7 +7,7 @@ authors = [
 ]
 edition = "2021"
 description = "The Hermit unikernel for Rust."
-repository = "https://github.com/hermitcore/hermit-rs"
+repository = "https://github.com/hermit-os/hermit-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["unikernel", "libos"]
 categories = ["os"]

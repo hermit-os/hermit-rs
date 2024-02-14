@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/hermit.svg)](https://crates.io/crates/hermit)
 [![docs.rs](https://img.shields.io/docsrs/hermit)](https://docs.rs/hermit)
 
-This crate builds and links against the [Hermit kernel](https://github.com/hermitcore/kernel) to create a Hermit unikernel image.
+This crate builds and links against the [Hermit kernel](https://github.com/hermit-os/kernel) to create a Hermit unikernel image.
 
 ## Building
 
@@ -29,7 +29,7 @@ This crate builds and links against the [Hermit kernel](https://github.com/hermi
 
     -   install [rust-std-hermit] on stable Rust
 
-        [rust-std-hermit]: https://github.com/hermitcore/rust-std-hermit
+        [rust-std-hermit]: https://github.com/hermit-os/rust-std-hermit
 
     or
 
@@ -39,8 +39,8 @@ This crate builds and links against the [Hermit kernel](https://github.com/hermi
 
 You can boot the resulting image in the specialized [Uhyve] unikernel hypervisor or on other platforms like QEMU using the [Hermit loader].
 
-[Uhyve]: https://github.com/hermitcore/uhyve
-[Hermit loader]: https://github.com/hermitcore/loader
+[Uhyve]: https://github.com/hermit-os/uhyve
+[Hermit loader]: https://github.com/hermit-os/loader
 
 ## License
 
