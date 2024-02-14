@@ -39,7 +39,7 @@ impl KernelSrc {
 
 		if !src_dir.exists() {
 			let url =
-				format!("https://github.com/hermitcore/kernel/archive/refs/tags/v{version}.tar.gz");
+				format!("https://github.com/hermit-os/kernel/archive/refs/tags/v{version}.tar.gz");
 			let response = ureq::get(url.as_str()).call().unwrap().into_reader();
 			let tar = GzDecoder::new(response);
 			let mut archive = Archive::new(tar);

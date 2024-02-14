@@ -1,4 +1,4 @@
-<img width="256" align="right" src="https://github.com/hermitcore/.github/blob/main/logo/hermit-logo.svg" />
+<img width="256" align="right" src="https://github.com/hermi-os/.github/blob/main/logo/hermit-logo.svg" />
 
 # Hermit for Rust
 
@@ -10,7 +10,7 @@ A Rust-based, lightweight unikernel.
 Unikernel means, you bundle your application directly with the kernel library, so that it can run without any installed operating system.
 This reduces overhead, therefore, interesting applications include virtual machines and high-performance computing.
 
-The kernel is able to run [Rust](https://github.com/hermitcore/hermit-rs) applications, as well as [C/C++/Go/Fortran](https://github.com/hermitcore/hermit-playground) applications.
+The kernel is able to run [Rust](https://github.com/hermi-os/hermit-rs) applications, as well as [C/C++/Go/Fortran](https://github.com/hermi-os/hermit-playground) applications.
 
 The repository contains following directories and submodules:
 
@@ -23,7 +23,7 @@ The repository contains following directories and submodules:
 ## Background
 
 **Hermit** is a rewrite of HermitCore in [Rust](https://www.rust-lang.org) developed at [RWTH-Aachen](https://www.rwth-aachen.de).
-HermitCore was a research unikernel written in C ([libhermit](https://github.com/hermitcore/libhermit)).
+HermitCore was a research unikernel written in C ([libhermit](https://github.com/hermi-os/libhermit)).
 
 The ownership  model of Rust guarantees memory/thread-safety and enables us to eliminate many classes of bugs at compile-time.
 Consequently, the use of Rust for kernel development promises fewer vulnerabilities in comparison to common programming languages.
@@ -38,16 +38,16 @@ Rust applications that use the Rust runtime and do not directly use OS services 
 
 ## Building your own applications
 
-Have a look at [rusty-demo](https://github.com/hermitcore/rusty-demo).
+Have a look at [rusty-demo](https://github.com/hermi-os/rusty-demo).
 
 
 ## Use Hermit for C/C++, Go, and Fortran applications
 
-If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating system, please take a look at [https://github.com/hermitcore/hermit-playground](https://github.com/hermitcore/hermit-playground).
+If you are interested to build C/C++, Go, and Fortran applications on top of a Rust-based library operating system, please take a look at [https://github.com/hermi-os/hermit-playground](https://github.com/hermi-os/hermit-playground).
 
 ## Wiki
 
-Please use the [Wiki](https://github.com/hermitcore/hermit-rs/wiki) to get further information and configuration options.
+Please use the [Wiki](https://github.com/hermi-os/hermit-rs/wiki) to get further information and configuration options.
 
 ## Credits
 
@@ -74,5 +74,5 @@ at your option.
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
-Hermit is being developed on [GitHub](https://github.com/hermitcore/hermit-rs).
+Hermit is being developed on [GitHub](https://github.com/hermi-os/hermit-rs).
 Create your own fork, send us a pull request, and chat with us on [Zulip](https://hermit.zulipchat.com/).
