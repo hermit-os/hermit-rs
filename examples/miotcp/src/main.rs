@@ -85,16 +85,20 @@ fn main() -> io::Result<()> {
 				},
 				token => {
 					// Maybe received an event for a TCP connection.
-					let done = if let Some(connection) = connections.get_mut(&token) {
+					let status = if let Some(connection) = connections.get_mut(&token) {
 						handle_connection_event(poll.registry(), connection, event)?
 					} else {
 						// Sporadic events happen, we can safely ignore them.
-						false
+						EventStatus::Continue
 					};
-					if done {
-						if let Some(mut connection) = connections.remove(&token) {
-							poll.registry().deregister(&mut connection)?;
+					match status {
+						EventStatus::Continue => {}
+						EventStatus::Done => {
+							if let Some(mut connection) = connections.remove(&token) {
+								poll.registry().deregister(&mut connection)?;
+							}
 						}
+						EventStatus::Exit => return Ok(()),
 					}
 				}
 			}
@@ -108,12 +112,17 @@ fn next(current: &mut Token) -> Token {
 	Token(next)
 }
 
-/// Returns `true` if the connection is done.
+enum EventStatus {
+	Continue,
+	Done,
+	Exit,
+}
+
 fn handle_connection_event(
 	registry: &Registry,
 	connection: &mut TcpStream,
 	event: &Event,
-) -> io::Result<bool> {
+) -> io::Result<EventStatus> {
 	if event.is_writable() {
 		// We can (maybe) write to the connection.
 		match connection.write(DATA) {
@@ -171,7 +180,7 @@ fn handle_connection_event(
 			if let Ok(str_buf) = from_utf8(received_data) {
 				println!("Received data: {}", str_buf.trim_end());
 				if str_buf.trim_end() == "exit" {
-					std::process::exit(0);
+					return Ok(EventStatus::Exit);
 				}
 			} else {
 				println!("Received (none UTF-8) data: {:?}", received_data);
@@ -180,11 +189,11 @@ fn handle_connection_event(
 
 		if connection_closed {
 			println!("Connection closed");
-			return Ok(true);
+			return Ok(EventStatus::Done);
 		}
 	}
 
-	Ok(false)
+	Ok(EventStatus::Continue)
 }
 
 fn would_block(err: &io::Error) -> bool {
