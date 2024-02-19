@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 mio = { git = "https://github.com/hermit-os/mio.git", branch = "hermit", features = ["net", "os-poll"] }
-env_logger = { version = "0.9.3", default-features = false }
+env_logger = { version = "0.11.2", default-features = false }
 log = { version = "0.4.8" }
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit]
