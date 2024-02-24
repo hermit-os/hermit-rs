@@ -120,6 +120,7 @@ pub const IPV6_ADD_MEMBERSHIP: i32 = 12;
 pub const IPV6_DROP_MEMBERSHIP: i32 = 13;
 pub const IPV6_MULTICAST_LOOP: i32 = 19;
 pub const IPV6_V6ONLY: i32 = 27;
+pub const IP_TOS: i32 = 1;
 pub const IP_TTL: i32 = 2;
 pub const IP_MULTICAST_TTL: i32 = 5;
 pub const IP_MULTICAST_LOOP: i32 = 7;
