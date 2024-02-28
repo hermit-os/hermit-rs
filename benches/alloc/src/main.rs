@@ -173,7 +173,7 @@ fn print_bench_results(bench_name: &str, res: &BenchRunResults) {
 	print_measurement_set(&res.dealloc_measurements, "Deallocations");
 }
 
-fn print_measurement_set(measurements: &Vec<u64>, set_name: &str) {
+fn print_measurement_set(measurements: &[u64], set_name: &str) {
 	print!("{:>20} | ", set_name);
 	for i in 0..=8 {
 		print!(
