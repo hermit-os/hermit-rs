@@ -337,6 +337,10 @@ pub const S_IFMT: u32 = 0xF000;
 
 // sysmbols, which are part of the library operating system
 extern "C" {
+	/// Get the last error number from the thread local storage
+	#[link_name = "sys_get_errno"]
+	pub fn get_errno() -> i32;
+
 	/// If the value at address matches the expected value, park the current thread until it is either
 	/// woken up with [`futex_wake`] (returns 0) or an optional timeout elapses (returns -ETIMEDOUT).
 	///
