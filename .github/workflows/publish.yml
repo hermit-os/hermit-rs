@@ -110,7 +110,7 @@ jobs:
         FROM scratch
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
-        COPY tls-demo to hermit/tls
+        COPY tls hermit/tls
         CMD ["/hermit/tls"]
         END
     - name: Build and push container
