@@ -51,7 +51,7 @@ async fn hello(req: Request<Incoming>) -> Result<Response<Full<Bytes>>, hyper::E
 			};
 			let file_path = Path::new(&file_path);
 
-			if let Ok(data) = fs::read(&file_path) {
+			if let Ok(data) = fs::read(file_path) {
 				Response::builder()
 					.header("Content-Type", get_content_type(file_path))
 					.header("content-length", data.len())
