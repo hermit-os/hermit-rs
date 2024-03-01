@@ -14,7 +14,6 @@ use hermit as _;
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
-use std::vec::Vec;
 
 use http::{Method, Request, Response, StatusCode};
 use http_body_util::{BodyExt, Full};
