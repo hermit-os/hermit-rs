@@ -100,3 +100,22 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/hermit-os/webserver:latest
+    - name: Build tls-demo
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features dhcpv4 --release
+    - name: Copy tls-demo out of target dir
+      run: cp target/x86_64-unknown-hermit/release/tls .
+    - name: Create dockerfile for tls-demo
+      run: |
+        cat << END > Dockerfile
+        FROM scratch
+        COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY tls-demo to hermit/tls
+        CMD ["/hermit/tls"]
+        END
+    - name: Build and push container
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/hermit-os/tls:latest
