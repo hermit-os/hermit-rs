@@ -27,26 +27,14 @@ use rustls::ServerConfig;
 use tokio::net::TcpListener;
 use tokio_rustls::TlsAcceptor;
 
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 	env_logger::Builder::new().parse_filters("debug").init();
 
 	// see readme of rustls-rustcrypto
 	println!("USE THIS AT YOUR OWN RISK!");
 	println!("See https://github.com/RustCrypto/rustls-rustcrypto for details!");
 
-	// Serve an echo service over HTTPS, with proper error handling.
-	if let Err(e) = run_server() {
-		eprintln!("FAILED: {}", e);
-		std::process::exit(1);
-	}
-}
-
-fn error(err: String) -> io::Error {
-	io::Error::new(io::ErrorKind::Other, err)
-}
-
-#[tokio::main(flavor = "current_thread")]
-async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 	let addr = SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), 9975);
 
 	// Load public certificate.
@@ -64,8 +52,7 @@ async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 		ServerConfig::builder_with_provider(Arc::new(rustls_rustcrypto::provider()))
 			.with_safe_default_protocol_versions()?
 			.with_no_client_auth()
-			.with_single_cert(certs, key)
-			.map_err(|e| error(e.to_string()))?;
+			.with_single_cert(certs, key)?;
 	server_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec(), b"http/1.0".to_vec()];
 	let tls_acceptor = TlsAcceptor::from(Arc::new(server_config));
 
@@ -96,21 +83,32 @@ async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 // Custom echo service, handling two different routes and a
 // catch-all 404 responder.
 async fn echo(req: Request<Incoming>) -> Result<Response<Full<Bytes>>, hyper::Error> {
-	let mut response = Response::new(Full::default());
-	match (req.method(), req.uri().path()) {
+	let response = match (req.method(), req.uri().path()) {
 		// Help route.
 		(&Method::GET, "/") => {
-			*response.body_mut() = Full::from("Try POST /echo\n");
+			let response = "Hello from HermitOS! 🦀\nTry POST /echo";
+			Response::builder()
+				.header("Content-Type", "text/plain; charset=utf8")
+				.header("content-length", response.len())
+				.body(Full::from(response.as_bytes()))
+				.unwrap()
 		}
 		// Echo service route.
 		(&Method::POST, "/echo") => {
-			*response.body_mut() = Full::from(req.into_body().collect().await?.to_bytes());
+			let data = req.into_body().collect().await?.to_bytes();
+			Response::builder()
+				.header("Content-Type", "text/plain; charset=utf8")
+				.header("content-length", data.len())
+				.body(Full::from(data))
+				.unwrap()
 		}
 		// Catch-all 404.
-		_ => {
-			*response.status_mut() = StatusCode::NOT_FOUND;
-		}
+		_ => Response::builder()
+			.status(StatusCode::NOT_FOUND)
+			.body(Full::default())
+			.unwrap(),
 	};
+
 	Ok(response)
 }
 
