@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
 						poller.add(&stream, Event::readable(counter))?;
 					}
 					streams.insert(counter, stream);
-					counter = counter + 1;
+					counter += 1;
 					poller.modify(&l1, Event::readable(1))?;
 				}
 				2 => {
@@ -47,14 +47,14 @@ fn main() -> io::Result<()> {
 						poller.add(&stream, Event::readable(counter))?;
 					}
 					streams.insert(counter, stream);
-					counter = counter + 1;
+					counter += 1;
 					poller.modify(&l2, Event::readable(2))?;
 				}
 				_ => {
 					if let Some(mut stream) = streams.get(&ev.key) {
 						let mut buf = [0u8; 1000];
 						let received = stream.read(&mut buf)?;
-						poller.modify(&stream, Event::readable(ev.key))?;
+						poller.modify(stream, Event::readable(ev.key))?;
 						let msg = std::str::from_utf8(&buf[..received]).unwrap().trim_end();
 						println!("{}", msg);
 						if msg == "exit" {
@@ -69,7 +69,7 @@ fn main() -> io::Result<()> {
 	}
 
 	for (_key, stream) in streams.drain().take(1) {
-		poller.delete(&stream)?;
+		poller.delete(stream)?;
 	}
 	poller.delete(&l1)?;
 	poller.delete(&l2)?;
