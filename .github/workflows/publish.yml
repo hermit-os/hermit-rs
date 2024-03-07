@@ -25,7 +25,7 @@ jobs:
         username: hermit-os
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build demo
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --no-default-features -p rusty_demo --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p rusty_demo --release
     - name: Copy demo out of target dir
       run: cp target/x86_64-unknown-hermit/release/rusty_demo .
     - name: Download loader
