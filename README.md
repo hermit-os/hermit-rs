@@ -38,7 +38,7 @@ Rust applications that use the Rust runtime and do not directly use OS services 
 
 ## Building your own applications
 
-Have a look at [rusty-demo](https://github.com/hermit-os/rusty-demo).
+Have a look at [the template](https://github.com/hermit-os/hermit-rs-template).
 
 
 ## Use Hermit for C/C++, Go, and Fortran applications
