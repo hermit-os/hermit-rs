@@ -1,3 +1,6 @@
+#[cfg(target_os = "hermit")]
+use hermit as _;
+
 use std::collections::HashMap;
 use std::io;
 use std::io::Read;
