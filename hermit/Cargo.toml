@@ -48,6 +48,7 @@ tcp = []
 udp = []
 trace = []
 vga = []
+shell = []
 
 [build-dependencies]
 flate2 = "1"

@@ -96,7 +96,7 @@ impl KernelSrc {
 			&mut cargo,
 			[
 				"acpi", "dhcpv4", "fsgsbase", "pci", "pci-ids", "smp", "tcp", "udp", "trace",
-				"vga", "rtl8139", "fs",
+				"vga", "rtl8139", "fs", "shell",
 			]
 			.into_iter(),
 		);
