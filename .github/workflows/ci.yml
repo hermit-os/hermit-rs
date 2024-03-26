@@ -17,8 +17,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
-      - run: rustup component add clippy
+      - run: rustup component add clippy llvm-tools
       - name: Clippy
         run: |
           cargo clippy --all-targets
@@ -43,7 +46,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
+      - run: rustup component add llvm-tools
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
