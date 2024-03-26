@@ -23,6 +23,7 @@ members = [
 [patch.crates-io]
 hyper-util = { git = "https://github.com/hermit-os/hyper-util.git", branch = "hermit" }
 mio = { git = "https://github.com/hermit-os/mio.git", branch = "v0.8.x" }
+rustls-rustcrypto = { git = "https://github.com/RustCrypto/rustls-rustcrypto", rev = "3c26a840a6fdf3c11950b7fda1ad5282dfaf9e35" }
 socket2 = { git = "https://github.com/hermit-os/socket2.git", branch = "hermit" }
 tokio = { git = "https://github.com/hermit-os/tokio.git", branch = "hermit" }
 tokio-rustls = { git = "https://github.com/hermit-os/tokio-rustls.git", branch = "hermit" }

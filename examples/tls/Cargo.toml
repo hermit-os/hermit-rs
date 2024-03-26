@@ -19,7 +19,7 @@ tokio = { version = "1.0", features = ["macros", "net", "rt", "parking_lot"] }
 tokio-rustls = { version = "0.25", default-features = false, features = ["logging", "tls12"] }
 rustls = { version = "0.22", default-features = false, features = ["logging", "tls12"] }
 pki-types = { package = "rustls-pki-types", version = "1" }
-rustls-rustcrypto = { git = "https://github.com/RustCrypto/rustls-rustcrypto", rev = "3c26a840a6fdf3c11950b7fda1ad5282dfaf9e35", version = "0.1" }
+rustls-rustcrypto = "0.1"
 env_logger = { version = "0.11" }
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit]
