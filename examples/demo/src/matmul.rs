@@ -372,7 +372,7 @@ fn timed_matmul<F: FnOnce(&[f32], &[f32], &mut [f32])>(size: usize, f: F, name: 
 	f(&a[..], &b[..], &mut dest[..]);
 	let dur = Instant::now() - start;
 	let nanos = u64::from(dur.subsec_nanos()) + dur.as_secs() * 1_000_000_000u64;
-	println!(
+	eprintln!(
 		"{}:\t{}x{} matrix: {} s",
 		name,
 		size,
@@ -384,7 +384,9 @@ fn timed_matmul<F: FnOnce(&[f32], &[f32], &mut [f32])>(size: usize, f: F, name: 
 
 const SIZE: usize = if cfg!(debug_assertions) { 64 } else { 256 };
 
-pub fn test_matmul_strassen() -> Result<(), ()> {
+pub fn matmul() {
+	eprintln!();
+	eprintln!("Matrix multiplication");
 	if SIZE <= 1024 {
 		// Crappy algorithm takes several minutes on larger inputs.
 		timed_matmul(SIZE, seq_matmul, "seq row-major");
@@ -397,7 +399,5 @@ pub fn test_matmul_strassen() -> Result<(), ()> {
 	let par = timed_matmul(SIZE, matmulz, "par z-order");
 	timed_matmul(SIZE, matmul_strassen, "par strassen");
 	let speedup = seq as f64 / par as f64;
-	println!("speedup: {:.2}x", speedup);
-
-	Ok(())
+	eprintln!("speedup: {:.2}x", speedup);
 }

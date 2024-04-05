@@ -1,30 +1,22 @@
 use std::time::Instant;
-use std::{thread, vec};
+use std::vec;
 
 use rayon::prelude::*;
 
-pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
-	let ncpus = thread::available_parallelism().unwrap().get();
-	let pool = rayon::ThreadPoolBuilder::new()
-		.num_threads(ncpus)
-		.build()
-		.unwrap();
-	let matrix = matrix_setup(size_x, size_y);
+const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
 
+pub fn laplace() {
+	eprintln!();
+
+	let matrix = matrix_setup(SIZE, SIZE);
+
+	eprintln!("Laplace iterations");
 	let now = Instant::now();
-	let (iterations, res) = pool.install(|| compute(matrix, size_x, size_y));
-	println!(
-		"Time to solve {} s, iterations {}, residuum {}",
-		now.elapsed().as_secs_f64(),
-		iterations,
-		res
-	);
+	let (i, residual) = compute(matrix, SIZE, SIZE);
+	let elapsed = now.elapsed();
+	eprintln!("{i} iterations: {elapsed:?} (residual: {residual})");
 
-	if res < 0.01 {
-		Ok(())
-	} else {
-		Err(())
-	}
+	assert!(residual < 0.001);
 }
 
 fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<vec::Vec<f64>> {
@@ -97,7 +89,6 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-#[inline(never)]
 pub fn compute(mut matrix: vec::Vec<vec::Vec<f64>>, size_x: usize, size_y: usize) -> (usize, f64) {
 	let mut counter = 0;
 
