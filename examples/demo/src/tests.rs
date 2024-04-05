@@ -1,8 +1,7 @@
-use std::f64::consts::{E, PI};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::time::{self, Instant};
-use std::{env, thread, vec};
+use std::{env, f64, hint, thread, vec};
 
 use rayon::prelude::*;
 
@@ -59,7 +58,7 @@ pub fn pi_sequential(num_steps: u64) -> Result<(), ()> {
 	let mypi = sum * (1.0 / num_steps as f64);
 	println!("Pi: {mypi} (sequential)");
 
-	if (mypi - PI).abs() < 0.00001 {
+	if (mypi - f64::consts::PI).abs() < 0.00001 {
 		Ok(())
 	} else {
 		Err(())
@@ -87,7 +86,7 @@ pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
 	let mypi = sum * (1.0 / num_steps as f64);
 	println!("Pi: {mypi} (with {ncpus} threads)");
 
-	if (mypi - PI).abs() < 0.00001 {
+	if (mypi - f64::consts::PI).abs() < 0.00001 {
 		Ok(())
 	} else {
 		Err(())
@@ -178,9 +177,9 @@ pub fn hello() -> Result<(), ()> {
 }
 
 pub fn arithmetic() -> Result<(), ()> {
-	let x = ((std::thread::current().id().as_u64().get() * 3) % 10) as f64 * 3.41f64;
+	let x = hint::black_box(f64::consts::PI) * 2.0;
 	let y: f64 = x.exp();
-	let z: f64 = y.log(E);
+	let z: f64 = y.ln();
 
 	println!("x = {x}, e^x = {y}, ln(e^x) = {z}");
 

@@ -1,5 +1,3 @@
-#![feature(thread_id_value)]
-
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
