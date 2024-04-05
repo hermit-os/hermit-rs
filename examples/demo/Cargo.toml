@@ -3,18 +3,6 @@ name = "rusty_demo"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
-[[bin]]
-name = "rusty_demo"
-path = "src/main.rs"
-
-[[bin]]
-name = "pi_sequential"
-path = "src/pi_sequential.rs"
-
-[[bin]]
-name = "matrix_multiplcation"
-path = "src/matrix_multiplication.rs"
-
 [dependencies]
 rayon = "1.5"
 num_cpus = "1.13"
