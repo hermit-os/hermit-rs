@@ -1,7 +1,7 @@
+use std::net::UdpSocket;
+
 #[cfg(target_os = "hermit")]
 use hermit as _;
-
-use std::net::UdpSocket;
 
 // demo program to test the udp interface
 //

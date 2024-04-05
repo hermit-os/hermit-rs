@@ -1,1 +1,3 @@
+group_imports = "StdExternalCrate"
 hard_tabs = true
+imports_granularity = "Module"

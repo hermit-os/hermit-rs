@@ -1,5 +1,6 @@
-use rayon::prelude::*;
 use std::vec;
+
+use rayon::prelude::*;
 
 fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
 	(1..size_y - 1)

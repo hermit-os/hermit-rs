@@ -1,15 +1,14 @@
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
-// This example is derived from
-// https://github.com/tokio-rs/mio/blob/master/examples/tcp_server.rs
-
-use mio::event::Event;
-use mio::net::{TcpListener, TcpStream};
-use mio::{Events, Interest, Poll, Registry, Token};
 use std::collections::HashMap;
 use std::io::{self, Read, Write};
 use std::str::from_utf8;
+
+#[cfg(target_os = "hermit")]
+use hermit as _;
+// This example is derived from
+// https://github.com/tokio-rs/mio/blob/master/examples/tcp_server.rs
+use mio::event::Event;
+use mio::net::{TcpListener, TcpStream};
+use mio::{Events, Interest, Poll, Registry, Token};
 
 // Setup some tokens to allow us to identify which event is for which socket.
 const SERVER: Token = Token(0);

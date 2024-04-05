@@ -10,8 +10,9 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
-pub use self::errno::*;
 pub use core::ffi::{c_int, c_short, c_void};
+
+pub use self::errno::*;
 
 /// A thread handle type
 pub type Tid = u32;

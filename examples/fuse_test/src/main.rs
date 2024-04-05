@@ -1,7 +1,8 @@
+use std::fs;
+use std::path::Path;
+
 #[cfg(target_os = "hermit")]
 use hermit as _;
-
-use std::{fs, path::Path};
 
 #[cfg(target_os = "hermit")]
 const TEST_DIR: &str = "/root";
