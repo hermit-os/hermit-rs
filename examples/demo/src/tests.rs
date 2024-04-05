@@ -1,9 +1,8 @@
 use std::f64::consts::{E, PI};
 use std::fs::File;
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
 use std::time::{self, Instant};
-use std::{env, str, thread, vec};
+use std::{env, thread, vec};
 
 use rayon::prelude::*;
 

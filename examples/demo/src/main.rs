@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![allow(unused_imports)]
 #![feature(thread_id_value)]
 
 #[cfg(target_os = "hermit")]
