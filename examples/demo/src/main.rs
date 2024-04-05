@@ -5,7 +5,10 @@
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
+mod laplace;
+mod matmul;
 mod tests;
+mod thread_local;
 
 use tests::*;
 
@@ -26,7 +29,7 @@ fn main() {
 	println!(
 		"Test {} ... {}",
 		stringify!(test_thread_local),
-		test_result(test_thread_local())
+		test_result(thread_local::test_thread_local())
 	);
 	println!(
 		"Test {} ... {}",
@@ -76,12 +79,12 @@ fn main() {
 	println!(
 		"Test {} ... {}",
 		stringify!(laplace),
-		test_result(laplace(128, 128))
+		test_result(laplace::laplace(128, 128))
 	);
 	println!(
 		"Test {} ... {}",
 		stringify!(test_matmul_strassen),
-		test_result(test_matmul_strassen())
+		test_result(matmul::test_matmul_strassen())
 	);
 	println!(
 		"Test {} ... {}",

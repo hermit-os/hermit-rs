@@ -1,6 +1,61 @@
+use std::time::Instant;
 use std::vec;
 
 use rayon::prelude::*;
+
+pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
+	let ncpus = num_cpus::get();
+	let pool = rayon::ThreadPoolBuilder::new()
+		.num_threads(ncpus)
+		.build()
+		.unwrap();
+	let matrix = matrix_setup(size_x, size_y);
+
+	let now = Instant::now();
+	let (iterations, res) = pool.install(|| compute(matrix, size_x, size_y));
+	println!(
+		"Time to solve {} s, iterations {}, residuum {}",
+		now.elapsed().as_secs_f64(),
+		iterations,
+		res
+	);
+
+	if res < 0.01 {
+		Ok(())
+	} else {
+		Err(())
+	}
+}
+
+fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<vec::Vec<f64>> {
+	let mut matrix = vec![vec![0.0; size_x * size_y]; 2];
+
+	// top row
+	for x in 0..size_x {
+		matrix[0][x] = 1.0;
+		matrix[1][x] = 1.0;
+	}
+
+	// bottom row
+	for x in 0..size_x {
+		matrix[0][(size_y - 1) * size_x + x] = 1.0;
+		matrix[1][(size_y - 1) * size_x + x] = 1.0;
+	}
+
+	// left row
+	for y in 0..size_y {
+		matrix[0][y * size_x] = 1.0;
+		matrix[1][y * size_x] = 1.0;
+	}
+
+	// right row
+	for y in 0..size_y {
+		matrix[0][y * size_x + size_x - 1] = 1.0;
+		matrix[1][y * size_x + size_x - 1] = 1.0;
+	}
+
+	matrix
+}
 
 fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
 	(1..size_y - 1)
