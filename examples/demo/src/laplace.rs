@@ -1,10 +1,10 @@
 use std::time::Instant;
-use std::vec;
+use std::{thread, vec};
 
 use rayon::prelude::*;
 
 pub fn laplace(size_x: usize, size_y: usize) -> Result<(), ()> {
-	let ncpus = num_cpus::get();
+	let ncpus = thread::available_parallelism().unwrap().get();
 	let pool = rayon::ThreadPoolBuilder::new()
 		.num_threads(ncpus)
 		.build()

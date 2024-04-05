@@ -1,6 +1,7 @@
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::too_many_arguments)]
 
+use std::thread;
 use std::time::Instant;
 
 /// Code is derived Rayon's matmul example
@@ -383,7 +384,7 @@ fn timed_matmul<F: FnOnce(&[f32], &[f32], &mut [f32])>(size: usize, f: F, name: 
 const ROW_SIZE: usize = 512;
 
 pub fn test_matmul_strassen() -> Result<(), ()> {
-	let ncpus = num_cpus::get();
+	let ncpus = thread::available_parallelism().unwrap().get();
 	let pool = rayon::ThreadPoolBuilder::new()
 		.num_threads(ncpus)
 		.build()

@@ -70,7 +70,7 @@ pub fn pi_sequential(num_steps: u64) -> Result<(), ()> {
 }
 
 pub fn pi_parallel(num_steps: u64) -> Result<(), ()> {
-	let ncpus = num_cpus::get();
+	let ncpus = thread::available_parallelism().unwrap().get();
 	let pool = rayon::ThreadPoolBuilder::new()
 		.num_threads(ncpus)
 		.build()
