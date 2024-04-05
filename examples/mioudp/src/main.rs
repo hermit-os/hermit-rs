@@ -1,13 +1,12 @@
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
-// This example is derived from
-// https://github.com/tokio-rs/mio/blob/master/examples/tcp_server.rs
-
-use log::warn;
-use mio::{Events, Interest, Poll, Token};
 use std::io;
 use std::str::from_utf8;
+
+#[cfg(target_os = "hermit")]
+use hermit as _;
+// This example is derived from
+// https://github.com/tokio-rs/mio/blob/master/examples/tcp_server.rs
+use log::warn;
+use mio::{Events, Interest, Poll, Token};
 
 // A token to allow us to identify which event is for the `UdpSocket`.
 const UDP_SOCKET: Token = Token(0);

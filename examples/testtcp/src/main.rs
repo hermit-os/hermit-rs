@@ -1,8 +1,8 @@
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
 use std::io::Read;
 use std::net::TcpListener;
+
+#[cfg(target_os = "hermit")]
+use hermit as _;
 
 // demo program to test the tcp interface
 //

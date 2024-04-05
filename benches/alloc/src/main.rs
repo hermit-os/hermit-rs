@@ -31,11 +31,11 @@ SOFTWARE.
 
 #![feature(slice_ptr_get)]
 
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
 use std::alloc::{alloc, dealloc, Layout};
 use std::time::Instant;
+
+#[cfg(target_os = "hermit")]
+use hermit as _;
 
 const BENCH_DURATION: f64 = 3.0;
 

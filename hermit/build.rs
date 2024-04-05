@@ -1,7 +1,6 @@
-use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::str;
+use std::{env, str};
 
 use flate2::read::GzDecoder;
 use tar::Archive;

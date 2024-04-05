@@ -1,14 +1,13 @@
 #![allow(unused_imports)]
 
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
-use clap::Parser;
-use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::connection;
-use rust_tcp_io_perf::print_utils;
 use std::io::Read;
 use std::time::Instant;
+
+use clap::Parser;
+#[cfg(target_os = "hermit")]
+use hermit as _;
+use rust_tcp_io_perf::config::Config;
+use rust_tcp_io_perf::{connection, print_utils};
 
 fn main() {
 	let args = Config::parse();

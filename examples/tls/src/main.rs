@@ -8,13 +8,12 @@
 //! Test the server with follow command:
 //! curl --verbose --insecure -d "Hello World" -X POST https://127.0.0.1:9975/echo
 
-#[cfg(target_os = "hermit")]
-use hermit as _;
-
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 
+#[cfg(target_os = "hermit")]
+use hermit as _;
 use http::{Method, Request, Response, StatusCode};
 use http_body_util::{BodyExt, Full};
 use hyper::body::{Bytes, Incoming};

@@ -1,11 +1,9 @@
-use crate::config::Config;
 use std::io;
 use std::io::ErrorKind::WouldBlock;
 use std::io::{Read, Write};
-use std::net::Shutdown;
-use std::net::TcpListener;
-use std::net::TcpStream;
-use std::net::ToSocketAddrs;
+use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
+
+use crate::config::Config;
 
 /// Sends first n_bytes from wbuf using the given stream.
 /// Make sure wbuf.len >= n_bytes
