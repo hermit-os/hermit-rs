@@ -3,8 +3,6 @@ name = "testtcp"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
