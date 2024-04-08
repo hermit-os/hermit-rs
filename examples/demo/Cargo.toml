@@ -10,5 +10,5 @@ rayon = "1.5"
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["fs", "hermit/acpi", "hermit/pci", "hermit/smp"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
 fs = ["hermit/fs"]
