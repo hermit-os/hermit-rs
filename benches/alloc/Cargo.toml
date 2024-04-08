@@ -16,11 +16,4 @@ default-features = false
 riscv = "0.11"
 
 [features]
-default = ["pci", "acpi"]
-vga = ["hermit/vga"]
-pci = ["hermit/pci"]
-pci-ids = ["hermit/pci-ids"]
-acpi = ["hermit/acpi"]
-fsgsbase = ["hermit/fsgsbase"]
-smp = ["hermit/smp"]
-instrument = ["hermit/instrument"]
+default = ["hermit/acpi", "hermit/pci"]

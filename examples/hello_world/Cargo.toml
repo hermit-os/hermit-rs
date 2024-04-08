@@ -10,12 +10,4 @@ path = "../../hermit"
 default-features = false
 
 [features]
-default = ["pci", "acpi"]
-vga = ["hermit/vga"]
-pci = ["hermit/pci"]
-pci-ids = ["hermit/pci-ids"]
-acpi = ["hermit/acpi"]
-fsgsbase = ["hermit/fsgsbase"]
-smp = ["hermit/smp"]
-instrument = ["hermit/instrument"]
-fs = ["hermit/fs"]
+default = ["hermit/acpi", "hermit/pci"]

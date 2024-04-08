@@ -30,12 +30,5 @@ version = "0.0.11"
 default-features = false
 
 [features]
-default = ["pci", "acpi", "smp", "fs"]
-vga = ["hermit/vga"]
-pci = ["hermit/pci"]
+default = ["fs", "hermit/acpi", "hermit/pci", "hermit/smp"]
 fs = ["hermit/fs"]
-acpi = ["hermit/acpi"]
-pci-ids = ["hermit/pci-ids"]
-fsgsbase = ["hermit/fsgsbase"]
-smp = ["hermit/smp"]
-instrument = ["hermit/instrument"]

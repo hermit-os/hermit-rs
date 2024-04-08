@@ -19,17 +19,7 @@ path = "../../hermit"
 default-features = false
 
 [features]
-default = ["pci", "acpi", "tcp", "smp"]
-vga = ["hermit/vga"]
-dhcpv4 = ["hermit/dhcpv4"]
-pci = ["hermit/pci"]
-pci-ids = ["hermit/pci-ids"]
-acpi = ["hermit/acpi"]
-fsgsbase = ["hermit/fsgsbase"]
-smp = ["hermit/smp"]
-tcp = ["hermit/tcp"]
-instrument = ["hermit/instrument"]
-rtl8139 = ["hermit/rtl8139"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp"]
 
 [[bin]]
 name = "server-bw"
