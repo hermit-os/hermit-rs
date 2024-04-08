@@ -1,8 +1,6 @@
 [package]
 name = "fuse_test"
-version = "0.1.0"
 edition = "2021"
-publish = false
 
 [target.'cfg(target_os = "hermit")'.dependencies.hermit]
 path = "../../hermit"
