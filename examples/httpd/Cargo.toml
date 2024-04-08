@@ -6,14 +6,11 @@ edition = "2021"
 publish = false
 
 [dependencies]
+time = "0.3"
 tiny_http = "0.12"
 
-[dependencies.time]
-version = "0.3"
-
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["pci", "pci-ids", "acpi", "tcp"]

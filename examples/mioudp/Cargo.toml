@@ -10,9 +10,8 @@ mio = { version = "0.8", features = ["net", "os-poll"] }
 env_logger = { version = "0.11.2", default-features = false }
 log = { version = "0.4.8" }
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["pci", "pci-ids", "acpi", "udp"]

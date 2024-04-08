@@ -5,9 +5,8 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 publish = false
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["pci", "acpi"]
