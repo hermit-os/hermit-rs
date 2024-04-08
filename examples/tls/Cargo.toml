@@ -22,9 +22,8 @@ pki-types = { package = "rustls-pki-types", version = "1" }
 rustls-rustcrypto = "0.1"
 env_logger = { version = "0.11" }
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["fsgsbase", "dhcpv4", "pci", "pci-ids", "acpi", "tcp", "shell"]

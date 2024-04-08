@@ -21,13 +21,11 @@ path = "src/matrix_multiplication.rs"
 rayon = "1.5"
 num_cpus = "1.13"
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [target.'cfg(target_arch = "aarch64")'.dependencies.aarch64]
-version = "0.0.11"
-default-features = false
+aarch64 = { version = "0.0.11", default-features = false }
 
 [features]
 default = ["pci", "acpi", "smp", "fs"]

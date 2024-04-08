@@ -3,11 +3,8 @@ name = "testudp"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["pci", "pci-ids", "acpi", "udp"]
