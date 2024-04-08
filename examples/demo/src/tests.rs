@@ -5,8 +5,6 @@ use std::net::{TcpListener, TcpStream};
 use std::time::{self, Instant};
 use std::{env, str, thread, vec};
 
-#[cfg(target_arch = "aarch64")]
-use aarch64::regs::*;
 use rayon::prelude::*;
 
 pub fn test_sleep() -> Result<(), ()> {
