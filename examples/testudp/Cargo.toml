@@ -1,6 +1,5 @@
 [package]
 name = "testudp"
-version = "0.1.0"
 edition = "2021"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
