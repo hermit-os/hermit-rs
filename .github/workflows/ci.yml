@@ -121,7 +121,7 @@ jobs:
             flags: --no-default-features
           - package: httpd
             netdev: rtl8139
-            flags: --features ci,dhcpv4
+            flags: --features ci,hermit/dhcpv4
         exclude:
           - arch: aarch64
             package: httpd
@@ -155,6 +155,6 @@ jobs:
           --arch ${{ matrix.arch }}
           --package ${{ matrix.package }}
           --profile ${{ matrix.profile }}
-          ${{ matrix.netdev == 'rtl8139' && '--features rtl8139' || '' }}
+          ${{ matrix.netdev == 'rtl8139' && '--features hermit/rtl8139' || '' }}
           ${{ matrix.netdev && format('--netdev {0}', matrix.netdev) || '' }}
           ${{ matrix.flags }}

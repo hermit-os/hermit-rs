@@ -19,11 +19,4 @@ riscv = "0.11"
 syscalls = { version = "0.6", default-features = false }
 
 [features]
-default = ["pci", "acpi", "smp"]
-vga = ["hermit/vga"]
-pci = ["hermit/pci"]
-pci-ids = ["hermit/pci-ids"]
-acpi = ["hermit/acpi"]
-fsgsbase = ["hermit/fsgsbase"]
-smp = ["hermit/smp"]
-instrument = ["hermit/instrument"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp"]

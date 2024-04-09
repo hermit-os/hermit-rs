@@ -48,7 +48,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/rusty_demo:latest
     - name: Build httpd
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4 --release
     - name: Copy httpd out of target dir
       run: cp target/x86_64-unknown-hermit/release/httpd .
     - name: Create dockerfile for httpd
@@ -67,7 +67,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/httpd:latest
     - name: Build webserver
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4 --release
     - name: Copy webserver out of target dir
       run: cp target/x86_64-unknown-hermit/release/webserver .
     - name: Create static website
@@ -101,7 +101,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/webserver:latest
     - name: Build tls-demo
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features hermit/dhcpv4 --release
     - name: Copy tls-demo out of target dir
       run: cp target/x86_64-unknown-hermit/release/tls .
     - name: Create dockerfile for tls-demo
