@@ -1,91 +1,60 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
-#![feature(thread_id_value)]
+use std::{env, f64, hint, io};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
-mod tests;
+mod fs;
+mod laplace;
+mod matmul;
+mod pi;
+mod thread;
 
-use tests::*;
+fn main() -> io::Result<()> {
+	hello();
+	print_env();
+	arithmetic();
+	thread::sleep();
+	thread::spawn()?;
+	fs::fs()?;
+	pi::pi();
+	matmul::matmul();
+	laplace::laplace();
+	Ok(())
+}
 
-fn test_result<T>(result: Result<(), T>) -> &'static str {
-	match result {
-		Ok(_) => "ok",
-		Err(_) => "failed!",
+pub fn hello() {
+	eprintln!();
+	eprintln!("Hello, Hermit! 🦀");
+	eprintln!("Hello, world!");
+	eprintln!("Привет, мир!");
+	eprintln!("こんにちは世界！");
+	eprintln!("你好世界！");
+	eprintln!("สวัสดีชาวโลก!");
+	eprintln!("Chào thế giới!");
+}
+
+pub fn print_env() {
+	eprintln!();
+	eprintln!("Arguments:");
+	for argument in env::args() {
+		eprintln!("{argument}");
+	}
+
+	eprintln!();
+	eprintln!("Environment variables:");
+	for (key, value) in env::vars() {
+		eprintln!("{key}: {value}");
 	}
 }
 
-fn main() {
-	println!("Test {} ... {}", stringify!(hello), test_result(hello()));
-	println!(
-		"Test {} ... {}",
-		stringify!(sleep),
-		test_result(test_sleep())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(test_thread_local),
-		test_result(test_thread_local())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(arithmetic),
-		test_result(arithmetic())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(print_argv),
-		test_result(print_argv())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(print_env),
-		test_result(print_env())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(read_file),
-		test_result(read_file())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(read_dir),
-		test_result(read_dir())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(create_file),
-		test_result(create_file())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(threading),
-		test_result(threading())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(pi_sequential),
-		test_result(pi_sequential(5000000))
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(pi_parallel),
-		test_result(pi_parallel(5000000))
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(laplace),
-		test_result(laplace(128, 128))
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(test_matmul_strassen),
-		test_result(test_matmul_strassen())
-	);
-	println!(
-		"Test {} ... {}",
-		stringify!(thread_creation),
-		test_result(thread_creation())
-	);
+pub fn arithmetic() {
+	eprintln!();
+
+	let x = hint::black_box(f64::consts::PI) * 2.0;
+	let y: f64 = hint::black_box(x).exp();
+	let z: f64 = hint::black_box(y).ln();
+
+	eprintln!("x = {x}");
+	eprintln!("e^x = {y}");
+	eprintln!("ln(e^x) = {z}");
 }

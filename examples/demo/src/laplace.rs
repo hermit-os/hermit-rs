@@ -1,6 +1,53 @@
+use std::time::Instant;
 use std::vec;
 
 use rayon::prelude::*;
+
+const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
+
+pub fn laplace() {
+	eprintln!();
+
+	let matrix = matrix_setup(SIZE, SIZE);
+
+	eprintln!("Laplace iterations");
+	let now = Instant::now();
+	let (i, residual) = compute(matrix, SIZE, SIZE);
+	let elapsed = now.elapsed();
+	eprintln!("{i} iterations: {elapsed:?} (residual: {residual})");
+
+	assert!(residual < 0.001);
+}
+
+fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<vec::Vec<f64>> {
+	let mut matrix = vec![vec![0.0; size_x * size_y]; 2];
+
+	// top row
+	for x in 0..size_x {
+		matrix[0][x] = 1.0;
+		matrix[1][x] = 1.0;
+	}
+
+	// bottom row
+	for x in 0..size_x {
+		matrix[0][(size_y - 1) * size_x + x] = 1.0;
+		matrix[1][(size_y - 1) * size_x + x] = 1.0;
+	}
+
+	// left row
+	for y in 0..size_y {
+		matrix[0][y * size_x] = 1.0;
+		matrix[1][y * size_x] = 1.0;
+	}
+
+	// right row
+	for y in 0..size_y {
+		matrix[0][y * size_x + size_x - 1] = 1.0;
+		matrix[1][y * size_x + size_x - 1] = 1.0;
+	}
+
+	matrix
+}
 
 fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
 	(1..size_y - 1)
@@ -42,7 +89,6 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-#[inline(never)]
 pub fn compute(mut matrix: vec::Vec<vec::Vec<f64>>, size_x: usize, size_y: usize) -> (usize, f64) {
 	let mut counter = 0;
 
