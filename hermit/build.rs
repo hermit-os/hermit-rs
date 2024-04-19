@@ -123,6 +123,7 @@ impl KernelSrc {
 
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
+		println!("cargo:rerun-if-env-changed=HERMIT_CAREFUL");
 	}
 
 	fn rerun_if_changed_cargo(&self, cargo_toml: &Path) {
