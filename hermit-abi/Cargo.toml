@@ -1,6 +1,6 @@
 [package]
 name = "hermit-abi"
-version = "0.3.9"
+version = "0.4.0"
 authors = ["Stefan Lankes"]
 license = "MIT OR Apache-2.0"
 edition = "2021"

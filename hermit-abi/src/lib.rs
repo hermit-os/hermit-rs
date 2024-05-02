@@ -10,6 +10,7 @@ pub mod errno;
 pub mod tcplistener;
 pub mod tcpstream;
 
+use core::ffi::c_char;
 pub use core::ffi::{c_int, c_short, c_void};
 
 pub use self::errno::*;
@@ -42,7 +43,6 @@ pub const LOW_PRIO: Priority = Priority::from(1);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct Handle(usize);
 
-pub const NSEC_PER_SEC: u64 = 1_000_000_000;
 pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
 pub const CLOCK_REALTIME: u64 = 1;
 pub const CLOCK_MONOTONIC: u64 = 4;
@@ -75,9 +75,16 @@ pub fn isatty(_fd: c_int) -> bool {
 #[repr(C)]
 pub struct timespec {
 	/// seconds
-	pub tv_sec: i64,
+	pub tv_sec: time_t,
 	/// nanoseconds
-	pub tv_nsec: i64,
+	pub tv_nsec: u32,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct timeval {
+	pub tv_sec: time_t,
+	pub tv_usec: suseconds_t,
 }
 
 /// Internet protocol version.
@@ -109,7 +116,7 @@ pub enum IpAddress {
 }
 
 /// The largest number `rand` will return
-pub const RAND_MAX: u64 = 2_147_483_647;
+pub const RAND_MAX: i32 = 2_147_483_647;
 
 pub const AF_INET: i32 = 0;
 pub const AF_INET6: i32 = 1;
@@ -171,16 +178,19 @@ pub type socklen_t = u32;
 pub type in_addr_t = u32;
 pub type in_port_t = u16;
 pub type time_t = i64;
-pub type suseconds_t = i64;
+pub type suseconds_t = u32;
 pub type nfds_t = usize;
+pub type sem_t = *const c_void;
+pub type pid_t = i32;
+pub type clockid_t = i32;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct in_addr {
-	pub s_addr: u32,
+	pub s_addr: in_addr_t,
 }
 
-#[repr(C)]
+#[repr(C, align(4))]
 #[derive(Debug, Copy, Clone)]
 pub struct in6_addr {
 	pub s6_addr: [u8; 16],
@@ -207,10 +217,11 @@ pub struct sockaddr_in {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct sockaddr_in6 {
+	pub sin6_len: u8,
 	pub sin6_family: sa_family_t,
-	pub sin6_port: u16,
-	pub sin6_addr: in6_addr,
+	pub sin6_port: in_port_t,
 	pub sin6_flowinfo: u32,
+	pub sin6_addr: in6_addr,
 	pub sin6_scope_id: u32,
 }
 
@@ -222,8 +233,8 @@ pub struct addrinfo {
 	pub ai_socktype: i32,
 	pub ai_protocol: i32,
 	pub ai_addrlen: socklen_t,
-	pub ai_addr: *mut sockaddr,
 	pub ai_canonname: *mut u8,
+	pub ai_addr: *mut sockaddr,
 	pub ai_next: *mut addrinfo,
 }
 
@@ -232,8 +243,9 @@ pub struct addrinfo {
 pub struct sockaddr_storage {
 	pub s2_len: u8,
 	pub ss_family: sa_family_t,
-	pub s2_data1: [i8; 2usize],
-	pub s2_data2: [u32; 3usize],
+	__ss_pad1: [u8; 6],
+	__ss_align: i64,
+	__ss_pad2: [u8; 112],
 }
 
 #[repr(C)]
@@ -255,13 +267,6 @@ pub struct ipv6_mreq {
 pub struct linger {
 	pub l_onoff: i32,
 	pub l_linger: i32,
-}
-
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct timeval {
-	pub tv_sec: time_t,
-	pub tv_usec: suseconds_t,
 }
 
 #[repr(C)]
@@ -296,14 +301,14 @@ pub struct stat {
 	/// size in blocks
 	pub st_blocks: i64,
 	/// time of last access
-	pub st_atime: u64,
-	pub st_atime_nsec: u64,
+	pub st_atime: time_t,
+	pub st_atime_nsec: u32,
 	/// time of last modification
-	pub st_mtime: u64,
-	pub st_mtime_nsec: u64,
+	pub st_mtime: time_t,
+	pub st_mtime_nsec: u32,
 	/// time of last status change
-	pub st_ctime: u64,
-	pub st_ctime_nsec: u64,
+	pub st_ctime: time_t,
+	pub st_ctime_nsec: u32,
 }
 
 #[repr(C)]
@@ -318,29 +323,37 @@ pub struct dirent64 {
 	/// File type
 	pub d_type: u8,
 	/// Filename (null-terminated)
-	pub d_name: core::marker::PhantomData<u8>,
+	pub d_name: [u8; 256],
 }
 
-pub const DT_UNKNOWN: u32 = 0;
-pub const DT_FIFO: u32 = 1;
-pub const DT_CHR: u32 = 2;
-pub const DT_DIR: u32 = 4;
-pub const DT_BLK: u32 = 6;
-pub const DT_REG: u32 = 8;
-pub const DT_LNK: u32 = 10;
-pub const DT_SOCK: u32 = 12;
-pub const DT_WHT: u32 = 14;
+pub const DT_UNKNOWN: u8 = 0;
+pub const DT_FIFO: u8 = 1;
+pub const DT_CHR: u8 = 2;
+pub const DT_DIR: u8 = 4;
+pub const DT_BLK: u8 = 6;
+pub const DT_REG: u8 = 8;
+pub const DT_LNK: u8 = 10;
+pub const DT_SOCK: u8 = 12;
+pub const DT_WHT: u8 = 14;
 
-pub const S_IFDIR: u32 = 0x4000;
-pub const S_IFREG: u32 = 0x8000;
-pub const S_IFLNK: u32 = 0xA000;
-pub const S_IFMT: u32 = 0xF000;
+pub const S_IFIFO: u32 = 0o1_0000;
+pub const S_IFCHR: u32 = 0o2_0000;
+pub const S_IFBLK: u32 = 0o6_0000;
+pub const S_IFDIR: u32 = 0o4_0000;
+pub const S_IFREG: u32 = 0o10_0000;
+pub const S_IFLNK: u32 = 0o12_0000;
+pub const S_IFSOCK: u32 = 0o14_0000;
+pub const S_IFMT: u32 = 0o17_0000;
 
-// sysmbols, which are part of the library operating system
+// symbols, which are part of the library operating system
 extern "C" {
 	/// Get the last error number from the thread local storage
 	#[link_name = "sys_get_errno"]
 	pub fn get_errno() -> i32;
+
+	/// Get the last error number from the thread local storage
+	#[link_name = "sys_errno"]
+	pub fn errno() -> i32;
 
 	/// If the value at address matches the expected value, park the current thread until it is either
 	/// woken up with [`futex_wake`] (returns 0) or an optional timeout elapses (returns -ETIMEDOUT).
@@ -367,21 +380,23 @@ extern "C" {
 
 	/// sem_init() initializes the unnamed semaphore at the address
 	/// pointed to by `sem`.  The `value` argument specifies the
-	/// initial value for the semaphore.
+	/// initial value for the semaphore. If `pshared` is nonzero,
+	/// then the semaphore is shared between processes (currently
+	/// not supported).
 	#[link_name = "sys_sem_init"]
-	pub fn sem_init(sem: *mut *const c_void, value: u32) -> i32;
+	pub fn sem_init(sem: *mut sem_t, pshared: i32, value: u32) -> i32;
 
 	/// sem_destroy() frees the unnamed semaphore at the address
 	/// pointed to by `sem`.
 	#[link_name = "sys_sem_destroy"]
-	pub fn sem_destroy(sem: *const c_void) -> i32;
+	pub fn sem_destroy(sem: *mut sem_t) -> i32;
 
 	/// sem_post() increments the semaphore pointed to by `sem`.
 	/// If the semaphore's value consequently becomes greater
 	/// than zero, then another thread blocked in a sem_wait call
 	/// will be woken up and proceed to lock the semaphore.
 	#[link_name = "sys_sem_post"]
-	pub fn sem_post(sem: *const c_void) -> i32;
+	pub fn sem_post(sem: *mut sem_t) -> i32;
 
 	/// try to decrement a semaphore
 	///
@@ -389,7 +404,7 @@ extern "C" {
 	/// if the  decrement cannot be immediately performed, then  call
 	/// returns a negative value instead of blocking.
 	#[link_name = "sys_sem_trywait"]
-	pub fn sem_trywait(sem: *const c_void) -> i32;
+	pub fn sem_trywait(sem: *mut sem_t) -> i32;
 
 	/// decrement a semaphore
 	///
@@ -400,17 +415,17 @@ extern "C" {
 	/// it becomes possible to perform the decrement of the time limit
 	/// to wait for the semaphore is expired. A time limit `ms` of
 	/// means infinity waiting time.
-	#[link_name = "sys_timedwait"]
-	pub fn sem_timedwait(sem: *const c_void, ms: u32) -> i32;
+	#[link_name = "sys_sem_timedwait"]
+	pub fn sem_timedwait(sem: *mut sem_t, abs_timeout: *const timespec) -> i32;
 
 	/// Determines the id of the current thread
 	#[link_name = "sys_getpid"]
-	pub fn getpid() -> u32;
+	pub fn getpid() -> pid_t;
 
-	/// cause normal termination and return `arg`
+	/// cause normal termination and return `status`
 	/// to the host system
 	#[link_name = "sys_exit"]
-	pub fn exit(arg: i32) -> !;
+	pub fn exit(status: i32) -> !;
 
 	/// cause abnormal termination
 	#[link_name = "sys_abort"]
@@ -422,6 +437,10 @@ extern "C" {
 	/// thread for (at least) `usecs` microseconds.
 	#[link_name = "sys_usleep"]
 	pub fn usleep(usecs: u64);
+
+	/// suspend thread execution for an interval measured in nanoseconds
+	#[link_name = "sys_nanosleep"]
+	pub fn nanosleep(tp: *const timespec) -> i32;
 
 	/// spawn a new thread
 	///
@@ -487,7 +506,7 @@ extern "C" {
 	/// `CLOCK_MONOTONIC`: clock that increments monotonically,
 	/// tracking the time since an arbitrary point
 	#[link_name = "sys_clock_gettime"]
-	pub fn clock_gettime(clock_id: u64, tp: *mut timespec) -> i32;
+	pub fn clock_gettime(clock_id: clockid_t, tp: *mut timespec) -> i32;
 
 	/// open and possibly create a file
 	///
@@ -495,29 +514,29 @@ extern "C" {
 	/// If the specified file does not exist, it may optionally
 	/// be created by open().
 	#[link_name = "sys_open"]
-	pub fn open(name: *const i8, flags: i32, mode: i32) -> i32;
+	pub fn open(name: *const c_char, flags: i32, mode: i32) -> i32;
 
 	/// open a directory
 	///
 	/// The opendir() system call opens the directory specified by `name`.
 	#[link_name = "sys_opendir"]
-	pub fn opendir(name: *const i8) -> i32;
+	pub fn opendir(name: *const c_char) -> i32;
 
 	/// delete the file it refers to `name`
 	#[link_name = "sys_unlink"]
-	pub fn unlink(name: *const i8) -> i32;
+	pub fn unlink(name: *const c_char) -> i32;
 
 	/// remove directory it refers to `name`
 	#[link_name = "sys_rmdir"]
-	pub fn rmdir(name: *const i8) -> i32;
+	pub fn rmdir(name: *const c_char) -> i32;
 
 	/// stat
 	#[link_name = "sys_stat"]
-	pub fn stat(name: *const i8, stat: *mut stat) -> i32;
+	pub fn stat(name: *const c_char, stat: *mut stat) -> i32;
 
 	/// lstat
 	#[link_name = "sys_lstat"]
-	pub fn lstat(name: *const i8, stat: *mut stat) -> i32;
+	pub fn lstat(name: *const c_char, stat: *mut stat) -> i32;
 
 	/// fstat
 	#[link_name = "sys_fstat"]
@@ -530,13 +549,20 @@ extern "C" {
 	#[link_name = "sys_malloc"]
 	pub fn malloc(size: usize, align: usize) -> *mut u8;
 
-	#[doc(hidden)]
+	#[link_name = "sys_alloc"]
+	pub fn alloc(size: usize, align: usize) -> *mut u8;
+
+	#[link_name = "sys_alloc_zeroed"]
+	pub fn alloc_zeroed(size: usize, align: usize) -> *mut u8;
+
 	#[link_name = "sys_realloc"]
 	pub fn realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8;
 
-	#[doc(hidden)]
 	#[link_name = "sys_free"]
 	pub fn free(ptr: *mut u8, size: usize, align: usize);
+
+	#[link_name = "sys_dealloc"]
+	pub fn dealloc(ptr: *mut u8, size: usize, align: usize);
 
 	#[link_name = "sys_notify"]
 	pub fn notify(id: usize, count: i32) -> i32;
