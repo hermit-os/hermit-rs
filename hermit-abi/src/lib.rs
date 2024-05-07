@@ -44,8 +44,8 @@ pub const LOW_PRIO: Priority = Priority::from(1);
 pub struct Handle(usize);
 
 pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
-pub const CLOCK_REALTIME: u64 = 1;
-pub const CLOCK_MONOTONIC: u64 = 4;
+pub const CLOCK_REALTIME: clockid_t = 1;
+pub const CLOCK_MONOTONIC: clockid_t = 4;
 pub const STDIN_FILENO: c_int = 0;
 pub const STDOUT_FILENO: c_int = 1;
 pub const STDERR_FILENO: c_int = 2;
