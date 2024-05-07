@@ -7,8 +7,6 @@
 #![allow(clippy::result_unit_err)]
 
 pub mod errno;
-pub mod tcplistener;
-pub mod tcpstream;
 
 use core::ffi::c_char;
 pub use core::ffi::{c_int, c_short, c_void};
@@ -38,10 +36,6 @@ impl Priority {
 pub const HIGH_PRIO: Priority = Priority::from(3);
 pub const NORMAL_PRIO: Priority = Priority::from(2);
 pub const LOW_PRIO: Priority = Priority::from(1);
-
-/// A handle, identifying a socket
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Handle(usize);
 
 pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
 pub const CLOCK_REALTIME: clockid_t = 1;
@@ -85,34 +79,6 @@ pub struct timespec {
 pub struct timeval {
 	pub tv_sec: time_t,
 	pub tv_usec: suseconds_t,
-}
-
-/// Internet protocol version.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum Version {
-	Unspecified,
-	Ipv4,
-	Ipv6,
-}
-
-/// A four-octet IPv4 address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
-pub struct Ipv4Address(pub [u8; 4]);
-
-/// A sixteen-octet IPv6 address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
-pub struct Ipv6Address(pub [u8; 16]);
-
-/// An internetworking address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum IpAddress {
-	/// An unspecified address.
-	/// May be used as a placeholder for storage where the address is not assigned yet.
-	Unspecified,
-	/// An IPv4 address.
-	Ipv4(Ipv4Address),
-	/// An IPv6 address.
-	Ipv6(Ipv6Address),
 }
 
 /// The largest number `rand` will return
