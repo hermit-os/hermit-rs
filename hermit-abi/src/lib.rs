@@ -201,7 +201,7 @@ pub struct in6_addr {
 pub struct sockaddr {
 	pub sa_len: u8,
 	pub sa_family: sa_family_t,
-	pub sa_data: [u8; 14],
+	pub sa_data: [c_char; 14],
 }
 
 #[repr(C)]
@@ -211,7 +211,7 @@ pub struct sockaddr_in {
 	pub sin_family: sa_family_t,
 	pub sin_port: in_port_t,
 	pub sin_addr: in_addr,
-	pub sin_zero: [u8; 8],
+	pub sin_zero: [c_char; 8],
 }
 
 #[repr(C)]
@@ -233,7 +233,7 @@ pub struct addrinfo {
 	pub ai_socktype: i32,
 	pub ai_protocol: i32,
 	pub ai_addrlen: socklen_t,
-	pub ai_canonname: *mut u8,
+	pub ai_canonname: *mut c_char,
 	pub ai_addr: *mut sockaddr,
 	pub ai_next: *mut addrinfo,
 }
@@ -323,7 +323,7 @@ pub struct dirent64 {
 	/// File type
 	pub d_type: u8,
 	/// Filename (null-terminated)
-	pub d_name: [u8; 256],
+	pub d_name: [c_char; 256],
 }
 
 pub const DT_UNKNOWN: u8 = 0;
@@ -761,8 +761,8 @@ extern "C" {
 
 	#[link_name = "sys_getaddrinfo"]
 	pub fn getaddrinfo(
-		nodename: *const i8,
-		servname: *const u8,
+		nodename: *const c_char,
+		servname: *const c_char,
 		hints: *const addrinfo,
 		res: *mut *mut addrinfo,
 	) -> i32;
