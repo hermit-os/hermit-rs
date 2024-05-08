@@ -7,8 +7,6 @@
 #![allow(clippy::result_unit_err)]
 
 pub mod errno;
-pub mod tcplistener;
-pub mod tcpstream;
 
 use core::ffi::c_char;
 pub use core::ffi::{c_int, c_short, c_void};
@@ -39,13 +37,9 @@ pub const HIGH_PRIO: Priority = Priority::from(3);
 pub const NORMAL_PRIO: Priority = Priority::from(2);
 pub const LOW_PRIO: Priority = Priority::from(1);
 
-/// A handle, identifying a socket
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct Handle(usize);
-
 pub const FUTEX_RELATIVE_TIMEOUT: u32 = 1;
-pub const CLOCK_REALTIME: u64 = 1;
-pub const CLOCK_MONOTONIC: u64 = 4;
+pub const CLOCK_REALTIME: clockid_t = 1;
+pub const CLOCK_MONOTONIC: clockid_t = 4;
 pub const STDIN_FILENO: c_int = 0;
 pub const STDOUT_FILENO: c_int = 1;
 pub const STDERR_FILENO: c_int = 2;
@@ -85,34 +79,6 @@ pub struct timespec {
 pub struct timeval {
 	pub tv_sec: time_t,
 	pub tv_usec: suseconds_t,
-}
-
-/// Internet protocol version.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum Version {
-	Unspecified,
-	Ipv4,
-	Ipv6,
-}
-
-/// A four-octet IPv4 address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
-pub struct Ipv4Address(pub [u8; 4]);
-
-/// A sixteen-octet IPv6 address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
-pub struct Ipv6Address(pub [u8; 16]);
-
-/// An internetworking address.
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub enum IpAddress {
-	/// An unspecified address.
-	/// May be used as a placeholder for storage where the address is not assigned yet.
-	Unspecified,
-	/// An IPv4 address.
-	Ipv4(Ipv4Address),
-	/// An IPv6 address.
-	Ipv6(Ipv6Address),
 }
 
 /// The largest number `rand` will return
@@ -201,7 +167,7 @@ pub struct in6_addr {
 pub struct sockaddr {
 	pub sa_len: u8,
 	pub sa_family: sa_family_t,
-	pub sa_data: [u8; 14],
+	pub sa_data: [c_char; 14],
 }
 
 #[repr(C)]
@@ -209,9 +175,9 @@ pub struct sockaddr {
 pub struct sockaddr_in {
 	pub sin_len: u8,
 	pub sin_family: sa_family_t,
-	pub sin_port: u16,
+	pub sin_port: in_port_t,
 	pub sin_addr: in_addr,
-	pub sin_zero: [u8; 8],
+	pub sin_zero: [c_char; 8],
 }
 
 #[repr(C)]
@@ -233,7 +199,7 @@ pub struct addrinfo {
 	pub ai_socktype: i32,
 	pub ai_protocol: i32,
 	pub ai_addrlen: socklen_t,
-	pub ai_canonname: *mut u8,
+	pub ai_canonname: *mut c_char,
 	pub ai_addr: *mut sockaddr,
 	pub ai_next: *mut addrinfo,
 }
@@ -323,7 +289,7 @@ pub struct dirent64 {
 	/// File type
 	pub d_type: u8,
 	/// Filename (null-terminated)
-	pub d_name: [u8; 256],
+	pub d_name: [c_char; 256],
 }
 
 pub const DT_UNKNOWN: u8 = 0;
@@ -761,8 +727,8 @@ extern "C" {
 
 	#[link_name = "sys_getaddrinfo"]
 	pub fn getaddrinfo(
-		nodename: *const i8,
-		servname: *const u8,
+		nodename: *const c_char,
+		servname: *const c_char,
 		hints: *const addrinfo,
 		res: *mut *mut addrinfo,
 	) -> i32;
