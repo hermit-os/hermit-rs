@@ -406,7 +406,7 @@ extern "C" {
 
 	/// suspend thread execution for an interval measured in nanoseconds
 	#[link_name = "sys_nanosleep"]
-	pub fn nanosleep(tp: *const timespec) -> i32;
+	pub fn nanosleep(req: *const timespec) -> i32;
 
 	/// spawn a new thread
 	///
@@ -464,7 +464,7 @@ extern "C" {
 	///
 	/// The clock_gettime() functions allow the calling thread
 	/// to retrieve the value used by a clock which is specified
-	/// by `clock_id`.
+	/// by `clockid`.
 	///
 	/// `CLOCK_REALTIME`: the system's real time clock,
 	/// expressed as the amount of time since the Epoch.
@@ -472,7 +472,7 @@ extern "C" {
 	/// `CLOCK_MONOTONIC`: clock that increments monotonically,
 	/// tracking the time since an arbitrary point
 	#[link_name = "sys_clock_gettime"]
-	pub fn clock_gettime(clock_id: clockid_t, tp: *mut timespec) -> i32;
+	pub fn clock_gettime(clockid: clockid_t, tp: *mut timespec) -> i32;
 
 	/// open and possibly create a file
 	///
