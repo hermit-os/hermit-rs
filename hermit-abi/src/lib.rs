@@ -406,7 +406,7 @@ extern "C" {
 
 	/// suspend thread execution for an interval measured in nanoseconds
 	#[link_name = "sys_nanosleep"]
-	pub fn nanosleep(tp: *const timespec) -> i32;
+	pub fn nanosleep(req: *const timespec) -> i32;
 
 	/// spawn a new thread
 	///
