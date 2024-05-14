@@ -72,7 +72,7 @@ pub struct timespec {
 	/// seconds
 	pub tv_sec: time_t,
 	/// nanoseconds
-	pub tv_nsec: u32,
+	pub tv_nsec: i32,
 }
 
 #[repr(C)]
@@ -145,7 +145,8 @@ pub type socklen_t = u32;
 pub type in_addr_t = u32;
 pub type in_port_t = u16;
 pub type time_t = i64;
-pub type suseconds_t = u32;
+pub type useconds_t = u32;
+pub type suseconds_t = i32;
 pub type nfds_t = usize;
 pub type sem_t = *const c_void;
 pub type pid_t = i32;
