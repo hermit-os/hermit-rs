@@ -66,13 +66,13 @@ pub fn isatty(_fd: c_int) -> bool {
 
 /// `timespec` is used by `clock_gettime` to retrieve the
 /// current time
-#[derive(Copy, Clone, Debug)]
+#[derive(Default, Copy, Clone, Debug)]
 #[repr(C)]
 pub struct timespec {
 	/// seconds
 	pub tv_sec: time_t,
 	/// nanoseconds
-	pub tv_nsec: u32,
+	pub tv_nsec: i32,
 }
 
 #[repr(C)]
@@ -145,7 +145,8 @@ pub type socklen_t = u32;
 pub type in_addr_t = u32;
 pub type in_port_t = u16;
 pub type time_t = i64;
-pub type suseconds_t = u32;
+pub type useconds_t = u32;
+pub type suseconds_t = i32;
 pub type nfds_t = usize;
 pub type sem_t = *const c_void;
 pub type pid_t = i32;
@@ -268,14 +269,11 @@ pub struct stat {
 	/// size in blocks
 	pub st_blocks: i64,
 	/// time of last access
-	pub st_atime: time_t,
-	pub st_atime_nsec: u32,
+	pub st_atim: timespec,
 	/// time of last modification
-	pub st_mtime: time_t,
-	pub st_mtime_nsec: u32,
+	pub st_mtim: timespec,
 	/// time of last status change
-	pub st_ctime: time_t,
-	pub st_ctime_nsec: u32,
+	pub st_ctim: timespec,
 }
 
 #[repr(C)]
