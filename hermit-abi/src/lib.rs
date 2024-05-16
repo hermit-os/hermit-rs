@@ -507,6 +507,9 @@ extern "C" {
 	#[link_name = "sys_fstat"]
 	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
 
+	#[link_name = "sys_available_parallelism"]
+	pub fn available_parallelism() -> usize;
+
 	/// determines the number of activated processors
 	#[link_name = "sys_get_processor_count"]
 	pub fn get_processor_count() -> usize;
