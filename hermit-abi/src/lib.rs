@@ -484,6 +484,7 @@ extern "C" {
 	/// open a directory
 	///
 	/// The opendir() system call opens the directory specified by `name`.
+	#[deprecated(since = "0.4.0", note = "please use `open`")]
 	#[link_name = "sys_opendir"]
 	pub fn opendir(name: *const c_char) -> i32;
 
