@@ -153,13 +153,13 @@ pub type pid_t = i32;
 pub type clockid_t = i32;
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct in_addr {
 	pub s_addr: in_addr_t,
 }
 
 #[repr(C, align(4))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct in6_addr {
 	pub s6_addr: [u8; 16],
 }
@@ -576,6 +576,9 @@ extern "C" {
 	/// Wakeup task with the thread id `tid`
 	#[link_name = "sys_wakeup_taskt"]
 	pub fn wakeup_task(tid: Tid);
+
+	#[link_name = "sys_getaddrbyname"]
+	pub fn getaddrbyname(name: *const c_char, inaddr: *mut u8, len: usize) -> i32;
 
 	#[link_name = "sys_accept"]
 	pub fn accept(s: i32, addr: *mut sockaddr, addrlen: *mut socklen_t) -> i32;
