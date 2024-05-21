@@ -508,10 +508,15 @@ extern "C" {
 	#[link_name = "sys_fstat"]
 	pub fn fstat(fd: i32, stat: *mut stat) -> i32;
 
+	/// Returns an estimate of the default amount of parallelism
+	/// a program should use. This number often corresponds to the
+	/// amount of CPUs a computer has, but it may diverge in
+	/// various cases.
 	#[link_name = "sys_available_parallelism"]
 	pub fn available_parallelism() -> usize;
 
 	/// determines the number of activated processors
+	#[deprecated(since = "0.4.0", note = "please use `available_parallelism`")]
 	#[link_name = "sys_get_processor_count"]
 	pub fn get_processor_count() -> usize;
 
