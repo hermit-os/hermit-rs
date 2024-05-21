@@ -140,6 +140,7 @@ pub const POLLRDHUP: i16 = 0x2000;
 pub const EFD_SEMAPHORE: i16 = 0o1;
 pub const EFD_NONBLOCK: i16 = 0o4000;
 pub const EFD_CLOEXEC: i16 = 0o40000;
+pub const IOV_MAX: usize = 1024;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
@@ -289,6 +290,15 @@ pub struct dirent64 {
 	pub d_type: u8,
 	/// Filename (null-terminated)
 	pub d_name: [c_char; 256],
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct iovec {
+	/// Starting address
+	pub iov_base: *mut c_void,
+	/// Size of the memory pointed to by iov_base.
+	pub iov_len: usize,
 }
 
 pub const DT_UNKNOWN: u8 = 0;
@@ -595,6 +605,10 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
+	/// read data into multiple buffers
+	#[link_name = "sys_readv"]
+	pub fn readv(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
+
 	/// `getdents64` reads directory entries from the directory referenced
 	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
 	#[link_name = "sys_getdents64"]
@@ -635,6 +649,10 @@ extern "C" {
 	/// buffer pointed to by `buf`.
 	#[link_name = "sys_write"]
 	pub fn write(fd: i32, buf: *const u8, len: usize) -> isize;
+
+	/// write data from multiple buffers
+	#[link_name = "sys_writev"]
+	pub fn writev(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
 
 	/// close a file descriptor
 	///
