@@ -294,6 +294,7 @@ pub struct dirent64 {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
+/// Describes  a  region  of  memory, beginning at `iov_base` address and with the size of `iov_len` bytes.
 pub struct iovec {
 	/// Starting address
 	pub iov_base: *mut c_void,
@@ -605,7 +606,21 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
-	/// read data into multiple buffers
+	/// `read()` attempts to read `nbyte` of data to the object referenced by the
+	/// descriptor `fd` from a buffer. `read()` performs the same
+	/// action, but scatters the input data from the `iovcnt` buffers specified by the
+	/// members of the iov array: `iov[0], iov[1], ..., iov[iovcnt-1]`.
+	///
+	/// ```
+	/// struct iovec {
+	///     char   *iov_base;  /* Base address. */
+	///     size_t iov_len;    /* Length. */
+	/// };
+	/// ```
+	///
+	/// Each `iovec` entry specifies the base address and length of an area in memory from
+	/// which data should be written.  `readv()` will always fill an completely
+	/// before proceeding to the next.
 	#[link_name = "sys_readv"]
 	pub fn readv(fd: i32, iov: *const iovec, iovcnt: i32) -> isize;
 
@@ -650,7 +665,21 @@ extern "C" {
 	#[link_name = "sys_write"]
 	pub fn write(fd: i32, buf: *const u8, len: usize) -> isize;
 
-	/// write data from multiple buffers
+	/// `write()` attempts to write `nbyte` of data to the object referenced by the
+	/// descriptor `fd` from a buffer. `writev()` performs the same
+	/// action, but gathers the output data from the `iovcnt` buffers specified by the
+	/// members of the iov array: `iov[0], iov[1], ..., iov[iovcnt-1]`.
+	///
+	/// ```
+	/// struct iovec {
+	///     char   *iov_base;  /* Base address. */
+	///     size_t iov_len;    /* Length. */
+	/// };
+	/// ```
+	///
+	/// Each `iovec` entry specifies the base address and length of an area in memory from
+	/// which data should be written.  `writev()` will always write a
+	/// complete area before proceeding to the next.
 	#[link_name = "sys_writev"]
 	pub fn writev(fd: i32, iov: *const iovec, iovcnt: i32) -> isize;
 
