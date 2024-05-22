@@ -724,6 +724,10 @@ extern "C" {
 	) -> isize;
 
 	/// shut down part of a full-duplex connection
+	#[link_name = "sys_shutdown"]
+	pub fn shutdown(sockfd: i32, how: i32) -> i32;
+
+	#[deprecated(since = "0.4.0", note = "use `shutdown` instead")]
 	#[link_name = "sys_shutdown_socket"]
 	pub fn shutdown_socket(s: i32, how: i32) -> i32;
 
