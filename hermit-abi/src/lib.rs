@@ -140,7 +140,7 @@ pub const POLLRDHUP: i16 = 0x2000;
 pub const EFD_SEMAPHORE: i16 = 0o1;
 pub const EFD_NONBLOCK: i16 = 0o4000;
 pub const EFD_CLOEXEC: i16 = 0o40000;
-pub const IOV_MAX: usize = 1024;
+pub const IOV_MAX: i32 = 1024;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
@@ -607,7 +607,7 @@ extern "C" {
 
 	/// read data into multiple buffers
 	#[link_name = "sys_readv"]
-	pub fn readv(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
+	pub fn readv(fd: i32, iov: *const iovec, iovcnt: i32) -> isize;
 
 	/// `getdents64` reads directory entries from the directory referenced
 	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
@@ -652,7 +652,7 @@ extern "C" {
 
 	/// write data from multiple buffers
 	#[link_name = "sys_writev"]
-	pub fn writev(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
+	pub fn writev(fd: i32, iov: *const iovec, iovcnt: i32) -> isize;
 
 	/// close a file descriptor
 	///
