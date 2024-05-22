@@ -24,6 +24,7 @@ default = [
     "smp",
     "tcp",
     "udp",
+    "dns",
 ]
 
 acpi = []
@@ -46,6 +47,7 @@ rtl8139 = ["pci"]
 smp = []
 tcp = []
 udp = []
+dns = []
 trace = []
 vga = []
 shell = []
