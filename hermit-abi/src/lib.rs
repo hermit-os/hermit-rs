@@ -146,6 +146,7 @@ pub const POLLRDHUP: i16 = 0x2000;
 pub const EFD_SEMAPHORE: i16 = 0o1;
 pub const EFD_NONBLOCK: i16 = 0o4000;
 pub const EFD_CLOEXEC: i16 = 0o40000;
+pub const IOV_MAX: usize = 1024;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
@@ -295,6 +296,16 @@ pub struct dirent64 {
 	pub d_type: u8,
 	/// Filename (null-terminated)
 	pub d_name: [c_char; 256],
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+/// Describes  a  region  of  memory, beginning at `iov_base` address and with the size of `iov_len` bytes.
+pub struct iovec {
+	/// Starting address
+	pub iov_base: *mut c_void,
+	/// Size of the memory pointed to by iov_base.
+	pub iov_len: usize,
 }
 
 pub const DT_UNKNOWN: u8 = 0;
@@ -626,6 +637,24 @@ extern "C" {
 	#[link_name = "sys_read"]
 	pub fn read(fd: i32, buf: *mut u8, len: usize) -> isize;
 
+	/// `read()` attempts to read `nbyte` of data to the object referenced by the
+	/// descriptor `fd` from a buffer. `read()` performs the same
+	/// action, but scatters the input data from the `iovcnt` buffers specified by the
+	/// members of the iov array: `iov[0], iov[1], ..., iov[iovcnt-1]`.
+	///
+	/// ```
+	/// struct iovec {
+	///     char   *iov_base;  /* Base address. */
+	///     size_t iov_len;    /* Length. */
+	/// };
+	/// ```
+	///
+	/// Each `iovec` entry specifies the base address and length of an area in memory from
+	/// which data should be written.  `readv()` will always fill an completely
+	/// before proceeding to the next.
+	#[link_name = "sys_readv"]
+	pub fn readv(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
+
 	/// `getdents64` reads directory entries from the directory referenced
 	/// by the file descriptor `fd` into the buffer pointed to by `buf`.
 	#[link_name = "sys_getdents64"]
@@ -666,6 +695,24 @@ extern "C" {
 	/// buffer pointed to by `buf`.
 	#[link_name = "sys_write"]
 	pub fn write(fd: i32, buf: *const u8, len: usize) -> isize;
+
+	/// `write()` attempts to write `nbyte` of data to the object referenced by the
+	/// descriptor `fd` from a buffer. `writev()` performs the same
+	/// action, but gathers the output data from the `iovcnt` buffers specified by the
+	/// members of the iov array: `iov[0], iov[1], ..., iov[iovcnt-1]`.
+	///
+	/// ```
+	/// struct iovec {
+	///     char   *iov_base;  /* Base address. */
+	///     size_t iov_len;    /* Length. */
+	/// };
+	/// ```
+	///
+	/// Each `iovec` entry specifies the base address and length of an area in memory from
+	/// which data should be written.  `writev()` will always write a
+	/// complete area before proceeding to the next.
+	#[link_name = "sys_writev"]
+	pub fn writev(fd: i32, iov: *const iovec, iovcnt: usize) -> isize;
 
 	/// close a file descriptor
 	///
