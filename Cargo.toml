@@ -17,6 +17,7 @@ members = [
     "examples/tls",
     "examples/tokio",
     "examples/webserver",
+    "examples/dns",
     "hermit",
     "hermit-abi",
 ]
