@@ -94,8 +94,21 @@ impl KernelSrc {
 		forward_features(
 			&mut cargo,
 			[
-				"acpi", "dhcpv4", "fsgsbase", "pci", "pci-ids", "smp", "tcp", "udp", "trace",
-				"vga", "rtl8139", "fs", "shell", "dns",
+				"acpi",
+				"dhcpv4",
+				"fsgsbase",
+				"pci",
+				"pci-ids",
+				"smp",
+				"tcp",
+				"udp",
+				"trace",
+				"vga",
+				"rtl8139",
+				"fs",
+				"shell",
+				"dns",
+				"idle-poll",
 			]
 			.into_iter(),
 		);

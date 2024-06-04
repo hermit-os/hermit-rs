@@ -51,6 +51,7 @@ dns = []
 trace = []
 vga = []
 shell = []
+idle-poll = []
 
 [build-dependencies]
 flate2 = "1"
