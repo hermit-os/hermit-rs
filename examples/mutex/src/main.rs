@@ -1,5 +1,3 @@
-#![feature(duration_millis_float)]
-
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
@@ -35,7 +33,7 @@ fn main() {
 	println!("Time to solve: {elapsed:?}");
 	println!(
 		"Time per iteration: {}ms",
-		elapsed.as_millis_f64() / (NUMBER_OF_ITERATIONS * available_parallelism) as f64
+		elapsed.as_secs_f64() / 1000f64 / (NUMBER_OF_ITERATIONS * available_parallelism) as f64
 	);
 
 	assert_eq!(
