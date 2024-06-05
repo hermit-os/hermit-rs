@@ -6,7 +6,7 @@ use std::{hint, thread};
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
-const NUMBER_OF_ITERATIONS: usize = 1000;
+const NUMBER_OF_ITERATIONS: usize = 100000;
 
 pub struct SpinBarrier {
 	num_threads: AtomicUsize,
@@ -27,14 +27,14 @@ impl SpinBarrier {
 	}
 }
 
-fn main() {
+fn mutex_stress_test(no_threads: usize) {
+	println!("Stress mutex with {} threads!", no_threads);
+
 	let counter = Arc::new(Mutex::new(0));
-	let available_parallelism = thread::available_parallelism().unwrap().get();
-	println!("available_parallelism = {available_parallelism}");
 
-	let barrier = Arc::new(SpinBarrier::new(available_parallelism));
+	let barrier = Arc::new(SpinBarrier::new(no_threads));
 
-	let handles = (0..available_parallelism)
+	let handles = (0..no_threads)
 		.map(|_| {
 			let barrier = barrier.clone();
 			let counter = counter.clone();
@@ -65,12 +65,12 @@ fn main() {
 
 	assert_eq!(
 		*counter.lock().unwrap(),
-		2 * NUMBER_OF_ITERATIONS * available_parallelism
+		2 * NUMBER_OF_ITERATIONS * no_threads
 	);
 
 	let print_duration = |duration| {
 		let time_per_iteration =
-			duration / u32::try_from(NUMBER_OF_ITERATIONS * available_parallelism).unwrap();
+			duration / u32::try_from(NUMBER_OF_ITERATIONS * no_threads).unwrap();
 		println!("Time to solve: {duration:?}");
 		println!("Time per iteration: {time_per_iteration:?}");
 	};
@@ -80,8 +80,16 @@ fn main() {
 		print_duration(duration);
 	}
 
-	let average =
-		durations.iter().sum::<Duration>() / u32::try_from(available_parallelism).unwrap();
+	let average = durations.iter().sum::<Duration>() / u32::try_from(no_threads).unwrap();
 	println!("Average");
 	print_duration(average);
+}
+
+fn main() {
+	let available_parallelism = thread::available_parallelism().unwrap().get();
+	println!("available_parallelism = {available_parallelism}");
+
+	for i in 0..available_parallelism {
+		mutex_stress_test(i + 1);
+	}
 }
