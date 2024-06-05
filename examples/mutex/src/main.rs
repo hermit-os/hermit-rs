@@ -30,11 +30,10 @@ fn main() {
 	}
 
 	let elapsed = now.elapsed();
+	let time_per_iteration =
+		elapsed / u32::try_from(NUMBER_OF_ITERATIONS * available_parallelism).unwrap();
 	println!("Time to solve: {elapsed:?}");
-	println!(
-		"Time per iteration: {}ms",
-		elapsed.as_secs_f64() / 1000f64 / (NUMBER_OF_ITERATIONS * available_parallelism) as f64
-	);
+	println!("Time per iteration: {time_per_iteration:?}");
 
 	assert_eq!(
 		*counter.lock().unwrap(),
