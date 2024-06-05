@@ -6,7 +6,7 @@ use std::{hint, thread};
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
-const NUMBER_OF_ITERATIONS: usize = 100000;
+const NUMBER_OF_ITERATIONS: usize = 100000000;
 
 pub struct SpinBarrier {
 	num_threads: AtomicUsize,
@@ -89,7 +89,9 @@ fn main() {
 	let available_parallelism = thread::available_parallelism().unwrap().get();
 	println!("available_parallelism = {available_parallelism}");
 
-	for i in 0..available_parallelism {
-		mutex_stress_test(i + 1);
+	let mut i = 1;
+	while i <= available_parallelism {
+		mutex_stress_test(i);
+		i *= 2;
 	}
 }
