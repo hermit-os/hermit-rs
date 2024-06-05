@@ -9,7 +9,7 @@ const NUMBER_OF_ITERATIONS: usize = 1000;
 
 fn main() {
 	let counter = Arc::new(Mutex::new(0));
-	let available_parallelism: usize = thread::available_parallelism().unwrap().into();
+	let available_parallelism = thread::available_parallelism().unwrap().get();
 	println!("available_parallelism = {available_parallelism}");
 
 	let now = Instant::now();
