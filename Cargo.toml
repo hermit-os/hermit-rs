@@ -25,7 +25,8 @@ members = [
     "examples/hermit-wasm",
     "examples/vsock",
     "hermit",
-    "hermit-abi",
+    "hermit-abi", 
+    "benches/startup",
 ]
 
 [patch.crates-io]

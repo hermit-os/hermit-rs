@@ -1,0 +1,11 @@
+[package]
+name = "startup_benchmark"
+authors = ["Carl Wachter"]
+edition = "2021"
+
+[dependencies]
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+
+[features]
