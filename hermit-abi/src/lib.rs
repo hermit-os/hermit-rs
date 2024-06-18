@@ -3,6 +3,7 @@
 
 #![no_std]
 #![allow(nonstandard_style)]
+#![allow(dead_code)]
 #![allow(clippy::missing_safety_doc)]
 #![allow(clippy::result_unit_err)]
 
