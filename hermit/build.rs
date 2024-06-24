@@ -108,6 +108,7 @@ impl KernelSrc {
 				"fs",
 				"shell",
 				"dns",
+				"mmap",
 				"idle-poll",
 			]
 			.into_iter(),

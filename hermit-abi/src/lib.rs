@@ -328,6 +328,15 @@ pub const S_IFLNK: u32 = 0o12_0000;
 pub const S_IFSOCK: u32 = 0o14_0000;
 pub const S_IFMT: u32 = 0o17_0000;
 
+/// Pages may not be accessed.
+pub const PROT_NONE: u32 = 0;
+/// Indicates that the memory region should be readable.
+pub const PROT_READ: u32 = 1 << 0;
+/// Indicates that the memory region should be writable.
+pub const PROT_WRITE: u32 = 1 << 1;
+/// Indicates that the memory region should be executable.
+pub const PROT_EXEC: u32 = 1 << 2;
+
 // symbols, which are part of the library operating system
 extern "C" {
 	/// Get the last error number from the thread local storage
@@ -337,6 +346,26 @@ extern "C" {
 	/// Get the last error number from the thread local storage
 	#[link_name = "sys_errno"]
 	pub fn errno() -> i32;
+
+	/// Get memory page size
+	#[link_name = "sys_getpagesize"]
+	pub fn getpagesize() -> i32;
+
+	/// Creates a new virtual memory mapping of the `size` specified with
+	/// protection bits specified in `prot_flags`.
+	#[link_name = "sys_mmap"]
+	pub fn mmap(size: usize, prot_flags: u32, ret: &mut *mut u8) -> i32;
+
+	/// Unmaps memory at the specified `ptr` for `size` bytes.
+	#[link_name = "sys_munmap"]
+	pub fn munmap(ptr: *mut u8, size: usize) -> i32;
+
+	/// Configures the protections associated with a region of virtual memory
+	/// starting at `ptr` and going to `size`.
+	///
+	/// Returns 0 on success and an error code on failure.
+	#[link_name = "sys_mprotect"]
+	pub fn mprotect(ptr: *mut u8, size: usize, prot_flags: u32) -> i32;
 
 	/// If the value at address matches the expected value, park the current thread until it is either
 	/// woken up with [`futex_wake`] (returns 0) or an optional timeout elapses (returns -ETIMEDOUT).

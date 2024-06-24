@@ -52,6 +52,7 @@ trace = []
 vga = []
 shell = []
 idle-poll = []
+mmap = []
 
 [build-dependencies]
 flate2 = "1"
