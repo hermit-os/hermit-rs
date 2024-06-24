@@ -42,7 +42,7 @@ jobs:
         CMD ["/hermit/rusty_demo"]
         END
     - name: Build and push container
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
@@ -61,7 +61,7 @@ jobs:
         CMD ["/hermit/httpd"]
         END
     - name: Build and push container
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
@@ -95,7 +95,7 @@ jobs:
         CMD ["/hermit/webserver"]
         END
     - name: Build and push container
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
@@ -114,7 +114,7 @@ jobs:
         CMD ["/hermit/tls"]
         END
     - name: Build and push container
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         push: true
