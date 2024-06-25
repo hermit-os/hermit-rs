@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 fastrand = "2.0.0"
+hermit_bench_output = "0.1.0"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
