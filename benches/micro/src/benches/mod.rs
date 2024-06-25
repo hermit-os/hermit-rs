@@ -7,6 +7,8 @@ use std::net::{TcpListener, TcpStream};
 use std::time::Instant;
 use std::{env, str, thread, vec};
 
+use hermit_bench_output::log_benchmark_data;
+
 extern "C" {
 	pub fn memcpy(dest: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;
 	pub fn memset(dest: *mut c_void, c: u8, n: usize) -> *mut c_void;
@@ -65,7 +67,11 @@ pub fn bench_syscall() -> Result<(), ()> {
 		get_timestamp() - start
 	};
 
-	println!("Time {} for a system call (in ticks)", ticks / n);
+	hermit_bench_output::log_benchmark_data(
+		"Time for syscall (getpid)",
+		"ticks",
+		ticks as f64 / n as f64,
+	);
 
 	Ok(())
 }
@@ -84,7 +90,11 @@ pub fn bench_sched_one_thread() -> Result<(), ()> {
 	}
 	let ticks = get_timestamp() - start;
 
-	println!("Scheduling time {} ticks (1 thread)", ticks / n);
+	hermit_bench_output::log_benchmark_data(
+		"Scheduling time (1 thread)",
+		"ticks",
+		ticks as f64 / n as f64,
+	);
 
 	Ok(())
 }
@@ -119,9 +129,10 @@ pub fn bench_sched_two_threads() -> Result<(), ()> {
 		t.join().unwrap();
 	}
 
-	println!(
-		"Scheduling time {} ticks (2 threads)",
-		ticks / (nthreads * n)
+	hermit_bench_output::log_benchmark_data(
+		"Scheduling time (2 threads)",
+		"ticks",
+		ticks as f64 / (nthreads * n) as f64,
 	);
 
 	Ok(())
@@ -140,10 +151,10 @@ fn memcpy_builtin(n: usize) {
 		dst.copy_from_slice(src);
 	}
 
-	println!(
-		"memcpy_builtin:  {} block size, {} MByte/s",
-		n,
-		(NR_RUNS * n) as f64 / (1024.0 * 1024.0 * now.elapsed().as_secs_f64())
+	hermit_bench_output::log_benchmark_data(
+		&format!("Memcpy_builtin speed, block size {}", n),
+		"MByte/s",
+		(NR_RUNS * n) as f64 / (1024.0 * 1024.0 * now.elapsed().as_secs_f64()),
 	);
 }
 
@@ -160,10 +171,10 @@ fn memset_builtin(n: usize) {
 		}
 	}
 
-	println!(
-		"memset_builtin:  {} block, {} MByte/s",
-		n,
-		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+	hermit_bench_output::log_benchmark_data(
+		&format!("Memset_builtin speed, block size {}", n),
+		"MByte/s",
+		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 	);
 }
 
@@ -185,10 +196,10 @@ fn memcpy_rust(n: usize) {
 		}
 	}
 
-	println!(
-		"memcpy_rust:  {} block, {} MByte/s",
-		n,
-		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+	hermit_bench_output::log_benchmark_data(
+		&format!("Memcpy_rust speed, block size {}", n),
+		"MByte/s",
+		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 	);
 }
 
@@ -205,10 +216,10 @@ fn memset_rust(n: usize) {
 		}
 	}
 
-	println!(
-		"memset_rust:  {} block, {} MByte/s",
-		n,
-		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64()
+	hermit_bench_output::log_benchmark_data(
+		&format!("Memset_rust speed, block size {}", n),
+		"MByte/s",
+		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 	);
 }
 
