@@ -5,8 +5,9 @@ use std::{hint, thread};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
+use hermit_bench_output::log_benchmark_data;
 
-const NUMBER_OF_ITERATIONS: usize = 100000000;
+const NUMBER_OF_ITERATIONS: usize = 10000000;
 
 pub struct SpinBarrier {
 	num_threads: AtomicUsize,
@@ -68,26 +69,18 @@ fn mutex_stress_test(no_threads: usize) {
 		2 * NUMBER_OF_ITERATIONS * no_threads
 	);
 
-	let print_duration = |duration| {
-		let time_per_iteration =
-			duration / u32::try_from(NUMBER_OF_ITERATIONS * no_threads).unwrap();
-		println!("Time to solve: {duration:?}");
-		println!("Time per iteration: {time_per_iteration:?}");
-	};
-
-	for (i, duration) in durations.iter().copied().enumerate() {
-		println!("Thread {i}");
-		print_duration(duration);
-	}
-
-	let average = durations.iter().sum::<Duration>() / u32::try_from(no_threads).unwrap();
-	println!("Average");
-	print_duration(average);
+	let average = durations.iter().sum::<Duration>()
+		/ u32::try_from(no_threads).unwrap()
+		/ u32::try_from(NUMBER_OF_ITERATIONS * no_threads).unwrap();
+	log_benchmark_data(
+		&format!("Mutex Stress Test Average Time per Iteration ({} Threads)", no_threads),
+		"ns",
+		average.as_nanos() as f64,
+	);
 }
 
 fn main() {
 	let available_parallelism = thread::available_parallelism().unwrap().get();
-	println!("available_parallelism = {available_parallelism}");
 
 	let mut i = 1;
 	while i <= available_parallelism {

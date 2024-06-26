@@ -6,5 +6,8 @@ edition = "2021"
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
+[dependencies]
+hermit_bench_output = "0.1.0"
+
 [features]
 default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
