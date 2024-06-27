@@ -5,7 +5,7 @@ use std::{hint, thread};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
-use hermit_bench_output::log_benchmark_data;
+use hermit_bench_output::log_benchmark_data_with_group;
 
 const NUMBER_OF_ITERATIONS: usize = 10000000;
 
@@ -72,10 +72,11 @@ fn mutex_stress_test(no_threads: usize) {
 	let average = durations.iter().sum::<Duration>()
 		/ u32::try_from(no_threads).unwrap()
 		/ u32::try_from(NUMBER_OF_ITERATIONS * no_threads).unwrap();
-	log_benchmark_data(
-		&format!("Mutex Stress Test Average Time per Iteration ({} Threads)", no_threads),
+	log_benchmark_data_with_group(
+		&format!("{} Threads", no_threads),
 		"ns",
 		average.as_nanos() as f64,
+		"Mutex Stress Test Average Time per Iteration",
 	);
 }
 

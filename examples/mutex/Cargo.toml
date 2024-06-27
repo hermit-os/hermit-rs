@@ -7,7 +7,7 @@ edition = "2021"
 hermit = { path = "../../hermit", default-features = false }
 
 [dependencies]
-hermit_bench_output = "0.1.0"
+hermit_bench_output = "0.1.1"
 
 [features]
 default = ["hermit/acpi", "hermit/pci", "hermit/smp"]

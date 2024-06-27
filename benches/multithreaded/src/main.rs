@@ -3,7 +3,6 @@ use std::time::{Duration, Instant};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
-
 use hermit_bench_output::log_benchmark_data;
 
 fn calc_pi_multi_threaded(n: u64, threads: u64) -> f64 {
@@ -39,7 +38,6 @@ fn main() {
 		let now = Instant::now();
 		calc_pi_multi_threaded(n, i);
 		let elapsed = now.elapsed();
-		println!("Pi with {} threads: {}ms", i, elapsed.as_millis());
 		times.push(elapsed);
 	}
 
@@ -53,7 +51,7 @@ fn main() {
 	let efficiency1_4 = speedup1_4 / 4.0;
 	let efficiency1_8 = speedup1_8 / 8.0;
 
-	log_benchmark_data("2 Threads", "%", efficiency1_2 *100);
-	log_benchmark_data("4 Threads", "%", efficiency1_4 *100);
-	log_benchmark_data("8 Threads", "%", efficiency1_8 *100);
+	log_benchmark_data("2 Threads", "%", efficiency1_2 * 100.0);
+	log_benchmark_data("4 Threads", "%", efficiency1_4 * 100.0);
+	log_benchmark_data("8 Threads", "%", efficiency1_8 * 100.0);
 }
