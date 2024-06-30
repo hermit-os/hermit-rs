@@ -199,10 +199,7 @@ pub extern "C" fn wasmtime_memory_image_new(
 	_len: usize,
 	ret: &mut *mut wasmtime_memory_image,
 ) -> i32 {
-	unsafe {
-		*ret = std::ptr::null_mut();
-	}
-
+	*ret = std::ptr::null_mut();
 	0
 }
 
