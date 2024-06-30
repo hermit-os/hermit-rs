@@ -197,10 +197,10 @@ pub extern "C" fn wasmtime_mmap_remap(_addr: *mut u8, _size: usize, _prot_flags:
 pub extern "C" fn wasmtime_memory_image_new(
 	_ptr: *const u8,
 	_len: usize,
-	_ret: &mut *mut wasmtime_memory_image,
+	ret: &mut *mut wasmtime_memory_image,
 ) -> i32 {
-	error!("Currently. HermitOS doesn't support wasmtime_memory_image_new!");
-	-1
+	*ret = std::ptr::null_mut();
+	0
 }
 
 /// Maps the `image` provided to the virtual address at `addr` and `len`.
@@ -224,7 +224,7 @@ pub extern "C" fn wasmtime_memory_image_map_at(
 	_len: usize,
 ) -> i32 {
 	error!("Currently. HermitOS doesn't support wasmtime_memory_image_map_at!");
-	-1
+	-hermit_abi::ENOSYS
 }
 
 /// Deallocates the provided `wasmtime_memory_image`.
