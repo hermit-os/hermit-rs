@@ -224,7 +224,7 @@ pub extern "C" fn wasmtime_memory_image_map_at(
 	_len: usize,
 ) -> i32 {
 	error!("Currently. HermitOS doesn't support wasmtime_memory_image_map_at!");
-	-hermit_abi::ENOSYS
+	hermit_abi::ENOSYS
 }
 
 /// Deallocates the provided `wasmtime_memory_image`.

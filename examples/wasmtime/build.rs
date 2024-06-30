@@ -9,7 +9,7 @@ fn main() -> io::Result<()> {
 		.arg("build")
 		.arg("-Zunstable-options")
 		.arg("-Zbuild-std=std,panic_abort")
-		.arg("--target=wasm32-unknown-unknown")
+		.arg("--target=wasm32-wasi")
 		.arg("--package=fibonacci")
 		.arg("--release")
 		.arg("--target-dir=target")

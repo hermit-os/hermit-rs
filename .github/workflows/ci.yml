@@ -21,7 +21,9 @@ jobs:
         with:
           components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
-      - run: rustup component add clippy llvm-tools
+      - run: |
+          rustup component add clippy llvm-tools
+          rustup target add wasm32-wasi
       - name: Clippy
         run: |
           cargo clippy --all-targets
@@ -50,7 +52,9 @@ jobs:
         with:
           components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
-      - run: rustup component add llvm-tools
+      - run: |
+          rustup component add llvm-tools
+          rustup target add wasm32-wasi
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
