@@ -12,6 +12,7 @@ fn main() -> io::Result<()> {
 		.arg("--target=wasm32-unknown-unknown")
 		.arg("--package=fibonacci")
 		.arg("--release")
+		.arg("--target-dir=target")
 		.arg("--artifact-dir")
 		.arg(&out_dir)
 		.status()?;
