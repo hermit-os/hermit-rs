@@ -24,7 +24,8 @@ pub fn main() -> Result<()> {
 
 	// First step is to create the Wasm execution engine with some config.
 	// In this example we are using the default configuration.
-	let config = wasmtime::Config::new();
+	let mut config = wasmtime::Config::new();
+	config.wasm_threads(true);
 	info!("Wasmtime engine is configured as followed: {:?}", config);
 	let engine = Engine::new(&config)?;
 
