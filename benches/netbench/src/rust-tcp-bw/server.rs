@@ -6,6 +6,7 @@ use std::time::Instant;
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
+use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::{connection, print_utils};
 
@@ -31,9 +32,17 @@ fn main() {
 	let end = Instant::now();
 	let duration = end.duration_since(start);
 
-	println!("Sent in total {} KBytes", tot_bytes / 1024);
-	println!(
-		"Available approximated bandwidth: {} Mbit/s",
-		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64())
+	#[cfg(target_os = "hermit")]
+	log_benchmark_data(
+		"TCP server",
+		"Mbit/s",
+		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64()),
+	);
+
+	#[cfg(not(target_os = "hermit"))]
+	log_benchmark_data(
+		"TCP client",
+		"Mbit/s",
+		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64()),
 	);
 }

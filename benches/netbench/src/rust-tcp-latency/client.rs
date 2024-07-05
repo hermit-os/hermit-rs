@@ -6,6 +6,7 @@ use std::{thread, time};
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
+use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::{connection, print_utils, threading};
 
@@ -54,7 +55,33 @@ fn main() {
 					}
 				}
 				connection::close_connection(&stream);
-				print_utils::print_summary(hist);
+				print_utils::print_summary(hist.clone());
+
+				#[cfg(not(target_os = "hermit"))]
+				hermit_bench_output::log_benchmark_data(
+					"95th percentile TCP Server Latency",
+					"ns",
+					get_percentiles(hist.summary(), 0.95),
+				);
+				#[cfg(not(target_os = "hermit"))]
+				hermit_bench_output::log_benchmark_data(
+					"Max TCP Server Latency",
+					"ns",
+					get_percentiles(hist.summary(), 1.0),
+				);
+
+				#[cfg(target_os = "hermit")]
+				hermit_bench_output::log_benchmark_data(
+					"95th percentile TCP Client Latency",
+					"ns",
+					get_percentiles(hist.summary(), 0.95),
+				);
+				#[cfg(target_os = "hermit")]
+				hermit_bench_output::log_benchmark_data(
+					"Max TCP Client Latency",
+					"ns",
+					get_percentiles(hist.summary(), 1.0),
+				);
 			}
 			Err(error) => {
 				println!("Couldn't connect to server, retrying... Error {error}");
@@ -62,4 +89,17 @@ fn main() {
 			}
 		}
 	}
+}
+
+fn get_percentiles(summary: impl Iterator<Item = (f64, u64, u64)>, percentile: f64) -> f64 {
+	let mut res = 0.0;
+
+	for (quantile, lower, upper) in summary {
+		if quantile == percentile {
+			res = (lower as f64 + upper as f64) / 2.0; // average of lower and upper bound
+		}
+	}
+
+	// Return the 95th percentile and max value
+	res
 }
