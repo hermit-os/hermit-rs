@@ -54,7 +54,11 @@ shell = []
 idle-poll = []
 mmap = []
 
+# Download the HermitOS kernel into a temporary directory
+download-kernel-into-tmp = []
+
 [build-dependencies]
 flate2 = "1"
 ureq = "2.4"
 tar = "0.4"
+tempfile = "3"

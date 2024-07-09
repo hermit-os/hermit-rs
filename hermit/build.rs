@@ -4,6 +4,7 @@ use std::{env, str};
 
 use flate2::read::GzDecoder;
 use tar::Archive;
+use tempfile::TempDir;
 
 fn main() {
 	let targets_hermit =
@@ -22,19 +23,31 @@ fn main() {
 
 struct KernelSrc {
 	src_dir: PathBuf,
+	_tmp_dir_handle: Option<TempDir>,
 }
 
 impl KernelSrc {
 	fn local() -> Option<Self> {
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("kernel");
-		src_dir.exists().then_some(Self { src_dir })
+		src_dir.exists().then_some(Self {
+			src_dir,
+			_tmp_dir_handle: None,
+		})
 	}
 
 	fn download() -> Self {
 		let version = "0.8.0";
-		let out_dir = out_dir();
-		let src_dir = out_dir.join(format!("kernel-{version}"));
+
+		let (src_dir, _tmp_dir_handle) = if has_feature("download-kernel-into-tmp") {
+			let out_dir = tempfile::tempdir().unwrap();
+			let src_dir = out_dir.path().join(format!("kernel-{version}"));
+			(src_dir, Some(out_dir))
+		} else {
+			let out_dir = out_dir();
+			let src_dir = out_dir.join(format!("kernel-{version}"));
+			(src_dir, None)
+		};
 
 		if !src_dir.exists() {
 			let url =
@@ -45,7 +58,10 @@ impl KernelSrc {
 			archive.unpack(src_dir.parent().unwrap()).unwrap();
 		}
 
-		Self { src_dir }
+		Self {
+			src_dir,
+			_tmp_dir_handle,
+		}
 	}
 
 	fn build(self) {
