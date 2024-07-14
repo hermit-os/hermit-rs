@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
 		.arg("-Zunstable-options")
 		.arg("-Zbuild-std=std,panic_abort")
 		.arg("--target=wasm32-wasi")
-		.arg("--package=fibonacci")
+		.arg("--package=wasm_test")
 		.arg("--release")
 		.arg("--target-dir=target")
 		.arg("--artifact-dir")
