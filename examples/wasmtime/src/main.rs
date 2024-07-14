@@ -33,7 +33,7 @@ pub fn main() -> Result<()> {
 	// the VM. Find a way to inject the `.wasm` file into the VM
 	// using another way
 	debug!("Create Module");
-	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/fibonacci.wasm"));
+	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wasm_test.wasm"));
 	let now = Instant::now();
 	let module = Module::new(&engine, &module_bytes[..])?;
 	let elapsed = now.elapsed();
