@@ -153,7 +153,8 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let mut c_path = vec![0u8; path.len() + 1];
 					c_path[..path.len()].copy_from_slice(path.as_bytes());
 					{
-						let raw_fd = unsafe { hermit_abi::open(c_path.as_ptr() as *const i8, flags, 0)};
+						let raw_fd =
+							unsafe { hermit_abi::open(c_path.as_ptr() as *const i8, flags, 0) };
 						let mut guard = FD.lock().unwrap();
 						for (i, entry) in guard.iter_mut().enumerate() {
 							if entry.is_none() {
@@ -218,7 +219,9 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 							let stat = Prestat {
 								tag: PREOPENTYPE_DIR.raw(),
 								u: PrestatU {
-									dir: PrestatDir { pr_name_len: name.len() },
+									dir: PrestatDir {
+										pr_name_len: name.len(),
+									},
 								},
 							};
 
@@ -233,11 +236,11 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 								},
 							);
 
-							return ERRNO_SUCCESS.raw() as i32
+							return ERRNO_SUCCESS.raw() as i32;
 						}
 					}
 				}
-				
+
 				ERRNO_BADF.raw() as i32
 			},
 		)
@@ -257,7 +260,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 							if path_len < path.len().try_into().unwrap() {
 								return ERRNO_INVAL.raw() as i32;
 							}
-			
+
 							let _ = mem.write(
 								caller.as_context_mut(),
 								path_ptr.try_into().unwrap(),
@@ -268,7 +271,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 						return ERRNO_SUCCESS.raw() as i32;
 					}
 				}
-				
+
 				ERRNO_BADF.raw() as i32
 			},
 		)
@@ -311,7 +314,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 						return ERRNO_INVAL.raw() as i32;
 					}
 				};
-		
+
 				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
 					let mut iovs = vec![0i32; (2 * iovs_len).try_into().unwrap()];
 					let _ = mem.read(
