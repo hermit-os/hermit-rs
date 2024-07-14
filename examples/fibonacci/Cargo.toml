@@ -1,7 +1,6 @@
 [package]
-name = "fibonacci"
+name = "wasm_test"
 version = "0.1.0"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
