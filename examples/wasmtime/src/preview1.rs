@@ -37,46 +37,62 @@ impl Descriptor {
 }
 
 bitflags! {
-	   /// Options for opening files
-	   #[derive(Debug, Copy, Clone, Default)]
-	   pub(crate) struct Oflags: i32 {
-			   /// Create file if it does not exist.
-			   const OFLAGS_CREAT = 1 << 0;
-			   /// Fail if not a directory.
-			   const OFLAGS_DIRECTORY = 1 << 1;
-			   /// Fail if file already exists.
-			   const OFLAGS_EXCL = 1 << 2;
-			   /// Truncate file to size 0.
-			   const OFLAGS_TRUNC = 1 << 3;
-	   }
+	/// Options for opening files
+	#[derive(Debug, Copy, Clone, Default)]
+	pub(crate) struct Oflags: i32 {
+		/// Create file if it does not exist.
+		const OFLAGS_CREAT = 1 << 0;
+		/// Fail if not a directory.
+		const OFLAGS_DIRECTORY = 1 << 1;
+		/// Fail if file already exists.
+		const OFLAGS_EXCL = 1 << 2;
+		/// Truncate file to size 0.
+		const OFLAGS_TRUNC = 1 << 3;
+	}
 }
 
 /// The type of the file descriptor or file is unknown or is different from any of the other types specified.
-const UNKNOWN: u64 = 0;
+const UNKNOWN: u8 = 0;
 /// The file descriptor or file refers to a block device inode.
-const BLOCK_DEVICE: u64 = 1 << 0;
+const BLOCK_DEVICE: u8 = 1 << 0;
+/// The file descriptor or file refers to a character device inode.
+const CHARACTER_DEVICE: u8 = 1 << 1;
 /// The file descriptor or file refers to a directory inode.
-const DIRECTORY: u64 = 1 << 1;
+const DIRECTORY: u8 = 1 << 2;
 /// The file descriptor or file refers to a regular file inode.
-const REGULAR_FILE: u64 = 1 << 2;
+const REGULAR_FILE: u8 = 1 << 3;
 /// The file descriptor or file refers to a datagram socket.
-const SOCKET_DGRAM: u64 = 1 << 3;
+const SOCKET_DGRAM: u8 = 1 << 4;
 /// The file descriptor or file refers to a byte-stream socket.
-const SOCKET_STREAM: u64 = 1 << 4;
+const SOCKET_STREAM: u8 = 1 << 5;
 /// The file refers to a symbolic link inode.
-const SYMBOLIC_LINK: u64 = 1 << 5;
+const SYMBOLIC_LINK: u8 = 1 << 6;
 
 #[derive(Debug, Copy, Clone, Default, AsBytes)]
 #[repr(C)]
 pub(crate) struct FileStat {
 	pub dev: u64,
 	pub ino: u64,
-	pub filetype: u64,
+	pub filetype: u8,
+	pub _pad0: u8,
+	pub _pad1: u16,
+	pub _pad2: u32,
 	pub nlink: u64,
 	pub size: u64,
 	pub atim: u64,
 	pub mtim: u64,
 	pub ctim: u64,
+}
+
+#[derive(Debug, Copy, Clone, Default, AsBytes)]
+#[repr(C)]
+pub(crate) struct FdStat {
+	pub filetype: u8,
+	pub _pad0: u8,
+	pub fs_flags: u16,
+	pub _pad1: u32,
+	pub fs_rights_base: u64,
+	pub fs_rights_inheriting: u64,
 }
 
 fn cvt(err: i32) -> i32 {
@@ -177,9 +193,9 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					if oflags.contains(Oflags::OFLAGS_CREAT) {
 						flags |= hermit_abi::O_CREAT;
 					}
-					/*if oflags.contains(Oflags::OFLAGS_TRUNC) {
+					if oflags.contains(Oflags::OFLAGS_TRUNC) {
 						flags |= hermit_abi::O_TRUNC;
-					}*/
+					}
 					flags |= hermit_abi::O_RDWR;
 
 					let mut c_path = vec![0u8; path.len() + 1];
@@ -322,6 +338,44 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 
 			ERRNO_SUCCESS.raw() as i32
 		})
+		.unwrap();
+	linker
+		.func_wrap(
+			"wasi_snapshot_preview1",
+			"fd_fdstat_get",
+			|mut caller: Caller<'_, _>, fd: i32, fdstat_ptr: i32| {
+				let guard = FD.lock().unwrap();
+				if fd < guard.len().try_into().unwrap() {
+					let fdstat = match &guard[fd as usize] {
+						Descriptor::Stdin | Descriptor::Stdout | Descriptor::Stderr => FdStat {
+							filetype: CHARACTER_DEVICE,
+							..Default::default()
+						},
+						Descriptor::File(_) => FdStat {
+							filetype: REGULAR_FILE,
+							..Default::default()
+						},
+						_ => {
+							return ERRNO_INVAL.raw() as i32;
+						}
+					};
+
+					if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
+						let _ = mem.write(
+							caller.as_context_mut(),
+							fdstat_ptr.try_into().unwrap(),
+							fdstat.as_bytes(),
+						);
+
+						return ERRNO_SUCCESS.raw() as i32;
+					}
+
+					ERRNO_INVAL.raw() as i32
+				} else {
+					ERRNO_INVAL.raw() as i32
+				}
+			},
+		)
 		.unwrap();
 	linker
 		.func_wrap(
