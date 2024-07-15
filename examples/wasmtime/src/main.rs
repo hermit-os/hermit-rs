@@ -1,4 +1,5 @@
 #![feature(thread_local)]
+#![feature(maybe_uninit_slice)]
 #![feature(duration_millis_float)]
 #![allow(dependency_on_unit_never_type_fallback)]
 

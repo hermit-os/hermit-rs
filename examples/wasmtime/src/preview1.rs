@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+use std::cmp::Ordering;
+use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Instant, SystemTime};
 
@@ -386,32 +388,43 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let mut i = 0;
 					while i < iovs.len() {
 						let len = iovs[i + 1];
-						let mut data: Vec<u8> = Vec::with_capacity(len.try_into().unwrap());
+						let mut data: Vec<MaybeUninit<u8>> =
+							Vec::with_capacity(len.try_into().unwrap());
+						unsafe {
+							data.set_len(len as usize);
+						}
 
 						let result = unsafe {
-							hermit_abi::read(fd, data.as_mut_ptr(), len.try_into().unwrap())
+							hermit_abi::read(
+								fd,
+								MaybeUninit::slice_assume_init_mut(&mut data[..]).as_mut_ptr(),
+								len.try_into().unwrap(),
+							)
 						};
 
-						if result > 0 {
-							unsafe {
-								data.set_len(result as usize);
-							}
-							let _ = mem.write(
-								caller.as_context_mut(),
-								iovs[i].try_into().unwrap(),
-								&data[..result as usize],
-							);
+						match result.cmp(&0) {
+							Ordering::Greater => {
+								let _ = mem.write(
+									caller.as_context_mut(),
+									iovs[i].try_into().unwrap(),
+									unsafe {
+										MaybeUninit::slice_assume_init_ref(&data[..result as usize])
+									},
+								);
 
-							nread_bytes += result as i32;
-							if result < len.try_into().unwrap() {
-								break;
+								nread_bytes += result as i32;
+								if result < len.try_into().unwrap() {
+									break;
+								}
 							}
-						} else if result == 0 {
-							if result < len.try_into().unwrap() {
-								break;
+							Ordering::Equal => {
+								if result < len.try_into().unwrap() {
+									break;
+								}
 							}
-						} else {
-							return (-result).try_into().unwrap();
+							Ordering::Less => {
+								return (-result).try_into().unwrap();
+							}
 						}
 
 						i += 2;
@@ -500,18 +513,22 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let mut i = 0;
 					while i < iovs.len() {
 						let len = iovs[i + 1];
-						let mut data: Vec<u8> = Vec::with_capacity(len.try_into().unwrap());
+						let mut data: Vec<MaybeUninit<u8>> =
+							Vec::with_capacity(len.try_into().unwrap());
 						unsafe {
 							data.set_len(len as usize);
 						}
 
-						let _ = mem.read(
-							caller.as_context(),
-							iovs[i].try_into().unwrap(),
-							&mut data[..],
-						);
+						let _ =
+							mem.read(caller.as_context(), iovs[i].try_into().unwrap(), unsafe {
+								MaybeUninit::slice_assume_init_mut(&mut data[..])
+							});
 						let result = unsafe {
-							hermit_abi::write(fd, data.as_ptr(), len.try_into().unwrap())
+							hermit_abi::write(
+								fd,
+								MaybeUninit::slice_assume_init_ref(&data[..]).as_ptr(),
+								len.try_into().unwrap(),
+							)
 						};
 
 						if result > 0 {
