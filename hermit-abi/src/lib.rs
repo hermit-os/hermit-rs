@@ -337,6 +337,13 @@ pub const PROT_WRITE: u32 = 1 << 1;
 /// Indicates that the memory region should be executable.
 pub const PROT_EXEC: u32 = 1 << 2;
 
+/// The file offset is set to offset bytes.
+pub const SEEK_SET: i32 = 0;
+/// The file offset is set to its current location plus offset bytes.
+pub const SEEK_CUR: i32 = 1;
+/// The file offset is set to the size of the file plus offset bytes.
+pub const SEEK_END: i32 = 2;
+
 // symbols, which are part of the library operating system
 extern "C" {
 	/// Get the last error number from the thread local storage
@@ -717,6 +724,14 @@ extern "C" {
 		addr: *mut sockaddr,
 		addrlen: *mut socklen_t,
 	) -> isize;
+
+	/// The fseek() function sets the file position indicator for the stream pointed to by stream.
+	/// The new position, measured in bytes, is obtained by adding offset bytes to the position
+	/// specified by whence.  If whence is set to SEEK_SET, SEEK_CUR, or SEEK_END, the offset is
+	/// relative to the start of the file, the current position indicator, or end-of-file,
+	/// respectively.
+	#[link_name = "sys_lseek"]
+	pub fn lseek(fd: i32, offset: isize, whence: i32) -> isize;
 
 	/// write to a file descriptor
 	///
