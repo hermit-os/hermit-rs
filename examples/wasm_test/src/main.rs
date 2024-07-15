@@ -83,4 +83,20 @@ pub fn main() {
 	}
 	let elapsed_time = start_time.elapsed();
 	println!("Total Create File Time: {:?}", elapsed_time);
+
+	// Reading file
+	create_large_file(); // Create file for reading benchmark
+					  // Warmup
+	for _i in 0..10 {
+		read_large_file();
+	}
+	let start_time = Instant::now();
+	for _i in 0..M {
+		read_large_file();
+	}
+	let elapsed_time = start_time.elapsed();
+	println!("Total Read File Time: {:?}", elapsed_time);
+
+	// Delete file
+	fs::remove_file(FILE_PATH).expect("Could not delete file");
 }
