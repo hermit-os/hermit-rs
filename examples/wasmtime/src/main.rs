@@ -34,7 +34,10 @@ pub fn main() -> Result<()> {
 	// the VM. Find a way to inject the `.wasm` file into the VM
 	// using another way
 	debug!("Create Module");
+	#[cfg(not(feature = "ci"))]
 	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wasm-test.wasm"));
+	#[cfg(feature = "ci")]
+	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/hello_world.wasm"));
 	let now = Instant::now();
 	let module = Module::new(&engine, &module_bytes[..])?;
 	let elapsed = now.elapsed();
