@@ -19,7 +19,7 @@ members = [
     "examples/webserver",
     "examples/dns",
     "examples/mutex",
-    "examples/fibonacci",
+    "examples/wasm-test",
     "examples/wasmtime",
     "hermit",
     "hermit-abi",

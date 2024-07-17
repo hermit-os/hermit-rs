@@ -1,4 +1,5 @@
 #![feature(thread_local)]
+#![feature(maybe_uninit_slice)]
 #![feature(duration_millis_float)]
 #![allow(dependency_on_unit_never_type_fallback)]
 
@@ -20,20 +21,20 @@ mod preview1;
 pub fn main() -> Result<()> {
 	simple_logger::init_with_level(log::Level::Info)?;
 
-	println!("Start Wasmtime demo!");
+	info!("Start Wasmtime demo!");
 
 	// First step is to create the Wasm execution engine with some config.
 	// In this example we are using the default configuration.
 	let mut config = wasmtime::Config::new();
 	config.wasm_threads(true);
-	info!("Wasmtime engine is configured as followed: {:?}", config);
+	debug!("Wasmtime engine is configured as followed: {:?}", config);
 	let engine = Engine::new(&config)?;
 
 	// TODO: dirty workaround to get the WebAssembly module into
 	// the VM. Find a way to inject the `.wasm` file into the VM
 	// using another way
 	debug!("Create Module");
-	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/fibonacci.wasm"));
+	let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wasm-test.wasm"));
 	let now = Instant::now();
 	let module = Module::new(&engine, &module_bytes[..])?;
 	let elapsed = now.elapsed();
