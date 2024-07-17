@@ -1,4 +1,10 @@
 #![allow(dead_code)]
+
+// This file provide the interface of WASI preview1 to HermitOS
+//
+// NOTE: The current version assumes that / is the current
+// working directory of the WASI application.
+
 use std::cmp::Ordering;
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
