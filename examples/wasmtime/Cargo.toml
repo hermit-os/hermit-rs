@@ -7,6 +7,10 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 keywords = ["wasm", "webassembly"]
 
+[features]
+default = []
+ci = []
+
 [dependencies]
 anyhow = "1.0"
 bitflags = "2.5"
