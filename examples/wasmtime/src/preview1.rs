@@ -8,7 +8,7 @@
 use std::cmp::Ordering;
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
-use std::time::{Instant, SystemTime};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use bitflags::bitflags;
@@ -361,6 +361,10 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 							filetype: REGULAR_FILE,
 							..Default::default()
 						},
+						Descriptor::Directory(_) => FdStat {
+							filetype: DIRECTORY,
+							..Default::default()
+						},
 						_ => {
 							return ERRNO_INVAL.raw() as i32;
 						}
@@ -398,6 +402,30 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let filestat = FileStat {
 						filetype: REGULAR_FILE,
 						size: metadata.len(),
+						mtim: metadata
+							.modified()
+							.unwrap()
+							.duration_since(UNIX_EPOCH)
+							.unwrap()
+							.as_nanos()
+							.try_into()
+							.unwrap(),
+						atim: metadata
+							.accessed()
+							.unwrap()
+							.duration_since(UNIX_EPOCH)
+							.unwrap()
+							.as_nanos()
+							.try_into()
+							.unwrap(),
+						ctim: metadata
+							.created()
+							.unwrap()
+							.duration_since(UNIX_EPOCH)
+							.unwrap()
+							.as_nanos()
+							.try_into()
+							.unwrap(),
 						..Default::default()
 					};
 
@@ -573,6 +601,13 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let mut i = 0;
 					while i < iovs.len() {
 						let len = iovs[i + 1];
+
+						// len = 0 => ignore entry nothing to write
+						if len == 0 {
+							i += 2;
+							continue;
+						}
+
 						let mut data: Vec<MaybeUninit<u8>> =
 							Vec::with_capacity(len.try_into().unwrap());
 						unsafe {
@@ -591,7 +626,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 							)
 						};
 
-						if result > 0 {
+						if result >= 0 {
 							nwritten_bytes += result as i32;
 							if result < len.try_into().unwrap() {
 								break;
