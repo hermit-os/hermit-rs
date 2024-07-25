@@ -1,3 +1,4 @@
+use std::hint::black_box;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -73,7 +74,7 @@ fn mutex_stress_test(no_threads: usize) {
 		/ u32::try_from(no_threads).unwrap()
 		/ u32::try_from(NUMBER_OF_ITERATIONS * no_threads).unwrap();
 	log_benchmark_data_with_group(
-		&format!("{} Threads", no_threads),
+		&format!("{no_threads} Threads"),
 		"ns",
 		average.as_nanos() as f64,
 		"Mutex Stress Test Average Time per Iteration",
@@ -85,7 +86,7 @@ fn main() {
 
 	let mut i = 1;
 	while i <= available_parallelism {
-		mutex_stress_test(i);
+		mutex_stress_test(black_box(i));
 		i *= 2;
 	}
 }

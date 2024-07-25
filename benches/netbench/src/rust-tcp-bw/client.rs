@@ -12,8 +12,6 @@ fn main() {
 	let args = Config::parse();
 
 	println!("Connecting to the server {}:{}...", args.address, args.port);
-	let n_rounds = args.n_rounds;
-	let n_bytes = args.n_bytes;
 
 	if let Ok(mut stream) = connection::client_connect(args.address_and_port()) {
 		connection::setup(&args, &stream);

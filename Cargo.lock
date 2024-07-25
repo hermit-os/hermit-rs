@@ -76,6 +76,7 @@ version = "0.0.0"
 dependencies = [
  "fastrand",
  "hermit",
+ "hermit_bench_output",
  "riscv",
 ]
 
@@ -1179,6 +1180,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hermit_bench_output"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e622f2484751a4f8887e3eab0a6358c1bd66e190c5c54805fdc215c3ea0a871"
+
+[[package]]
 name = "hkdf"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1502,6 +1509,7 @@ version = "0.0.0"
 dependencies = [
  "aarch64-cpu",
  "hermit",
+ "hermit_bench_output",
  "rayon",
  "riscv",
  "syscalls",
@@ -1555,10 +1563,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "multithreaded_benchmark"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit_bench_output",
+]
+
+[[package]]
 name = "mutex"
 version = "0.0.0"
 dependencies = [
  "hermit",
+ "hermit_bench_output",
 ]
 
 [[package]]
@@ -2111,6 +2128,7 @@ dependencies = [
  "core_affinity",
  "hdrhist",
  "hermit",
+ "hermit_bench_output",
 ]
 
 [[package]]
@@ -2445,6 +2463,13 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "startup_benchmark"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
 
 [[package]]
 name = "strsim"

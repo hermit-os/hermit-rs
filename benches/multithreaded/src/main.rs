@@ -1,3 +1,4 @@
+use std::hint::black_box;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -36,7 +37,7 @@ fn main() {
 
 	for i in 1..=8 {
 		let now = Instant::now();
-		calc_pi_multi_threaded(n, i);
+		black_box(calc_pi_multi_threaded(black_box(n), black_box(i)));
 		let elapsed = now.elapsed();
 		times.push(elapsed);
 	}

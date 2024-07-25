@@ -21,10 +21,7 @@ fn main() {
 
 	let socket = UdpSocket::bind(format!("0.0.0.0:{}", args.port)).expect("Failed to bind socket");
 
-	println!(
-		"Socket ({}) open! Ready to receive...",
-		format!("0.0.0.0:{}", args.port)
-	);
+	println!("Socket (0.0.0.0:{}) open! Ready to receive...", args.port);
 
 	let mut start = Instant::now();
 
@@ -40,10 +37,7 @@ fn main() {
 		}
 
 		if amt != n_bytes {
-			println!(
-				"In Round {}: Received {} bytes, expected {}",
-				i, amt, n_bytes
-			);
+			println!("In Round {i}: Received {amt} bytes, expected {n_bytes}");
 		}
 
 		tot_bytes += amt * 2;

@@ -45,4 +45,6 @@ fn main() {
 		"Mbit/s",
 		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64()),
 	);
+
+	connection::close_connection(&stream);
 }

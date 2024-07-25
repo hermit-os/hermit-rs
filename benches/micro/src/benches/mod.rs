@@ -49,20 +49,20 @@ extern "C" {
 pub fn bench_syscall() -> Result<(), ()> {
 	let n = 1000000;
 
-	let ticks = unsafe {
+	let ticks = {
 		// cache warmup
 		#[cfg(target_os = "hermit")]
-		let _ = sys_getpid();
+		let _ = unsafe { sys_getpid() };
 		#[cfg(target_os = "linux")]
-		let _ = syscalls::syscall!(syscalls::Sysno::getpid);
+		let _ = unsafe { syscalls::syscall!(syscalls::Sysno::getpid) };
 		let _ = get_timestamp();
 
 		let start = get_timestamp();
 		for _ in 0..n {
 			#[cfg(target_os = "hermit")]
-			let _ = sys_getpid();
+			let _ = unsafe { sys_getpid() };
 			#[cfg(target_os = "linux")]
-			let _ = syscalls::syscall!(syscalls::Sysno::getpid);
+			let _ = unsafe { syscalls::syscall!(syscalls::Sysno::getpid) };
 		}
 		get_timestamp() - start
 	};
@@ -154,7 +154,7 @@ fn memcpy_builtin(n: usize) {
 	}
 
 	hermit_bench_output::log_benchmark_data_with_group(
-		&format!("(built_in) block size {}", n),
+		&format!("(built_in) block size {n}"),
 		"MByte/s",
 		(NR_RUNS * n) as f64 / (1024.0 * 1024.0 * now.elapsed().as_secs_f64()),
 		"Memcpy speed",
@@ -175,7 +175,7 @@ fn memset_builtin(n: usize) {
 	}
 
 	hermit_bench_output::log_benchmark_data_with_group(
-		&format!("(built_in) block size {}", n),
+		&format!("(built_in) block size {n}"),
 		"MByte/s",
 		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 		"Memset speed",
@@ -201,7 +201,7 @@ fn memcpy_rust(n: usize) {
 	}
 
 	hermit_bench_output::log_benchmark_data_with_group(
-		&format!("(rust) block size {}", n),
+		&format!("(rust) block size {n}"),
 		"MByte/s",
 		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 		"Memcpy speed",
@@ -222,7 +222,7 @@ fn memset_rust(n: usize) {
 	}
 
 	hermit_bench_output::log_benchmark_data_with_group(
-		&format!("(rust) block size {}", n),
+		&format!("(rust) block size {n}"),
 		"MByte/s",
 		((NR_RUNS * n) >> 20) as f64 / now.elapsed().as_secs_f64(),
 		"Memset speed",
@@ -230,18 +230,18 @@ fn memset_rust(n: usize) {
 }
 
 pub fn bench_mem() -> Result<(), ()> {
-	memcpy_builtin(4096);
-	memcpy_builtin(1048576);
-	memcpy_builtin(16 * 1048576);
-	memset_builtin(4096);
-	memset_builtin(1048576);
-	memset_builtin(16 * 1048576);
-	memcpy_rust(4096);
-	memcpy_rust(1048576);
-	memcpy_rust(16 * 1048576);
-	memset_rust(4096);
-	memset_rust(1048576);
-	memset_rust(16 * 1048576);
+	memcpy_builtin(black_box(4096));
+	memcpy_builtin(black_box(1048576));
+	memcpy_builtin(black_box(16 * 1048576));
+	memset_builtin(black_box(4096));
+	memset_builtin(black_box(1048576));
+	memset_builtin(black_box(16 * 1048576));
+	memcpy_rust(black_box(4096));
+	memcpy_rust(black_box(1048576));
+	memcpy_rust(black_box(16 * 1048576));
+	memset_rust(black_box(4096));
+	memset_rust(black_box(1048576));
+	memset_rust(black_box(16 * 1048576));
 
 	Ok(())
 }
