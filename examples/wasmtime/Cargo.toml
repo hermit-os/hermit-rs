@@ -17,7 +17,7 @@ bitflags = "2.5"
 cfg-if = "1"
 log = { version = "0.4" } #, features = ["kv_unstable"]}
 simple_logger = { version = "5.0", default-features = false }
-wasmtime = { version = "22.0", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation"] } #"pooling-allocator", "incremental-cache", "wat", "gc", "component-model"] }
+wasmtime = { version = "23.0", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation"] } #"pooling-allocator", "incremental-cache", "wat", "gc", "component-model"] }
 zerocopy = { version = "0.7", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
