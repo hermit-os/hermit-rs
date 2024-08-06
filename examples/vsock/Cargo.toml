@@ -12,6 +12,9 @@ path = "../../hermit-abi"
 path = "../../hermit"
 default-features = false
 
+[target.'cfg(unix)'.dependencies]
+libc = { version = "0.2" }
+
 [features]
 default = ["pci", "pci-ids", "acpi", "vsock"]
 vga = ["hermit/vga"]

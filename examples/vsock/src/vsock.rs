@@ -7,11 +7,20 @@
 use std::io::{self, Read, Result, Write};
 use std::mem::size_of;
 use std::os::fd::AsRawFd;
+#[cfg(target_os = "hermit")]
 use std::os::hermit::io::{FromRawFd, OwnedFd, RawFd};
+#[cfg(unix)]
+use std::os::unix::io::{FromRawFd, OwnedFd, RawFd};
 
+#[cfg(target_os = "hermit")]
 use hermit_abi::{
-	accept, bind, listen, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t, AF_VSOCK,
-	SOCK_STREAM, VMADDR_CID_ANY,
+	accept, bind, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t, write,
+	AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+};
+#[cfg(unix)]
+use libc::{
+	accept, bind, c_void, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t,
+	write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
 };
 
 pub type VsockAddr = sockaddr_vm;
@@ -19,6 +28,7 @@ pub type VsockAddr = sockaddr_vm;
 #[doc(hidden)]
 pub trait IsNegative {
 	fn is_negative(&self) -> bool;
+	#[allow(dead_code)]
 	fn negate(&self) -> i32;
 }
 
@@ -45,6 +55,16 @@ impl IsNegative for i32 {
 }
 impl_is_negative! { i8 i16 i64 isize }
 
+#[cfg(unix)]
+fn check<T: IsNegative>(res: T) -> io::Result<T> {
+	if res.is_negative() {
+		Err(std::io::Error::last_os_error())
+	} else {
+		Ok(res)
+	}
+}
+
+#[cfg(target_os = "hermit")]
 fn check<T: std::ops::Neg<Output = T> + std::cmp::PartialOrd<T> + IsNegative>(
 	res: T,
 ) -> io::Result<T> {
@@ -87,11 +107,13 @@ impl VsockListener {
 	pub fn bind(port: u32) -> io::Result<Self> {
 		unsafe {
 			let saddr = sockaddr_vm {
+				#[cfg(target_os = "hermit")]
 				svm_len: std::mem::size_of::<sockaddr_vm>().try_into().unwrap(),
+				svm_reserved1: 0,
 				svm_family: AF_VSOCK.try_into().unwrap(),
 				svm_cid: VMADDR_CID_ANY,
 				svm_port: port,
-				..Default::default()
+				svm_zero: [0; 4],
 			};
 			let fd = socket(AF_VSOCK, SOCK_STREAM, 0);
 
@@ -114,15 +136,19 @@ impl VsockListener {
 	pub fn accept(&self) -> io::Result<(VsockStream, VsockAddr)> {
 		let mut vsock_addr_len: socklen_t = size_of::<sockaddr_vm>().try_into().unwrap();
 		let mut vsock_addr = sockaddr_vm {
+			#[cfg(target_os = "hermit")]
 			svm_len: vsock_addr_len.try_into().unwrap(),
+			svm_reserved1: 0,
 			svm_family: AF_VSOCK as sa_family_t,
-			..Default::default()
+			svm_cid: 0,
+			svm_port: 0,
+			svm_zero: [0; 4],
 		};
 
 		let fd = unsafe {
 			check(accept(
 				self.socket.as_raw_fd(),
-				&mut vsock_addr as *mut _ as *mut hermit_abi::sockaddr,
+				&mut vsock_addr as *mut _ as *mut sockaddr,
 				&mut vsock_addr_len as *mut u32,
 			))?
 		};
@@ -144,11 +170,18 @@ impl VsockStream {
 }
 
 impl Read for VsockStream {
+	#[cfg(target_os = "hermit")]
+	fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
+		let result = unsafe { check(read(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len()))? };
+		Ok(result.try_into().unwrap())
+	}
+
+	#[cfg(unix)]
 	fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
 		let result = unsafe {
-			check(hermit_abi::read(
+			check(read(
 				self.fd.as_raw_fd(),
-				buf.as_mut_ptr(),
+				buf.as_mut_ptr() as *mut c_void,
 				buf.len(),
 			))?
 		};
@@ -157,11 +190,18 @@ impl Read for VsockStream {
 }
 
 impl Write for VsockStream {
+	#[cfg(target_os = "hermit")]
 	fn write(&mut self, buf: &[u8]) -> Result<usize> {
-		let result = unsafe {
-			check(hermit_abi::write(
+		let result = unsafe { check(write(self.fd.as_raw_fd(), buf.as_ptr(), buf.len()))? };
+		Ok(result.try_into().unwrap())
+	}
+
+	#[cfg(unix)]
+	fn write(&mut self, buf: &[u8]) -> Result<usize> {
+		let result: isize = unsafe {
+			check(write(
 				self.fd.as_raw_fd(),
-				buf.as_ptr(),
+				buf.as_ptr() as *const c_void,
 				buf.len(),
 			))?
 		};

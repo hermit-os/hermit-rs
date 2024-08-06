@@ -1,3 +1,4 @@
+#![allow(unused_variables)]
 use std::io::{Read, Write};
 
 #[cfg(target_os = "hermit")]
@@ -5,7 +6,6 @@ use hermit as _;
 
 use crate::vsock::VsockListener;
 
-#[cfg(target_os = "hermit")]
 mod vsock;
 
 // demo program to test the vsock interface
@@ -19,6 +19,7 @@ fn main() {
 	let (mut socket, addr) = listener.accept().unwrap();
 	let mut buf = [0u8; 1000];
 
+	#[cfg(target_os = "hermit")]
 	println!("Connected with {:?}", addr);
 	println!("Try to read from vsock stream...");
 
