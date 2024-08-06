@@ -156,6 +156,8 @@ pub const EFD_SEMAPHORE: i16 = 0o1;
 pub const EFD_NONBLOCK: i16 = 0o4000;
 pub const EFD_CLOEXEC: i16 = 0o40000;
 pub const IOV_MAX: usize = 1024;
+/// VMADDR_CID_ANY means that any address is possible for binding
+pub const VMADDR_CID_ANY: u32 = u32::MAX;
 pub const VMADDR_CID_HYPERVISOR: u32 = 0;
 pub const VMADDR_CID_LOCAL: u32 = 1;
 pub const VMADDR_CID_HOST: u32 = 2;
