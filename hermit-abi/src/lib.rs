@@ -86,8 +86,12 @@ pub struct timeval {
 /// The largest number `rand` will return
 pub const RAND_MAX: i32 = 2_147_483_647;
 
+/// Socket address family: IPv4
 pub const AF_INET: i32 = 0;
+/// Socket address family: IPv6
 pub const AF_INET6: i32 = 1;
+/// Socket address family: VSOCK protocol for hypervisor-guest communication
+pub const AF_VSOCK: i32 = 2;
 pub const IPPROTO_IP: i32 = 0;
 pub const IPPROTO_IPV6: i32 = 41;
 pub const IPPROTO_UDP: i32 = 17;
@@ -105,9 +109,13 @@ pub const IP_DROP_MEMBERSHIP: i32 = 4;
 pub const SHUT_RD: i32 = 0;
 pub const SHUT_WR: i32 = 1;
 pub const SHUT_RDWR: i32 = 2;
+/// Socket supports datagrams (connectionless,  unreliable  messages of a fixed maximum length)
 pub const SOCK_DGRAM: i32 = 2;
+/// Socket provides sequenced, reliable,  two-way,  connection-based byte streams.
 pub const SOCK_STREAM: i32 = 1;
+/// Set the O_NONBLOCK file status flag on the open socket
 pub const SOCK_NONBLOCK: i32 = 0o4000;
+/// Set  the  close-on-exec flag on the new socket
 pub const SOCK_CLOEXEC: i32 = 0o40000;
 pub const SOL_SOCKET: i32 = 4095;
 pub const SO_REUSEADDR: i32 = 0x0004;
@@ -148,6 +156,11 @@ pub const EFD_SEMAPHORE: i16 = 0o1;
 pub const EFD_NONBLOCK: i16 = 0o4000;
 pub const EFD_CLOEXEC: i16 = 0o40000;
 pub const IOV_MAX: usize = 1024;
+/// VMADDR_CID_ANY means that any address is possible for binding
+pub const VMADDR_CID_ANY: u32 = u32::MAX;
+pub const VMADDR_CID_HYPERVISOR: u32 = 0;
+pub const VMADDR_CID_LOCAL: u32 = 1;
+pub const VMADDR_CID_HOST: u32 = 2;
 pub type sa_family_t = u8;
 pub type socklen_t = u32;
 pub type in_addr_t = u32;
@@ -173,7 +186,7 @@ pub struct in6_addr {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct sockaddr {
 	pub sa_len: u8,
 	pub sa_family: sa_family_t,
@@ -181,7 +194,18 @@ pub struct sockaddr {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
+pub struct sockaddr_vm {
+	pub svm_len: u8,
+	pub svm_family: sa_family_t,
+	pub svm_reserved1: u16,
+	pub svm_port: u32,
+	pub svm_cid: u32,
+	pub svm_zero: [u8; 4],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct sockaddr_in {
 	pub sin_len: u8,
 	pub sin_family: sa_family_t,
@@ -191,7 +215,7 @@ pub struct sockaddr_in {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct sockaddr_in6 {
 	pub sin6_len: u8,
 	pub sin6_family: sa_family_t,
@@ -225,28 +249,28 @@ pub struct sockaddr_storage {
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct ip_mreq {
 	pub imr_multiaddr: in_addr,
 	pub imr_interface: in_addr,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct ipv6_mreq {
 	pub ipv6mr_multiaddr: in6_addr,
 	pub ipv6mr_interface: u32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct linger {
 	pub l_onoff: i32,
 	pub l_linger: i32,
 }
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct pollfd {
 	/// file descriptor
 	pub fd: i32,

@@ -110,6 +110,7 @@ impl KernelSrc {
 				"dns",
 				"mmap",
 				"idle-poll",
+				"vsock",
 			]
 			.into_iter(),
 		);
