@@ -14,13 +14,13 @@ use std::os::unix::io::{FromRawFd, OwnedFd, RawFd};
 
 #[cfg(target_os = "hermit")]
 use hermit_abi::{
-	accept, bind, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t, write,
-	AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+	accept, bind, close, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t,
+	write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
 };
 #[cfg(unix)]
 use libc::{
-	accept, bind, c_void, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t,
-	write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+	accept, bind, c_void, close, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
+	socklen_t, write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
 };
 
 pub type VsockAddr = sockaddr_vm;
@@ -99,7 +99,7 @@ fn check<T: std::ops::Neg<Output = T> + std::cmp::PartialOrd<T> + IsNegative>(
 /// A virtio socket server, listening for connections.
 #[derive(Debug)]
 pub struct VsockListener {
-	socket: OwnedFd,
+	fd: OwnedFd,
 }
 
 impl VsockListener {
@@ -127,7 +127,7 @@ impl VsockListener {
 			check(listen(fd, 128))?;
 
 			Ok(VsockListener {
-				socket: OwnedFd::from_raw_fd(fd),
+				fd: OwnedFd::from_raw_fd(fd),
 			})
 		}
 	}
@@ -147,13 +147,21 @@ impl VsockListener {
 
 		let fd = unsafe {
 			check(accept(
-				self.socket.as_raw_fd(),
+				self.fd.as_raw_fd(),
 				&mut vsock_addr as *mut _ as *mut sockaddr,
 				&mut vsock_addr_len as *mut u32,
 			))?
 		};
 
 		Ok((VsockStream::new(fd), vsock_addr))
+	}
+}
+
+impl Drop for VsockListener {
+	fn drop(&mut self) {
+		unsafe {
+			let _ = close(self.fd.as_raw_fd());
+		}
 	}
 }
 
@@ -210,5 +218,13 @@ impl Write for VsockStream {
 
 	fn flush(&mut self) -> Result<()> {
 		Ok(())
+	}
+}
+
+impl Drop for VsockStream {
+	fn drop(&mut self) {
+		unsafe {
+			let _ = close(self.fd.as_raw_fd());
+		}
 	}
 }
