@@ -14,16 +14,36 @@ use std::os::unix::io::{FromRawFd, OwnedFd, RawFd};
 
 #[cfg(target_os = "hermit")]
 use hermit_abi::{
-	accept, bind, close, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket, socklen_t,
-	write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+	accept, bind, close, connect, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
+	socklen_t, write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
 };
 #[cfg(unix)]
 use libc::{
-	accept, bind, c_void, close, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
+	accept, bind, c_void, close, connect, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
 	socklen_t, write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
 };
 
-pub type VsockAddr = sockaddr_vm;
+#[derive(Copy, Clone)]
+#[repr(transparent)]
+pub struct VsockAddr(pub sockaddr_vm);
+
+impl VsockAddr {
+	pub fn new(cid: u32, port: u32) -> Self {
+		#[cfg(target_os = "hermit")]
+		let vsock_addr_len: socklen_t = size_of::<sockaddr_vm>().try_into().unwrap();
+		let vsock_addr = sockaddr_vm {
+			#[cfg(target_os = "hermit")]
+			svm_len: vsock_addr_len.try_into().unwrap(),
+			svm_reserved1: 0,
+			svm_family: AF_VSOCK as sa_family_t,
+			svm_cid: cid,
+			svm_port: port,
+			svm_zero: [0; 4],
+		};
+
+		Self(vsock_addr)
+	}
+}
 
 #[doc(hidden)]
 pub trait IsNegative {
@@ -153,7 +173,7 @@ impl VsockListener {
 			))?
 		};
 
-		Ok((VsockStream::new(fd), vsock_addr))
+		Ok((VsockStream::new(fd), VsockAddr(vsock_addr)))
 	}
 }
 
@@ -174,6 +194,21 @@ impl VsockStream {
 		Self {
 			fd: unsafe { FromRawFd::from_raw_fd(fd) },
 		}
+	}
+
+	pub fn connect(addr: VsockAddr) -> io::Result<VsockStream> {
+		let len: socklen_t = size_of::<sockaddr_vm>().try_into().unwrap();
+		let fd = unsafe { socket(AF_VSOCK, SOCK_STREAM, 0) };
+
+		unsafe {
+			check(connect(
+				fd.as_raw_fd(),
+				&addr.0 as *const _ as *const sockaddr,
+				len,
+			))?
+		};
+
+		Ok(VsockStream::new(fd))
 	}
 }
 

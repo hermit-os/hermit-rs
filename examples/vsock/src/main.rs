@@ -1,26 +1,22 @@
-#![allow(unused_variables)]
+#[allow(unused_imports)]
 use std::io::{Read, Write};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
-
-use crate::vsock::VsockListener;
 
 mod vsock;
 
 // demo program to test the vsock interface
 //
 // The program is used to demonstrate issue hermit-os/kernel#880
-// Use `socat - SOCKET-CONNECT:40:0:x00x00xF7x26x00x00x03x00x00x00x00x00x00x00`
+// Use `socat - VSOCK-CONNECT:3:9975`
 // to communicate with the unikernel.
-
+#[cfg(not(feature = "client"))]
 fn main() {
-	let listener = VsockListener::bind(9975).unwrap();
-	let (mut socket, addr) = listener.accept().unwrap();
+	let listener = vsock::VsockListener::bind(9975).unwrap();
+	let (mut socket, _addr) = listener.accept().unwrap();
 	let mut buf = [0u8; 1000];
 
-	#[cfg(target_os = "hermit")]
-	println!("Connected with {:?}", addr);
 	println!("Try to read from vsock stream...");
 
 	loop {
@@ -36,6 +32,34 @@ fn main() {
 				}
 
 				socket.write_all(&buf[..received]).unwrap();
+			}
+		}
+	}
+}
+
+// demo program to connect with a vsock server
+//
+// The program is used to demonstrate issue hermit-os/kernel#880
+// Use `socat - SOCKET-LISTEN:9975` to communicate with the unikernel.
+#[cfg(feature = "client")]
+fn main() {
+	let addr = vsock::VsockAddr::new(2, 9975);
+	let mut socket = vsock::VsockStream::connect(addr).expect("connection failed");
+	let mut buf = [0u8; 1000];
+
+	loop {
+		match socket.read(&mut buf) {
+			Err(e) => {
+				println!("read err {e:?}");
+				break;
+			}
+			Ok(received) => {
+				let msg = std::str::from_utf8(&buf[..received]).unwrap();
+				print!("{}", msg);
+
+				if msg.trim() == "exit" {
+					break;
+				}
 			}
 		}
 	}
