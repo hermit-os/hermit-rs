@@ -21,6 +21,7 @@ members = [
     "examples/mutex",
     "examples/wasm-test",
     "examples/wasmtime",
+    "examples/vsock",
     "hermit",
     "hermit-abi",
 ]

@@ -53,6 +53,7 @@ vga = []
 shell = []
 idle-poll = []
 mmap = []
+vsock = []
 
 [build-dependencies]
 flate2 = "1"
