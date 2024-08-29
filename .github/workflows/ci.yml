@@ -59,54 +59,6 @@ jobs:
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
-  kvm:
-    name: KVM
-    runs-on: [self-hosted]
-    steps:
-    - name: Install QEMU
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y qemu-kvm
-    - uses: actions/checkout@v4
-      with:
-         submodules: true
-    - uses: dtolnay/rust-toolchain@stable
-    - run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
-    - uses: mkroening/rust-toolchain-toml@main
-    - name: Download loader  
-      run: gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
-    - name: Build dev profile
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo
-    - name: Install uhyve
-      run: cargo +stable install --locked uhyve
-    - name: Check KVM availability
-      shell: bash
-      run: |
-         lscpu
-         kvm-ok
-    - name: Test debug version (Uhyve)
-      run: uhyve -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
-      env:
-        RUST_LOG: debug
-    - name: Test debug profile (Qemu)
-      run: |
-        qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-          -enable-kvm -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-          -kernel hermit-loader-x86_64 \
-          -initrd target/x86_64-unknown-hermit/debug/rusty_demo
-    - name: Build release profile
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo --release
-    - name: Test release version (Uhyve)
-      run: uhyve -c 1 target/x86_64-unknown-hermit/release/rusty_demo
-      env:
-        RUST_LOG: debug
-    - name: Test release profile (Qemu)
-      run: |
-        qemu-system-x86_64 -display none -smp 1 -m 128M -serial stdio \
-          -enable-kvm -cpu qemu64,apic,fsgsbase,rdtscp,xsave,xsaveopt,fxsr,rdrand \
-          -kernel hermit-loader-x86_64 \
-          -initrd target/x86_64-unknown-hermit/release/rusty_demo
-
   run-hermit:
     name: Run
     runs-on: ubuntu-latest
@@ -133,6 +85,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install ${{ matrix.packages }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
+      - run: cargo +stable install --locked uhyve
+        if: matrix.arch == 'x86_64'
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
       - name: Dowload OpenSBI
@@ -155,3 +111,5 @@ jobs:
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu ${{ matrix.flags }}
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4 qemu ${{ matrix.flags }} --netdev virtio-net-pci
         if: matrix.arch != 'riscv64'
+      - run: UHYVE=$CARGO_HOME/bin/uhyve cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo uhyve --sudo
+        if: matrix.arch == 'x86_64'
