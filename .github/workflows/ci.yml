@@ -116,7 +116,6 @@ jobs:
     strategy:
       matrix:
         arch: [x86_64, aarch64, riscv64]
-        package: [rusty_demo, httpd]
         profile: [dev, release]
         include:
           - arch: x86_64
@@ -125,15 +124,6 @@ jobs:
             packages: qemu-system-aarch64
           - arch: riscv64
             packages: qemu-system-misc
-            flags: --no-default-features
-          - package: httpd
-            netdev: rtl8139
-            flags: --features ci,hermit/dhcpv4
-        exclude:
-          - arch: aarch64
-            package: httpd
-          - arch: riscv64
-            package: httpd
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,13 +151,6 @@ jobs:
             .
             kernel
             kernel/hermit-builtins
-      - name: Run Hermit
-        run: >
-          cargo xtask ci rs
-          --arch ${{ matrix.arch }}
-          --package ${{ matrix.package }}
-          --profile ${{ matrix.profile }}
-          ${{ matrix.netdev == 'rtl8139' && '--features hermit/rtl8139' || '' }}
-          ${{ matrix.flags }}
-          qemu
-          ${{ matrix.netdev && format('--netdev {0}', matrix.netdev) || '' }}
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4 qemu --netdev virtio-net-pci
+        if: matrix.arch != 'riscv64'
