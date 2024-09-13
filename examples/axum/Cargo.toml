@@ -1,0 +1,10 @@
+[package]
+name = "axum-example"
+edition = "2021"
+
+[dependencies]
+axum = "0.7"
+tokio = "1"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit" }

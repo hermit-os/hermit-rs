@@ -4,6 +4,7 @@ members = [
     "benches/alloc",
     "benches/micro",
     "benches/netbench",
+    "examples/axum",
     "examples/demo",
     "examples/fuse_test",
     "examples/hello_world",
