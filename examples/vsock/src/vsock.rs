@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 /// Virtio socket support for Rust. Implements VsockListener and VsockStream
 /// which are analogous to the `std::net::TcpListener` and `std::net::TcpStream`
 /// types.
