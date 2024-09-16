@@ -23,7 +23,7 @@ jobs:
       - uses: mkroening/rust-toolchain-toml@main
       - run: |
           rustup component add clippy llvm-tools
-          rustup target add wasm32-wasi
+          rustup target add wasm32-wasip1
       - name: Clippy
         run: |
           cargo clippy --all-targets
@@ -54,7 +54,7 @@ jobs:
       - uses: mkroening/rust-toolchain-toml@main
       - run: |
           rustup component add llvm-tools
-          rustup target add wasm32-wasi
+          rustup target add wasm32-wasip1
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
