@@ -20,10 +20,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rust-src
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-07-31
+          targets: wasm32-wasip1
       - uses: mkroening/rust-toolchain-toml@main
-      - run: |
-          rustup component add clippy llvm-tools
-          rustup target add wasm32-wasip1
+      - run: rustup component add clippy llvm-tools
       - name: Clippy
         run: |
           cargo clippy --all-targets
@@ -51,10 +53,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rust-src
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-07-31
+          targets: wasm32-wasip1
       - uses: mkroening/rust-toolchain-toml@main
-      - run: |
-          rustup component add llvm-tools
-          rustup target add wasm32-wasip1
+      - run: rustup component add llvm-tools
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
