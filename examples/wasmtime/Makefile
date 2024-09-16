@@ -10,7 +10,7 @@ target/x86_64-unknown-hermit/release/wasmi_demo: $(SOURCE_FILES) Cargo.* wasm/fi
 		--release
 
 wasm/fib.wasm:
-	cd examples; cd fib; cargo build --target wasm32-wasi --release; cp target/wasm32-wasi/release/fib.wasm ../../wasm
+	cd examples; cd fib; cargo build --target wasm32-wasip1 --release; cp target/wasm32-wasip1/release/fib.wasm ../../wasm
 	
 .PHONY: clean
 clean:
