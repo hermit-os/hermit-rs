@@ -16,7 +16,6 @@ fn main() -> io::Result<()> {
 		.arg("+nightly-2024-07-31")
 		.arg("build")
 		.arg("-Zunstable-options")
-		.arg("-Zbuild-std=std,panic_abort")
 		.arg("--target=wasm32-wasip1")
 		.args(["--package", package])
 		.arg("--release")
