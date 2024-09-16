@@ -130,6 +130,7 @@ impl KernelSrc {
 
 		self.rerun_if_changed_cargo(&self.src_dir.join("Cargo.toml"));
 		self.rerun_if_changed_cargo(&self.src_dir.join("hermit-builtins/Cargo.toml"));
+		self.rerun_if_changed_cargo(&self.src_dir.join("hermit-macro/Cargo.toml"));
 
 		println!(
 			"cargo:rerun-if-changed={}",
