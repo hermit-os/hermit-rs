@@ -29,12 +29,15 @@ default = [
 
 acpi = []
 dhcpv4 = []
+dns = []
 fs = []
 fsgsbase = []
+idle-poll = []
 
 # Build the kernel with function instrument code for mcount-based tracing
 instrument = []
 
+mmap = []
 pci = []
 pci-ids = ["pci"]
 
@@ -44,15 +47,12 @@ randomize-layout = []
 # if this feature isn't set, the Virtio interface will be used
 rtl8139 = ["pci"]
 
+shell = []
 smp = []
 tcp = []
-udp = []
-dns = []
 trace = []
+udp = []
 vga = []
-shell = []
-idle-poll = []
-mmap = []
 vsock = []
 
 [build-dependencies]
