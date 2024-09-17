@@ -49,6 +49,7 @@ rtl8139 = ["pci"]
 
 shell = []
 smp = []
+strace = []
 tcp = []
 trace = []
 udp = []

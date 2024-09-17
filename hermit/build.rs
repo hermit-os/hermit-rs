@@ -106,6 +106,7 @@ impl KernelSrc {
 				"rtl8139",
 				"shell",
 				"smp",
+				"strace",
 				"tcp",
 				"trace",
 				"udp",
