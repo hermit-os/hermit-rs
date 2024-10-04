@@ -119,3 +119,22 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/hermit-os/tls:latest
+    - name: Build axum
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4 --release
+    - name: Copy axum out of target dir
+      run: cp target/x86_64-unknown-hermit/release/axum-example .
+    - name: Create dockerfile for axum
+      run: |
+        cat << END > Dockerfile
+        FROM scratch
+        COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY axum-example hermit/axum-example
+        CMD ["/hermit/axum-example"]
+        END
+    - name: Build and push container
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/hermit-os/axum-example:latest
