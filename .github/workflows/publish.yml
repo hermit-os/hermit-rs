@@ -126,7 +126,7 @@ jobs:
     - name: Create dockerfile for axum
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY axum-example hermit/axum-example
