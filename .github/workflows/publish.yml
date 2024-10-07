@@ -67,7 +67,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/httpd:latest
     - name: Build webserver
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs --release
     - name: Copy webserver out of target dir
       run: cp target/x86_64-unknown-hermit/release/webserver .
     - name: Create static website
@@ -120,7 +120,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/tls:latest
     - name: Build axum
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fuse --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fs --release
     - name: Copy axum out of target dir
       run: cp target/x86_64-unknown-hermit/release/axum-example .
     - name: Create dockerfile for axum
