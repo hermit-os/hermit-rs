@@ -35,7 +35,7 @@ jobs:
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY rusty_demo hermit/rusty_demo
@@ -54,7 +54,7 @@ jobs:
     - name: Create dockerfile for httpd
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY httpd hermit/httpd
@@ -87,7 +87,7 @@ jobs:
     - name: Create dockerfile for webserver
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY root root
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
@@ -107,7 +107,7 @@ jobs:
     - name: Create dockerfile for tls-demo
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY tls hermit/tls
