@@ -35,7 +35,7 @@ jobs:
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY rusty_demo hermit/rusty_demo
@@ -54,7 +54,7 @@ jobs:
     - name: Create dockerfile for httpd
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY httpd hermit/httpd
@@ -67,7 +67,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/httpd:latest
     - name: Build webserver
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs --release
     - name: Copy webserver out of target dir
       run: cp target/x86_64-unknown-hermit/release/webserver .
     - name: Create static website
@@ -87,7 +87,7 @@ jobs:
     - name: Create dockerfile for webserver
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY root root
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
@@ -107,7 +107,7 @@ jobs:
     - name: Create dockerfile for tls-demo
       run: |
         cat << END > Dockerfile
-        FROM scratch
+        FROM ghcr.io/hermit-os/hermit_env:latest
         COPY hermit-loader-x86_64 hermit/hermit-loader
         COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
         COPY tls hermit/tls
@@ -120,7 +120,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/tls:latest
     - name: Build axum
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fuse --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fs --release
     - name: Copy axum out of target dir
       run: cp target/x86_64-unknown-hermit/release/axum-example .
     - name: Create dockerfile for axum
