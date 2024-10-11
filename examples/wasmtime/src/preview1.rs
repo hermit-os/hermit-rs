@@ -15,7 +15,7 @@ use bitflags::bitflags;
 use log::debug;
 use wasi::*;
 use wasmtime::{AsContext, AsContextMut, Caller, Extern};
-use zerocopy::AsBytes;
+use zerocopy::{Immutable, IntoBytes, KnownLayout};
 
 static FD: Mutex<Vec<Descriptor>> = Mutex::new(Vec::new());
 
@@ -74,7 +74,7 @@ const SOCKET_STREAM: u8 = 1 << 5;
 /// The file refers to a symbolic link inode.
 const SYMBOLIC_LINK: u8 = 1 << 6;
 
-#[derive(Debug, Copy, Clone, Default, AsBytes)]
+#[derive(Debug, Copy, Clone, Default, IntoBytes, KnownLayout, Immutable)]
 #[repr(C)]
 pub(crate) struct FileStat {
 	pub dev: u64,
@@ -90,7 +90,7 @@ pub(crate) struct FileStat {
 	pub ctim: u64,
 }
 
-#[derive(Debug, Copy, Clone, Default, AsBytes)]
+#[derive(Debug, Copy, Clone, Default, IntoBytes, KnownLayout, Immutable)]
 #[repr(C)]
 pub(crate) struct FdStat {
 	pub filetype: u8,
@@ -191,7 +191,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let _ = mem.read(
 						caller.as_context_mut(),
 						path_ptr.try_into().unwrap(),
-						path.as_bytes_mut(),
+						path.as_mut_bytes(),
 					);
 					let path = "/".to_owned() + std::str::from_utf8(&path).unwrap();
 
@@ -250,7 +250,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let _ = mem.read(
 						caller.as_context_mut(),
 						path_ptr.try_into().unwrap(),
-						path.as_bytes_mut(),
+						path.as_mut_bytes(),
 					);
 
 					let path = "/".to_owned() + std::str::from_utf8(&path).unwrap();
@@ -469,7 +469,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let _ = mem.read(
 						caller.as_context(),
 						iovs_ptr.try_into().unwrap(),
-						iovs.as_bytes_mut(),
+						iovs.as_mut_bytes(),
 					);
 
 					let mut nread_bytes: i32 = 0;
@@ -594,7 +594,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					let _ = mem.read(
 						caller.as_context(),
 						iovs_ptr.try_into().unwrap(),
-						iovs.as_bytes_mut(),
+						iovs.as_mut_bytes(),
 					);
 
 					let mut nwritten_bytes: i32 = 0;
