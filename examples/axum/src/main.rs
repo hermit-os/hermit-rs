@@ -9,7 +9,7 @@ async fn main() -> io::Result<()> {
 	let app = Router::new().route("/", get(root));
 
 	let listener = net::TcpListener::bind("0.0.0.0:9975").await?;
-	axum::serve(listener, app).await?;
+	axum::serve(listener, app).tcp_nodelay(true).await?;
 
 	Ok(())
 }
