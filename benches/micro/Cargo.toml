@@ -13,7 +13,7 @@ hermit = { path = "../../hermit", default-features = false }
 aarch64 = { version = "0.0.11", default-features = false }
 
 [target.'cfg(target_arch = "riscv64")'.dependencies]
-riscv = "0.11"
+riscv = "0.12"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 syscalls = { version = "0.6", default-features = false }
