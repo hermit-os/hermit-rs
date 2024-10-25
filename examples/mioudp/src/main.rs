@@ -1,5 +1,6 @@
-use std::io;
 use std::str::from_utf8;
+use std::time::Duration;
+use std::{io, thread};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
@@ -65,6 +66,8 @@ fn main() -> io::Result<()> {
 							socket.send_to(&buf[..packet_size], source_address)?;
 							if let Ok(str_buf) = from_utf8(&buf[..packet_size]) {
 								if str_buf.trim_end() == "exit" {
+									// Wait before shutting down to send response.
+									thread::sleep(Duration::from_secs(1));
 									return Ok(());
 								}
 							}
