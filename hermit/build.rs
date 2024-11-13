@@ -18,6 +18,18 @@ fn main() {
 	let kernel_src = KernelSrc::local().unwrap_or_else(KernelSrc::download);
 
 	kernel_src.build();
+
+	if has_feature("libc") {
+		let libc = cc::Build::new()
+			.get_compiler()
+			.to_command()
+			.arg("-print-file-name=libc.a")
+			.output()
+			.unwrap()
+			.stdout;
+		let libc = str::from_utf8(&libc).unwrap().trim_ascii_end();
+		println!("cargo:rustc-link-lib=static:+verbatim={libc}");
+	}
 }
 
 struct KernelSrc {
