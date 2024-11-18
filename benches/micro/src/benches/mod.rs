@@ -28,7 +28,7 @@ fn get_timestamp() -> u64 {
 #[cfg(target_arch = "aarch64")]
 #[inline]
 fn get_timestamp() -> u64 {
-	use aarch64::regs::{Readable, CNTPCT_EL0};
+	use aarch64_cpu::registers::{Readable, CNTPCT_EL0};
 
 	CNTPCT_EL0.get()
 }
