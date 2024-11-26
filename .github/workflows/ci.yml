@@ -70,6 +70,7 @@ jobs:
       with:
          submodules: true
     - uses: dtolnay/rust-toolchain@stable
+    - run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
     - uses: mkroening/rust-toolchain-toml@main
     - name: Download loader  
       run: gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
