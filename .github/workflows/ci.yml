@@ -84,7 +84,7 @@ jobs:
          lscpu
          kvm-ok
     - name: Test debug version (Uhyve)
-      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
+      run: uhyve -c 1 target/x86_64-unknown-hermit/debug/rusty_demo
       env:
         RUST_LOG: debug
     - name: Test debug profile (Qemu)
@@ -96,7 +96,7 @@ jobs:
     - name: Build release profile
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit --package rusty_demo --release
     - name: Test release version (Uhyve)
-      run: uhyve --verbose -c 1 target/x86_64-unknown-hermit/release/rusty_demo
+      run: uhyve -c 1 target/x86_64-unknown-hermit/release/rusty_demo
       env:
         RUST_LOG: debug
     - name: Test release profile (Qemu)
