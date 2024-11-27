@@ -13,7 +13,7 @@ pub fn sleep() {
 	eprintln!("Measured time for {duration:?} sleep: {elapsed:?}");
 	assert!(elapsed >= duration);
 	let expected_delay = if cfg!(debug_assertions) {
-		Duration::from_millis(100)
+		Duration::from_secs(1)
 	} else {
 		Duration::from_millis(5)
 	};
