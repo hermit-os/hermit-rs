@@ -162,10 +162,11 @@ jobs:
             kernel/hermit-builtins
       - name: Run Hermit
         run: >
-          cargo xtask ci qemu
+          cargo xtask ci rs
           --arch ${{ matrix.arch }}
           --package ${{ matrix.package }}
           --profile ${{ matrix.profile }}
           ${{ matrix.netdev == 'rtl8139' && '--features hermit/rtl8139' || '' }}
-          ${{ matrix.netdev && format('--netdev {0}', matrix.netdev) || '' }}
           ${{ matrix.flags }}
+          qemu
+          ${{ matrix.netdev && format('--netdev {0}', matrix.netdev) || '' }}
