@@ -1,3 +1,7 @@
+//! Jacobi Stencil Iterations
+//!
+//! This module performs the Jacobi method for solving Laplace's differential equation.
+
 use std::time::Instant;
 use std::vec;
 
