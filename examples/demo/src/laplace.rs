@@ -12,11 +12,11 @@ const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
 pub fn laplace() {
 	eprintln!();
 
-	let matrix = matrix_setup(SIZE, SIZE);
+	let mut matrix = matrix_setup(SIZE, SIZE);
 
 	eprintln!("Laplace iterations");
 	let now = Instant::now();
-	let (i, residual) = compute(matrix, SIZE, SIZE);
+	let (i, residual) = compute(&mut matrix, SIZE, SIZE);
 	let elapsed = now.elapsed();
 	eprintln!("{i} iterations: {elapsed:?} (residual: {residual})");
 
@@ -89,17 +89,19 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-pub fn compute(matrix: vec::Vec<f64>, size_x: usize, size_y: usize) -> (usize, f64) {
+pub fn compute(matrix: &mut [f64], size_x: usize, size_y: usize) -> (usize, f64) {
+	let mut clone = matrix.to_vec();
+
 	let mut current = matrix;
-	let mut next = current.clone();
+	let mut next = &mut clone[..];
 	let mut counter = 0;
 
 	while counter < 1000 {
-		iteration(&current, &mut next, size_x, size_y);
+		iteration(current, next, size_x, size_y);
 		mem::swap(&mut current, &mut next);
 
 		counter += 1;
 	}
 
-	(counter, get_residual(&current, size_x, size_y))
+	(counter, get_residual(current, size_x, size_y))
 }
