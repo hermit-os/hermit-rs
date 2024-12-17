@@ -8,6 +8,7 @@ use std::{mem, vec};
 use rayon::prelude::*;
 
 const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
+const ITERATIONS: usize = 1000;
 
 pub fn laplace() {
 	eprintln!();
@@ -16,9 +17,9 @@ pub fn laplace() {
 
 	eprintln!("Laplace iterations");
 	let now = Instant::now();
-	let (i, residual) = compute(&mut matrix, SIZE, SIZE);
+	let residual = compute(&mut matrix, SIZE, SIZE, ITERATIONS);
 	let elapsed = now.elapsed();
-	eprintln!("{i} iterations: {elapsed:?} (residual: {residual})");
+	eprintln!("{ITERATIONS} iterations: {elapsed:?} (residual: {residual})");
 
 	assert!(residual < 0.001);
 }
@@ -89,21 +90,16 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-fn compute(matrix: &mut [f64], size_x: usize, size_y: usize) -> (usize, f64) {
+fn compute(matrix: &mut [f64], size_x: usize, size_y: usize, iterations: usize) -> f64 {
 	let mut clone = matrix.to_vec();
 
 	let mut current = matrix;
 	let mut next = &mut clone[..];
-	let mut counter = 0;
 
-	while counter < 1000 {
+	for _ in 0..iterations {
 		iteration(current, next, size_x, size_y);
 		mem::swap(&mut current, &mut next);
-
-		counter += 1;
 	}
 
-	let residual = get_residual(current, size_x, size_y);
-
-	(counter, residual)
+	get_residual(current, size_x, size_y)
 }
