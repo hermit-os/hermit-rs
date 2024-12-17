@@ -103,5 +103,7 @@ fn compute(matrix: &mut [f64], size_x: usize, size_y: usize) -> (usize, f64) {
 		counter += 1;
 	}
 
-	(counter, get_residual(current, size_x, size_y))
+	let residual = get_residual(current, size_x, size_y);
+
+	(counter, residual)
 }
