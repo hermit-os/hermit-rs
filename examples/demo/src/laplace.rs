@@ -89,7 +89,7 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-pub fn compute(matrix: &mut [f64], size_x: usize, size_y: usize) -> (usize, f64) {
+fn compute(matrix: &mut [f64], size_x: usize, size_y: usize) -> (usize, f64) {
 	let mut clone = matrix.to_vec();
 
 	let mut current = matrix;
