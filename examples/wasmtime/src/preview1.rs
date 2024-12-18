@@ -6,6 +6,7 @@
 // working directory of the WASI application.
 
 use std::cmp::Ordering;
+use std::ffi::c_char;
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
@@ -208,7 +209,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 					c_path[..path.len()].copy_from_slice(path.as_bytes());
 					{
 						let raw_fd =
-							unsafe { hermit_abi::open(c_path.as_ptr() as *const i8, flags, 0) };
+							unsafe { hermit_abi::open(c_path.as_ptr() as *const c_char, flags, 0) };
 						let mut guard = FD.lock().unwrap();
 						for (i, entry) in guard.iter_mut().enumerate() {
 							if entry.is_none() {
