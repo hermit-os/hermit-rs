@@ -25,5 +25,8 @@ env_logger = { version = "0.11" }
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/dhcpv4", "hermit/fsgsbase", "hermit/pci", "hermit/pci-ids", "hermit/shell", "hermit/tcp"]
+default = ["hermit/acpi", "hermit/dhcpv4", "hermit/fsgsbase", "hermit/pci", "hermit/pci-ids", "hermit/tcp"]
 ci = []
+
+[target.'cfg(all(target_os = "hermit", target_arch = "x86_64"))'.dependencies]
+hermit = { path = "../../hermit", default-features = false, features = ["shell"] }
