@@ -1,49 +1,50 @@
+//! Jacobi Stencil Iterations
+//!
+//! This module performs the Jacobi method for solving Laplace's differential equation.
+
 use std::time::Instant;
-use std::vec;
+use std::{mem, vec};
 
 use rayon::prelude::*;
 
 const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
+const ITERATIONS: usize = 1000;
 
 pub fn laplace() {
 	eprintln!();
 
-	let matrix = matrix_setup(SIZE, SIZE);
+	let mut matrix = matrix_setup(SIZE, SIZE);
 
 	eprintln!("Laplace iterations");
 	let now = Instant::now();
-	let (i, residual) = compute(matrix, SIZE, SIZE);
+	let residual = compute(&mut matrix, SIZE, SIZE, ITERATIONS);
 	let elapsed = now.elapsed();
-	eprintln!("{i} iterations: {elapsed:?} (residual: {residual})");
+	eprintln!("{ITERATIONS} iterations: {elapsed:?} (residual: {residual})");
 
 	assert!(residual < 0.001);
 }
 
-fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<vec::Vec<f64>> {
-	let mut matrix = vec![vec![0.0; size_x * size_y]; 2];
+fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<f64> {
+	let mut matrix = vec![0.0; size_x * size_y];
 
 	// top row
-	for x in 0..size_x {
-		matrix[0][x] = 1.0;
-		matrix[1][x] = 1.0;
+	for f in matrix.iter_mut().take(size_x) {
+		*f = 1.0;
 	}
 
 	// bottom row
 	for x in 0..size_x {
-		matrix[0][(size_y - 1) * size_x + x] = 1.0;
-		matrix[1][(size_y - 1) * size_x + x] = 1.0;
+		matrix[(size_y - 1) * size_x + x] = 1.0;
 	}
 
 	// left row
 	for y in 0..size_y {
-		matrix[0][y * size_x] = 1.0;
-		matrix[1][y * size_x] = 1.0;
+		matrix[y * size_x] = 1.0;
 	}
 
 	// right row
 	for y in 0..size_y {
-		matrix[0][y * size_x + size_x - 1] = 1.0;
-		matrix[1][y * size_x + size_x - 1] = 1.0;
+		matrix[y * size_x + size_x - 1] = 1.0;
 	}
 
 	matrix
@@ -89,20 +90,16 @@ fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
 		});
 }
 
-pub fn compute(mut matrix: vec::Vec<vec::Vec<f64>>, size_x: usize, size_y: usize) -> (usize, f64) {
-	let mut counter = 0;
+fn compute(matrix: &mut [f64], size_x: usize, size_y: usize, iterations: usize) -> f64 {
+	let mut clone = matrix.to_vec();
 
-	while counter < 1000 {
-		{
-			// allow a borrow and a reference to the same vector
-			let (current, next) = matrix.split_at_mut(1);
+	let mut current = matrix;
+	let mut next = &mut clone[..];
 
-			iteration(&current[0], &mut next[0], size_x, size_y);
-		}
-		matrix.swap(0, 1);
-
-		counter += 1;
+	for _ in 0..iterations {
+		iteration(current, next, size_x, size_y);
+		mem::swap(&mut current, &mut next);
 	}
 
-	(counter, get_residual(&matrix[0], size_x, size_y))
+	get_residual(current, size_x, size_y)
 }
