@@ -60,5 +60,5 @@ vsock = []
 [build-dependencies]
 cc = "1"
 flate2 = "1"
-ureq = "2.4"
+ureq = "3"
 tar = "0.4"
