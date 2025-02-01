@@ -22,9 +22,10 @@ pub fn seq_matmul(a: &[f32], b: &[f32], dest: &mut [f32]) {
 		for j in 0..n {
 			let mut sum = 0.0;
 			for k in 0..n {
-				sum += unsafe { a.get_unchecked(i << bits | k) * b.get_unchecked(k << bits | j) };
+				sum +=
+					unsafe { a.get_unchecked((i << bits) | k) * b.get_unchecked((k << bits) | j) };
 			}
-			dest[i << bits | j] = sum;
+			dest[(i << bits) | j] = sum;
 		}
 	}
 }
@@ -94,7 +95,7 @@ pub fn seq_matmulz(a: &[f32], b: &[f32], dest: &mut [f32]) {
 			sum += unsafe {
 				// If n is a power of 4: i, j, or k should produce
 				// no bits outside a valid index of n.
-				a.get_unchecked(i | k) * b.get_unchecked(k << 1 | j)
+				a.get_unchecked(i | k) * b.get_unchecked((k << 1) | j)
 			};
 		}
 		*d = sum;
