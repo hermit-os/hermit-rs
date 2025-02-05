@@ -24,4 +24,4 @@ zerocopy = { version = "0.8", default-features = false, features = ["alloc", "de
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "fs", "tcp", "dhcpv4", "mmap"] }
 hermit-abi = { path = "../../hermit-abi", default-features = false }
-wasi = { version = "0.11" }
+wasi = { version = "0.14" }
