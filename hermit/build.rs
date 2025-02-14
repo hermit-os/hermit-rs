@@ -199,7 +199,7 @@ fn cargo() -> Command {
 		let exe = format!("cargo{}", env::consts::EXE_SUFFIX);
 		// On windows, the userspace toolchain ends up in front of the rustup proxy in $PATH.
 		// To reach the rustup proxy nonetheless, we explicitly query $CARGO_HOME.
-		let mut cargo_home = PathBuf::from(env::var_os("CARGO_HOME").unwrap());
+		let mut cargo_home = home::cargo_home().unwrap();
 		cargo_home.push("bin");
 		cargo_home.push(&exe);
 		if cargo_home.exists() {

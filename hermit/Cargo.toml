@@ -69,5 +69,6 @@ common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-st
 [build-dependencies]
 cc = "1"
 flate2 = "1"
+home = "0.5"
 ureq = "3"
 tar = "0.4"
