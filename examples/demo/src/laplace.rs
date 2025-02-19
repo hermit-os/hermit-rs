@@ -2,9 +2,12 @@
 //!
 //! This module performs the Jacobi method for solving Laplace's differential equation.
 
-use std::time::Instant;
-use std::{mem, vec};
+#![allow(clippy::reversed_empty_ranges)]
 
+use std::mem;
+use std::time::Instant;
+
+use ndarray::{s, Array2, ArrayView2, ArrayViewMut2};
 use rayon::prelude::*;
 
 const SIZE: usize = if cfg!(debug_assertions) { 16 } else { 64 };
@@ -17,89 +20,85 @@ pub fn laplace() {
 
 	eprintln!("Laplace iterations");
 	let now = Instant::now();
-	let residual = compute(&mut matrix, SIZE, SIZE, ITERATIONS);
+	let residual = compute(matrix.view_mut(), ITERATIONS);
 	let elapsed = now.elapsed();
 	eprintln!("{ITERATIONS} iterations: {elapsed:?} (residual: {residual})");
 
 	assert!(residual < 0.001);
 }
 
-fn matrix_setup(size_x: usize, size_y: usize) -> vec::Vec<f64> {
-	let mut matrix = vec![0.0; size_x * size_y];
+fn matrix_setup(size_x: usize, size_y: usize) -> Array2<f64> {
+	let mut matrix = Array2::zeros((size_x, size_y));
 
-	// top row
-	for f in matrix.iter_mut().take(size_x) {
-		*f = 1.0;
-	}
-
-	// bottom row
-	for x in 0..size_x {
-		matrix[(size_y - 1) * size_x + x] = 1.0;
-	}
-
-	// left row
-	for y in 0..size_y {
-		matrix[y * size_x] = 1.0;
-	}
-
-	// right row
-	for y in 0..size_y {
-		matrix[y * size_x + size_x - 1] = 1.0;
-	}
+	matrix.row_mut(0).fill(1.0);
+	matrix.row_mut(size_x - 1).fill(1.0);
+	matrix.column_mut(0).fill(1.0);
+	matrix.column_mut(size_x - 1).fill(1.0);
 
 	matrix
 }
 
-fn get_residual(matrix: &[f64], size_x: usize, size_y: usize) -> f64 {
-	(1..size_y - 1)
+fn get_residual(matrix: ArrayView2<f64>) -> f64 {
+	matrix
+		.slice(s![1..-1, ..])
+		.outer_iter()
 		.into_par_iter()
-		.map(|y| {
-			let mut local_sum = 0.0;
+		.enumerate()
+		.map(|(i, row)| {
+			let i = i + 1; // To compensate slicing
 
-			for x in 1..(size_x - 1) {
-				let new = (matrix[y * size_x + x - 1]
-					+ matrix[y * size_x + x + 1]
-					+ matrix[(y + 1) * size_x + x]
-					+ matrix[(y - 1) * size_x + x])
-					* 0.25;
+			let up = matrix.row(i - 1);
+			let here = matrix.row(i);
+			let down = matrix.row(i + 1);
+			let len = row.len();
+			assert_eq!(up.len(), len);
+			assert_eq!(here.len(), len);
+			assert_eq!(down.len(), len);
 
-				let diff = new - matrix[y * size_x + x];
-				local_sum += diff * diff;
+			let mut acc = 0.0;
+			for j in 1..len - 1 {
+				let sum = up[j] + down[j] + here[j - 1] + here[j + 1];
+				let new = sum * 0.25;
+				acc += (new - here[j]).powi(2);
 			}
-
-			local_sum
+			acc
 		})
 		.sum()
 }
 
-fn iteration(cur: &[f64], next: &mut [f64], size_x: usize, size_y: usize) {
-	next.par_chunks_mut(size_y)
-		.enumerate() // to figure out where this chunk came from
-		.for_each(|(chunk_index, slice)| {
-			if chunk_index > 0 && chunk_index < size_y - 1 {
-				let offset_base = chunk_index * size_x;
+fn iteration(current: ArrayView2<f64>, mut next: ArrayViewMut2<f64>) {
+	next.slice_mut(s![1..-1, ..])
+		.outer_iter_mut()
+		.into_par_iter()
+		.enumerate()
+		.for_each(|(i, mut row)| {
+			let i = i + 1; // To compensate slicing
 
-				for x in 1..size_x - 1 {
-					slice[x] = (cur[offset_base + x - 1]
-						+ cur[offset_base + x + 1]
-						+ cur[offset_base + size_x + x]
-						+ cur[offset_base - size_x + x])
-						* 0.25;
-				}
+			let up = current.row(i - 1);
+			let here = current.row(i);
+			let down = current.row(i + 1);
+			let len = row.len();
+			assert_eq!(up.len(), len);
+			assert_eq!(here.len(), len);
+			assert_eq!(down.len(), len);
+
+			for j in 1..len - 1 {
+				let sum = up[j] + down[j] + here[j - 1] + here[j + 1];
+				row[j] = sum * 0.25;
 			}
 		});
 }
 
-fn compute(matrix: &mut [f64], size_x: usize, size_y: usize, iterations: usize) -> f64 {
-	let mut clone = matrix.to_vec();
+fn compute(mut matrix: ArrayViewMut2<'_, f64>, iterations: usize) -> f64 {
+	let mut owned = matrix.to_owned();
 
-	let mut current = matrix;
-	let mut next = &mut clone[..];
+	let mut current = matrix.view_mut();
+	let mut next = owned.view_mut();
 
 	for _ in 0..iterations {
-		iteration(current, next, size_x, size_y);
+		iteration(current.view(), next.view_mut());
 		mem::swap(&mut current, &mut next);
 	}
 
-	get_residual(current, size_x, size_y)
+	get_residual(current.view())
 }
