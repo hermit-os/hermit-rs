@@ -94,8 +94,8 @@ jobs:
       - name: Dowload OpenSBI
         if: matrix.arch == 'riscv64'
         run: |
-          gh release download v1.4 --repo riscv-software-src/opensbi --pattern 'opensbi-*-rv-bin.tar.xz'
-          tar -xvf opensbi-*-rv-bin.tar.xz opensbi-1.4-rv-bin/share/opensbi/lp64/generic/firmware/fw_jump.bin
+          gh release download v1.5.1 --repo riscv-software-src/opensbi --pattern 'opensbi-*-rv-bin.tar.xz'
+          tar -xvf opensbi-*-rv-bin.tar.xz opensbi-1.5.1-rv-bin/share/opensbi/lp64/generic/firmware/fw_jump.bin
       - uses: mkroening/rust-toolchain-toml@main
       - uses: mkroening/rust-toolchain-toml@main
         with:
