@@ -66,6 +66,21 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/hermit-os/httpd:latest
+    - name: Create dockerfile for httpd (alpine)
+      run: |
+        cat << END > Dockerfile
+        FROM ghcr.io/hermit-os/hermit_env_alpine:latest
+        COPY hermit-loader-x86_64 hermit/hermit-loader
+        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY httpd hermit/httpd
+        CMD ["/hermit/httpd"]
+        END
+    - name: Build and push container
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: ghcr.io/hermit-os/httpd_alpine:latest
     - name: Build webserver
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs --release
     - name: Copy webserver out of target dir
