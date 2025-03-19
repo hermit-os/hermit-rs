@@ -29,7 +29,9 @@ fn main() {
 			.unwrap()
 			.stdout;
 		let libc = str::from_utf8(&libc).unwrap().trim_ascii_end();
-		println!("cargo:rustc-link-lib=static:+verbatim={libc}");
+		let libc_dir = Path::new(libc).parent().unwrap();
+		println!("cargo:rustc-link-search={}", libc_dir.display());
+		println!("cargo:rustc-link-lib=static:+whole-archive=c");
 	}
 }
 
