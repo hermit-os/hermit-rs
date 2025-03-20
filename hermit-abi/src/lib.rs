@@ -86,6 +86,7 @@ pub struct timeval {
 /// The largest number `rand` will return
 pub const RAND_MAX: i32 = 2_147_483_647;
 
+pub const AF_UNSPEC: i32 = 0;
 /// Socket address family: IPv4
 pub const AF_INET: i32 = 0;
 /// Socket address family: IPv6
