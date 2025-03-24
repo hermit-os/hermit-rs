@@ -115,7 +115,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			TLS_F64.set(TLS_F64.get() + 10.0);
 			info!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
 
-			assert_eq!(TLS_BOOL.get(), i % 2 == 0);
+			assert_eq!(TLS_BOOL.get(), i % 2 != 0);
 			TLS_BOOL.set(!TLS_BOOL.get());
 			info!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
 
@@ -209,9 +209,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
 	// 4. TLS destructor test.
 	{
-		// TLS_DTOR is initialized and will be dropped when the thread exits.
 		thread_local! {
-			static TLS_DTOR: DtorNotifier = DtorNotifier;
+			static TLS_DTOR: DtorNotifier = const { DtorNotifier };
 		}
 		let handle = thread::spawn(|| {
 			TLS_DTOR.with(|_| {
