@@ -1,0 +1,17 @@
+[package]
+name = "thread_test"
+authors = ["Marco Ruppert-Maas <marco.ruppert-maas@studium.fernuni-hagen.de>"]
+edition = "2021"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+
+[dependencies]
+log = "0.4"
+simple_logger = "4.0"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[features]
+default = []
+ci = []
+
