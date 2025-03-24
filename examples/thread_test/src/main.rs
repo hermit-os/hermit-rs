@@ -143,7 +143,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			assert_eq!(TLS_VALUE.get(), i as i32 + 10);
 			assert_eq!(TLS_U64.get(), i as u64 + 10);
 			assert_eq!(TLS_F64.get(), i as f64 + 10.0);
-			assert_eq!(TLS_BOOL.get(), !(i % 2 == 0));
+			assert_eq!(TLS_BOOL.get(), (i % 2 != 0));
 			assert_eq!(TLS_CHAR.get(), (97 + i as u8) as char);
 			assert_eq!(TLS_STRING.get(), "String changed again");
 			assert_eq!(TLS_U8.get(), i as u8 + 10);
