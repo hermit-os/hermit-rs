@@ -1,50 +1,44 @@
+//! Inspired by the Rust standard TLS tests:
+//! https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local
+
+
 #![feature(thread_local)]
 
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
-use std::thread::available_parallelism;
 use std::time::Duration;
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
-use log::info;
 
-// Inspired by the Rust standard TLS tests:
-// https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local
 
 // --- Main TLS demonstration ---
 
 // TLS variables of various types.
-#[thread_local]
-static TLS_VALUE: Cell<i32> = Cell::new(0);
-#[thread_local]
-static TLS_U64: Cell<u64> = Cell::new(0);
-#[thread_local]
-static TLS_F64: Cell<f64> = Cell::new(0.0);
-#[thread_local]
-static TLS_BOOL: Cell<bool> = Cell::new(false);
-#[thread_local]
-static TLS_CHAR: Cell<char> = Cell::new('A');
-#[thread_local]
-static TLS_STRING: Cell<&'static str> = Cell::new("Initial String");
-#[thread_local]
-static TLS_U8: Cell<u8> = Cell::new(0);
-#[thread_local]
-static TLS_U64_2: Cell<u64> = Cell::new(0xdeadbeef);
+thread_local! {
+    static TLS_VALUE: Cell<i32> = Cell::new(0);
+    static TLS_U64: Cell<u64> = Cell::new(0);
+    static TLS_F64: Cell<f64> = Cell::new(0.0);
+    static TLS_BOOL: Cell<bool> = Cell::new(false);
+    static TLS_CHAR: Cell<char> = Cell::new('A');
+    static TLS_STRING: Cell<&'static str> = Cell::new("Initial String");
+    static TLS_U8: Cell<u8> = Cell::new(0);
+    static TLS_U64_2: Cell<u64> = Cell::new(0xdeadbeef);
+}
 
 // A custom type with 16-byte alignment.
 #[derive(Clone, Copy)]
-#[repr(C, align(16))]
+#[repr(align(16))]
 struct AlignedType(u8);
 #[thread_local]
 static TLS_ALIGNED: Cell<AlignedType> = Cell::new(AlignedType(0x42));
 
 // Check that a pointer is 16-byte aligned.
 fn check_alignment<T>(ptr: *const T) {
-	let addr = ptr as usize;
-	assert_eq!(addr % 16, 0, "Address {:#x} is not 16-byte aligned", addr);
+	let addr = ptr as *const u8 as usize;
+	assert!(addr & 0xF == 0, "Address {:#x} is not 16-byte aligned", addr);
 }
 
 // Global flag to detect TLS destructor execution.
@@ -58,22 +52,20 @@ impl Drop for DtorNotifier {
 	}
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-	simple_logger::init_with_level(log::Level::Info)?;
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
-	info!("Starting TLS demonstration");
+	println!("Starting TLS demonstration");
 
 	// Dynamically determine thread count: 2 x number of available cores.
-	let num_threads = available_parallelism().map(|n| n.get() * 2).unwrap_or(4);
-	info!("Spawning {} threads (2 x number of cores)", num_threads);
+	let num_threads = std::thread::available_parallelism().map(|n| n.get() * 2).unwrap_or(4);
+	println!("Spawning {} threads (2 x number of cores)", num_threads);
 
 	let mut handles = vec![];
 
 	// Spawn threads to test TLS isolation and modification.
 	for i in 0..num_threads {
 		handles.push(thread::spawn(move || {
-			info!("Thread {} started", i);
+			println!("Thread {} started", i);
 
 			// Check alignment.
 			check_alignment(&TLS_ALIGNED as *const _);
@@ -82,22 +74,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			TLS_VALUE.set(i as i32);
 			TLS_U64.set(i as u64);
 			TLS_F64.set(i as f64);
-			TLS_BOOL.set(i % 2 == 0);
+			TLS_BOOL.set(i % 2 != 0);
 			TLS_CHAR.set((65 + i as u8) as char); // A, B, C, D...
 			TLS_STRING.set("String changed");
 			TLS_U8.set(i as u8);
 			TLS_ALIGNED.set(AlignedType(0x42 + i as u8));
 			TLS_U64_2.set(0xdeadbeef + i as u64);
 
-			info!("Thread {}: TLS_VALUE set to {}", i, TLS_VALUE.get());
-			info!("Thread {}: TLS_U64 set to {}", i, TLS_U64.get());
-			info!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
-			info!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
-			info!("Thread {}: TLS_CHAR set to {}", i, TLS_CHAR.get());
-			info!("Thread {}: TLS_STRING set to {}", i, TLS_STRING.get());
-			info!("Thread {}: TLS_U8 set to {}", i, TLS_U8.get());
-			info!("Thread {}: TLS_ALIGNED set to {}", i, TLS_ALIGNED.get().0);
-			info!("Thread {}: TLS_U64_2 set to {}", i, TLS_U64_2.get());
+			println!("Thread {}: TLS_VALUE set to {}", i, TLS_VALUE.get());
+			println!("Thread {}: TLS_U64 set to {}", i, TLS_U64.get());
+			println!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
+			println!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
+			println!("Thread {}: TLS_CHAR set to {}", i, TLS_CHAR.get());
+			println!("Thread {}: TLS_STRING set to {}", i, TLS_STRING.get());
+			println!("Thread {}: TLS_U8 set to {}", i, TLS_U8.get());
+			println!("Thread {}: TLS_ALIGNED set to {}", i, TLS_ALIGNED.get().0);
+			println!("Thread {}: TLS_U64_2 set to {}", i, TLS_U64_2.get());
 
 			// Simulate work.
 			thread::sleep(Duration::from_millis(100 * ((i as u64) + 1)));
@@ -105,52 +97,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			// Verify and modify values.
 			assert_eq!(TLS_VALUE.get(), i as i32);
 			TLS_VALUE.set(TLS_VALUE.get() + 10);
-			info!("Thread {}: TLS_VALUE set to {}", i, TLS_VALUE.get());
+			println!("Thread {}: TLS_VALUE set to {}", i, TLS_VALUE.get());
 
 			assert_eq!(TLS_U64.get(), i as u64);
 			TLS_U64.set(TLS_U64.get() + 10);
-			info!("Thread {}: TLS_U64 set to {}", i, TLS_U64.get());
+			println!("Thread {}: TLS_U64 set to {}", i, TLS_U64.get());
 
 			assert_eq!(TLS_F64.get(), i as f64);
 			TLS_F64.set(TLS_F64.get() + 10.0);
-			info!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
+			println!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
 
 			assert_eq!(TLS_BOOL.get(), i % 2 != 0);
 			TLS_BOOL.set(!TLS_BOOL.get());
-			info!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
+			println!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
 
 			assert_eq!(TLS_CHAR.get(), (65 + i as u8) as char);
 			TLS_CHAR.set((97 + i as u8) as char);
-			info!("Thread {}: TLS_CHAR set to {}", i, TLS_CHAR.get());
+			println!("Thread {}: TLS_CHAR set to {}", i, TLS_CHAR.get());
 
 			assert_eq!(TLS_STRING.get(), "String changed");
 			TLS_STRING.set("String changed again");
-			info!("Thread {}: TLS_STRING set to {}", i, TLS_STRING.get());
+			println!("Thread {}: TLS_STRING set to {}", i, TLS_STRING.get());
 
 			assert_eq!(TLS_U8.get(), i as u8);
 			TLS_U8.set(TLS_U8.get() + 10);
-			info!("Thread {}: TLS_U8 set to {}", i, TLS_U8.get());
+			println!("Thread {}: TLS_U8 set to {}", i, TLS_U8.get());
 
 			assert_eq!(TLS_ALIGNED.get().0, 0x42 + i as u8);
 			TLS_ALIGNED.set(AlignedType(TLS_ALIGNED.get().0 + 10));
-			info!("Thread {}: TLS_ALIGNED set to {}", i, TLS_ALIGNED.get().0);
+			println!("Thread {}: TLS_ALIGNED set to {}", i, TLS_ALIGNED.get().0);
 
 			assert_eq!(TLS_U64_2.get(), 0xdeadbeef + i as u64);
 			TLS_U64_2.set(TLS_U64_2.get() ^ 0xf0f0f0f0);
-			info!("Thread {}: TLS_U64_2 set to {:#x}", i, TLS_U64_2.get());
+			println!("Thread {}: TLS_U64_2 set to {:#x}", i, TLS_U64_2.get());
 
 			// Verify modified values.
 			assert_eq!(TLS_VALUE.get(), i as i32 + 10);
 			assert_eq!(TLS_U64.get(), i as u64 + 10);
 			assert_eq!(TLS_F64.get(), i as f64 + 10.0);
-			assert_eq!(TLS_BOOL.get(), (i % 2 != 0));
+			assert_eq!(TLS_BOOL.get(), !(i % 2 != 0));
 			assert_eq!(TLS_CHAR.get(), (97 + i as u8) as char);
 			assert_eq!(TLS_STRING.get(), "String changed again");
 			assert_eq!(TLS_U8.get(), i as u8 + 10);
 			assert_eq!(TLS_ALIGNED.get().0, 0x42 + i as u8 + 10);
 			assert_eq!(TLS_U64_2.get(), (0xdeadbeef + i as u64) ^ 0xf0f0f0f0);
 
-			info!("Thread {} finished", i);
+			println!("Thread {} finished", i);
 		}));
 	}
 
@@ -158,7 +150,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 		handle.join().unwrap();
 	}
 
-	info!("TLS demonstration finished");
+	println!("TLS demonstration finished");
 
 	// --- Additional TLS scenarios ---
 
@@ -171,7 +163,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			static COMPUTED_TLS: i32 = square(3);
 		}
 		COMPUTED_TLS.with(|val| {
-			info!("Computed TLS value: {}", *val);
+			println!("Computed TLS value: {}", *val);
 			assert_eq!(*val, 9);
 		});
 	}
@@ -188,7 +180,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 		}
 		TLS_MAP.with(|map| {
 			let value = map.borrow().get(&1).cloned().unwrap_or(0);
-			info!("TLS_MAP value for key 1: {}", value);
+			println!("TLS_MAP value for key 1: {}", value);
 			assert_eq!(value, 2);
 		});
 	}
@@ -199,10 +191,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			static TLS_VEC: RefCell<Vec<u32>> = RefCell::new(vec![1, 2, 3]);
 		}
 		TLS_VEC.with(|vec| {
-			info!("Initial TLS_VEC length: {}", vec.borrow().len());
+			println!("Initial TLS_VEC length: {}", vec.borrow().len());
 			assert_eq!(vec.borrow().len(), 3);
 			vec.borrow_mut().push(4);
-			info!("TLS_VEC[3]: {}", vec.borrow()[3]);
+			println!("TLS_VEC[3]: {}", vec.borrow()[3]);
 			assert_eq!(vec.borrow()[3], 4);
 		});
 	}
@@ -214,17 +206,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 		}
 		let handle = thread::spawn(|| {
 			TLS_DTOR.with(|_| {
-				info!("Thread: TLS_DTOR set");
+				println!("Thread: TLS_DTOR set");
 			});
 		});
 		handle.join().unwrap();
 		thread::sleep(Duration::from_millis(50));
 		let flag_val = TLS_DESTRUCTOR_RAN.load(Ordering::SeqCst);
-		info!("TLS destructor flag: {}", flag_val);
+		println!("TLS destructor flag: {}", flag_val);
 		assert!(flag_val, "TLS destructor did not run");
 	}
 
-	info!("Additional TLS scenarios finished");
+	println!("Additional TLS scenarios finished");
 
 	Ok(())
 }
