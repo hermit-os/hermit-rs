@@ -1,7 +1,6 @@
 //! Inspired by the Rust standard TLS tests:
 //! https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local
 
-
 #![feature(thread_local)]
 
 use std::cell::{Cell, RefCell};
@@ -13,19 +12,18 @@ use std::time::Duration;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
-
 // --- Main TLS demonstration ---
 
 // TLS variables of various types.
 thread_local! {
-    static TLS_VALUE: Cell<i32> = Cell::new(0);
-    static TLS_U64: Cell<u64> = Cell::new(0);
-    static TLS_F64: Cell<f64> = Cell::new(0.0);
-    static TLS_BOOL: Cell<bool> = Cell::new(false);
-    static TLS_CHAR: Cell<char> = Cell::new('A');
-    static TLS_STRING: Cell<&'static str> = Cell::new("Initial String");
-    static TLS_U8: Cell<u8> = Cell::new(0);
-    static TLS_U64_2: Cell<u64> = Cell::new(0xdeadbeef);
+	static TLS_VALUE: Cell<i32> = Cell::new(0);
+	static TLS_U64: Cell<u64> = Cell::new(0);
+	static TLS_F64: Cell<f64> = Cell::new(0.0);
+	static TLS_BOOL: Cell<bool> = Cell::new(false);
+	static TLS_CHAR: Cell<char> = Cell::new('A');
+	static TLS_STRING: Cell<&'static str> = Cell::new("Initial String");
+	static TLS_U8: Cell<u8> = Cell::new(0);
+	static TLS_U64_2: Cell<u64> = Cell::new(0xdeadbeef);
 }
 
 // A custom type with 16-byte alignment.
@@ -38,7 +36,11 @@ static TLS_ALIGNED: Cell<AlignedType> = Cell::new(AlignedType(0x42));
 // Check that a pointer is 16-byte aligned.
 fn check_alignment<T>(ptr: *const T) {
 	let addr = ptr as *const u8 as usize;
-	assert!(addr & 0xF == 0, "Address {:#x} is not 16-byte aligned", addr);
+	assert!(
+		addr & 0xF == 0,
+		"Address {:#x} is not 16-byte aligned",
+		addr
+	);
 }
 
 // Global flag to detect TLS destructor execution.
@@ -53,11 +55,12 @@ impl Drop for DtorNotifier {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-
 	println!("Starting TLS demonstration");
 
 	// Dynamically determine thread count: 2 x number of available cores.
-	let num_threads = std::thread::available_parallelism().map(|n| n.get() * 2).unwrap_or(4);
+	let num_threads = std::thread::available_parallelism()
+		.map(|n| n.get() * 2)
+		.unwrap_or(4);
 	println!("Spawning {} threads (2 x number of cores)", num_threads);
 
 	let mut handles = vec![];
