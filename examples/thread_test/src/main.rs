@@ -1,5 +1,5 @@
 //! Inspired by the Rust standard TLS tests:
-//! https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local
+//! <https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local>
 
 #![feature(thread_local)]
 
@@ -16,14 +16,14 @@ use hermit as _;
 
 // TLS variables of various types.
 thread_local! {
-	static TLS_VALUE: Cell<i32> = Cell::new(0);
-	static TLS_U64: Cell<u64> = Cell::new(0);
-	static TLS_F64: Cell<f64> = Cell::new(0.0);
-	static TLS_BOOL: Cell<bool> = Cell::new(false);
-	static TLS_CHAR: Cell<char> = Cell::new('A');
-	static TLS_STRING: Cell<&'static str> = Cell::new("Initial String");
-	static TLS_U8: Cell<u8> = Cell::new(0);
-	static TLS_U64_2: Cell<u64> = Cell::new(0xdeadbeef);
+	static TLS_VALUE: Cell<i32> = const { Cell::new(0) };
+	static TLS_U64: Cell<u64> = const { Cell::new(0) };
+	static TLS_F64: Cell<f64> = const { Cell::new(0.0) };
+	static TLS_BOOL: Cell<bool> = const { Cell::new(false) };
+	static TLS_CHAR: Cell<char> = const { Cell::new('A') };
+	static TLS_STRING: Cell<&'static str> = const { Cell::new("Initial String") };
+	static TLS_U8: Cell<u8> = const { Cell::new(0) };
+	static TLS_U64_2: Cell<u64> = const { Cell::new(0xdeadbeef) };
 }
 
 // A custom type with 16-byte alignment.
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 			TLS_F64.set(TLS_F64.get() + 10.0);
 			println!("Thread {}: TLS_F64 set to {}", i, TLS_F64.get());
 
-			assert_eq!(TLS_BOOL.get(), i % 2 != 0);
+			assert_eq!(TLS_BOOL.get(), (i % 2 != 0));
 			TLS_BOOL.set(!TLS_BOOL.get());
 			println!("Thread {}: TLS_BOOL set to {}", i, TLS_BOOL.get());
 
