@@ -486,7 +486,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 						let result = unsafe {
 							hermit_abi::read(
 								fd,
-								MaybeUninit::slice_assume_init_mut(&mut data[..]).as_mut_ptr(),
+								data.assume_init_mut().as_mut_ptr(),
 								len.try_into().unwrap(),
 							)
 						};
@@ -496,9 +496,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 								let _ = mem.write(
 									caller.as_context_mut(),
 									iovs[i].try_into().unwrap(),
-									unsafe {
-										MaybeUninit::slice_assume_init_ref(&data[..result as usize])
-									},
+									unsafe { data[..result as usize].assume_init_ref() },
 								);
 
 								nread_bytes += result as i32;
@@ -617,12 +615,12 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 
 						let _ =
 							mem.read(caller.as_context(), iovs[i].try_into().unwrap(), unsafe {
-								MaybeUninit::slice_assume_init_mut(&mut data[..])
+								data.assume_init_mut()
 							});
 						let result = unsafe {
 							hermit_abi::write(
 								fd,
-								MaybeUninit::slice_assume_init_ref(&data[..]).as_ptr(),
+								data.assume_init_ref().as_ptr(),
 								len.try_into().unwrap(),
 							)
 						};
