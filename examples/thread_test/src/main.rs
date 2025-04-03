@@ -1,8 +1,6 @@
 //! Inspired by the Rust standard TLS tests:
 //! <https://github.com/rust-lang/rust/tree/master/library/std/tests/thread_local>
 
-#![feature(thread_local)]
-
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -30,8 +28,9 @@ thread_local! {
 #[derive(Clone, Copy)]
 #[repr(align(16))]
 struct AlignedType(u8);
-#[thread_local]
-static TLS_ALIGNED: Cell<AlignedType> = Cell::new(AlignedType(0x42));
+thread_local! {
+	static TLS_ALIGNED: Cell<AlignedType> = const { Cell::new(AlignedType(0x42)) };
+}
 
 // Check that a pointer is 16-byte aligned.
 fn check_alignment<T>(ptr: *const T) {
@@ -54,7 +53,7 @@ impl Drop for DtorNotifier {
 	}
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+fn main() {
 	println!("Starting TLS demonstration");
 
 	// Dynamically determine thread count: 2 x number of available cores.
@@ -220,6 +219,4 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 	}
 
 	println!("Additional TLS scenarios finished");
-
-	Ok(())
 }
