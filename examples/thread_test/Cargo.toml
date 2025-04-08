@@ -1,0 +1,7 @@
+[package]
+name = "thread_test"
+authors = ["Marco Ruppert-Maas <marco.ruppert-maas@studium.fernuni-hagen.de>"]
+edition = "2024"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }

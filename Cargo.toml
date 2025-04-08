@@ -16,6 +16,7 @@ members = [
     "examples/testtcp",
     "examples/testudp",
     "examples/tls",
+    "examples/thread_test",
     "examples/tokio",
     "examples/webserver",
     "examples/dns",
