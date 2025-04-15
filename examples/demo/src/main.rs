@@ -5,6 +5,7 @@ use hermit as _;
 
 mod fs;
 mod laplace;
+mod mandelbrot;
 mod matmul;
 mod pi;
 mod thread;
@@ -19,6 +20,7 @@ fn main() -> io::Result<()> {
 	pi::pi();
 	matmul::matmul();
 	laplace::laplace();
+	mandelbrot::mandelbrot();
 	Ok(())
 }
 
