@@ -22,7 +22,7 @@ members = [
     "examples/dns",
     "examples/mutex",
     "examples/wasm-test",
-    "examples/wasmtime",
+    "examples/hermit-wasm",
     "examples/vsock",
     "hermit",
     "hermit-abi",
