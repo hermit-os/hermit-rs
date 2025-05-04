@@ -303,6 +303,35 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 	linker
 		.func_wrap(
 			"wasi_snapshot_preview1",
+			"fd_tell",
+			|mut caller: Caller<'_, _>, fd: i32, offset_ptr: i32| {
+				let guard = FD.lock().unwrap();
+				if fd < guard.len().try_into().unwrap() {
+					if let Descriptor::File(file) = &guard[fd as usize] {
+						if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
+							let offset =
+								unsafe { hermit_abi::lseek(file.raw_fd, 0, hermit_abi::SEEK_CUR) };
+
+							if offset > 0 {
+								let _ = mem.write(
+									caller.as_context_mut(),
+									offset_ptr.try_into().unwrap(),
+									offset.as_bytes(),
+								);
+
+								return ERRNO_SUCCESS.raw() as i32;
+							}
+						}
+					}
+				}
+
+				ERRNO_BADF.raw() as i32
+			},
+		)
+		.unwrap();
+	linker
+		.func_wrap(
+			"wasi_snapshot_preview1",
 			"fd_prestat_dir_name",
 			|mut caller: Caller<'_, _>, fd: i32, path_ptr: i32, path_len: i32| {
 				let guard = FD.lock().unwrap();
