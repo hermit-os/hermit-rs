@@ -58,7 +58,7 @@ fn main() -> io::Result<()> {
 						let received = stream.read(&mut buf)?;
 						poller.modify(stream, Event::readable(ev.key))?;
 						let msg = std::str::from_utf8(&buf[..received]).unwrap().trim_end();
-						println!("{}", msg);
+						println!("{msg}");
 						if msg == "exit" {
 							break 'outer;
 						}

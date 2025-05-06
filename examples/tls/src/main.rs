@@ -40,7 +40,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 	// Load private key.
 	let key = load_private_key()?;
 
-	println!("Starting to serve on https://{}", addr);
+	println!("Starting to serve on https://{addr}");
 
 	// Create a TCP listener via tokio.
 	let incoming = TcpListener::bind(addr).await?;

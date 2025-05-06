@@ -24,7 +24,7 @@ fn main() {
 	}
 
 	let addr = Ipv4Addr::from(u32::from_be(inaddr.s_addr));
-	println!("IPv4 address {}", addr);
+	println!("IPv4 address {addr}");
 
 	let mut inaddr: in6_addr = Default::default();
 	let result = unsafe {
@@ -40,7 +40,7 @@ fn main() {
 	}
 
 	let addr = Ipv6Addr::from(u128::from_be_bytes(inaddr.s6_addr));
-	println!("IPv6 address {}", addr);
+	println!("IPv6 address {addr}");
 
 	// retake pointer to free memory
 	let _ = unsafe { CString::from_raw(ptr) };
