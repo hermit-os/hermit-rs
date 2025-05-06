@@ -1,4 +1,4 @@
-# Hermit-WASM - Running WASM modules inside lightweight Virtual Machine
+# Hermit-WASM - Running WASM modules inside a lightweight VM
 
 Hermit-Wasm is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party Wasm code within a VM with very low latency/overhead.
 
