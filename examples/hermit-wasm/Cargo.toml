@@ -1,11 +1,17 @@
 [package]
-name = "wasmtime-demo"
+name = "hermit-wasm"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+repository = "https://github.com/hermit-os/examples/hermit-wasm"
+description = "Running WASM modules inside a lightweight virtual machine"
 readme = "README.md"
 license = "MIT/Apache-2.0"
 keywords = ["wasm", "webassembly"]
+categories = ["os", "wasm"]
+
+[lib]
+name = "hermit_wasm"
 
 [features]
 default = []
@@ -13,14 +19,16 @@ ci = []
 
 [dependencies]
 anyhow = "1.0"
+clap = { version ="4.5", features = ["derive", "env"] }
+chrono = { version = "0.4" }
 bitflags = "2.5"
 cfg-if = "1"
 log = { version = "0.4" } #, features = ["kv_unstable"]}
-simple_logger = { version = "5.0", default-features = false }
+env_logger = { version = "0.11", default-features = false }
 wasmtime = { version = "32", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation", "custom-virtual-memory"] } #"pooling-allocator", "incremental-cache", "wat", "gc", "component-model"] }
 zerocopy = { version = "0.8", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit = { path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "fs", "tcp", "dhcpv4", "mmap"] }
-hermit-abi = { path = "../../hermit-abi", default-features = false }
+hermit = { version = "=0.11", path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "fs", "tcp", "dhcpv4", "mmap"] }
+hermit-abi = { version = "=0.5", path = "../../hermit-abi", default-features = false }
 wasi = { version = "0.11" }

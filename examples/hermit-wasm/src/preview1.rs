@@ -13,7 +13,7 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use bitflags::bitflags;
-use log::debug;
+use log::{debug, error};
 use wasi::*;
 use wasmtime::{AsContext, AsContextMut, Caller, Extern};
 use zerocopy::{Immutable, IntoBytes, KnownLayout};
@@ -743,7 +743,7 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 		.unwrap();
 	linker
 		.func_wrap("wasi_snapshot_preview1", "proc_exit", |_: i32| {
-			panic!("Panic in WASM module")
+			error!("Panic in WASM module")
 		})
 		.unwrap();
 
