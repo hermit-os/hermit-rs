@@ -726,7 +726,7 @@ name = "dns"
 version = "0.0.0"
 dependencies = [
  "hermit",
- "hermit-abi 0.5.0",
+ "hermit-abi 0.5.1",
  "time",
  "tiny_http",
 ]
@@ -1112,7 +1112,7 @@ checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
 
 [[package]]
 name = "hermit-abi"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-alloc",
@@ -2761,7 +2761,7 @@ name = "vsock"
 version = "0.1.0"
 dependencies = [
  "hermit",
- "hermit-abi 0.5.0",
+ "hermit-abi 0.5.1",
  "libc",
 ]
 
@@ -2898,7 +2898,7 @@ dependencies = [
  "bitflags",
  "cfg-if",
  "hermit",
- "hermit-abi 0.5.0",
+ "hermit-abi 0.5.1",
  "log",
  "simple_logger",
  "wasi",
