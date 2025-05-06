@@ -48,7 +48,7 @@ fn fibonacci(n: u64) -> u64 {
 pub fn main() {
 	println!("Call function fibonacci");
 	let result = fibonacci(30);
-	println!("fibonacci(30) = {}", result);
+	println!("fibonacci(30) = {result}");
 	assert!(
 		result == 832040,
 		"Error in the calculation of fibonacci(30) "
@@ -82,7 +82,7 @@ pub fn main() {
 		fs::remove_file(FILE_PATH).expect("Could not delete file");
 	}
 	let elapsed_time = start_time.elapsed();
-	println!("Total Create File Time: {:?}", elapsed_time);
+	println!("Total Create File Time: {elapsed_time:?}");
 
 	// Reading file
 	create_large_file(); // Create file for reading benchmark
@@ -95,7 +95,7 @@ pub fn main() {
 		read_large_file();
 	}
 	let elapsed_time = start_time.elapsed();
-	println!("Total Read File Time: {:?}", elapsed_time);
+	println!("Total Read File Time: {elapsed_time:?}");
 
 	// Delete file
 	fs::remove_file(FILE_PATH).expect("Could not delete file");

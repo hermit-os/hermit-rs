@@ -50,14 +50,14 @@ fn main() {
 	let num_threads = std::thread::available_parallelism()
 		.map(|n| n.get() * 2)
 		.unwrap_or(4);
-	println!("Spawning {} threads (2 x number of cores)", num_threads);
+	println!("Spawning {num_threads} threads (2 x number of cores)");
 
 	let mut handles = vec![];
 
 	// Spawn threads to test TLS isolation and modification.
 	for i in 0..num_threads {
 		handles.push(thread::spawn(move || {
-			println!("Thread {} started", i);
+			println!("Thread {i} started");
 
 			// Check alignment.
 			TLS_ALIGNED.with(|x| assert!(x.as_ptr().is_aligned()));
@@ -134,7 +134,7 @@ fn main() {
 			assert_eq!(TLS_ALIGNED.get().0, 0x42 + i as u8 + 10);
 			assert_eq!(TLS_U64_2.get(), (0xdeadbeef + i as u64) ^ 0xf0f0f0f0);
 
-			println!("Thread {} finished", i);
+			println!("Thread {i} finished");
 		}));
 	}
 
@@ -172,7 +172,7 @@ fn main() {
 		}
 		TLS_MAP.with(|map| {
 			let value = map.borrow().get(&1).cloned().unwrap_or(0);
-			println!("TLS_MAP value for key 1: {}", value);
+			println!("TLS_MAP value for key 1: {value}");
 			assert_eq!(value, 2);
 		});
 	}
@@ -204,7 +204,7 @@ fn main() {
 		handle.join().unwrap();
 		thread::sleep(Duration::from_millis(50));
 		let flag_val = TLS_DESTRUCTOR_RAN.load(Ordering::SeqCst);
-		println!("TLS destructor flag: {}", flag_val);
+		println!("TLS destructor flag: {flag_val}");
 		assert!(flag_val, "TLS destructor did not run");
 	}
 

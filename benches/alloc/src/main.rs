@@ -174,7 +174,7 @@ fn print_bench_results(bench_name: &str, res: &BenchRunResults) {
 }
 
 fn print_measurement_set(measurements: &[u64], set_name: &str) {
-	print!("{:>20} | ", set_name);
+	print!("{set_name:>20} | ");
 	for i in 0..=8 {
 		print!(
 			"{:>8}",

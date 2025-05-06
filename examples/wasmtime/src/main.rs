@@ -27,7 +27,7 @@ pub fn main() -> Result<()> {
 	// In this example we are using the default configuration.
 	let mut config = wasmtime::Config::new();
 	config.wasm_threads(true);
-	debug!("Wasmtime engine is configured as followed: {:?}", config);
+	debug!("Wasmtime engine is configured as followed: {config:?}");
 	let engine = Engine::new(&config)?;
 
 	// TODO: dirty workaround to get the WebAssembly module into
@@ -77,7 +77,7 @@ pub fn main() -> Result<()> {
 		.call(&mut store, &values, &mut results)
 		.with_context(|| "failed to invoke command default".to_string());
 
-	info!("Return value of entry point: {:?}", invoke_res);
+	info!("Return value of entry point: {invoke_res:?}");
 
 	Ok(())
 }

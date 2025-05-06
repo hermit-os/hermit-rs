@@ -400,5 +400,5 @@ pub fn matmul() {
 	let par = timed_matmul(SIZE, matmulz, "par z-order");
 	timed_matmul(SIZE, matmul_strassen, "par strassen");
 	let speedup = seq as f64 / par as f64;
-	eprintln!("speedup: {:.2}x", speedup);
+	eprintln!("speedup: {speedup:.2}x");
 }

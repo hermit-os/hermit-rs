@@ -28,7 +28,7 @@ impl SpinBarrier {
 }
 
 fn mutex_stress_test(no_threads: usize) {
-	println!("Stress mutex with {} threads!", no_threads);
+	println!("Stress mutex with {no_threads} threads!");
 
 	let counter = Arc::new(Mutex::new(0));
 
