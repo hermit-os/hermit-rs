@@ -19,8 +19,14 @@ fn main() {
 	connection::setup(&args, &stream);
 
 	let start = Instant::now();
-	for _i in 0..args.n_rounds {
+	for i in 0..args.n_rounds {
+		print!("round {i}: ");
+		let round_start = Instant::now();
 		stream.read_exact(&mut buf).unwrap();
+		let round_end = Instant::now();
+		let duration = round_end.duration_since(round_start);
+		let mbits = buf.len() as f64 * 8.0f64 / (1024.0f64 * 1024.0f64 * duration.as_secs_f64());
+		println!("{mbits} Mbit/s");
 	}
 	let end = Instant::now();
 	let duration = end.duration_since(start);
