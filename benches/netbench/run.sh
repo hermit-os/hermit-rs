@@ -33,7 +33,7 @@ hermit() {
             -initrd "$root_dir"/target/x86_64-unknown-hermit/release/$bin \
             -netdev tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=on \
             -device virtio-net-pci,netdev=net0,disable-legacy=on \
-            -append "-- --nonblocking 0 --address 10.0.5.1 $args"
+            -append "-- --address 10.0.5.1 $args"
 }
 
 linux() {
@@ -43,7 +43,7 @@ linux() {
         --release \
         --target x86_64-unknown-linux-gnu \
         -- \
-        --nonblocking 0 --address 10.0.5.3 $args
+        --address 10.0.5.3 $args
 }
 
 $1
