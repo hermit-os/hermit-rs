@@ -40,6 +40,7 @@ dhcpv4 = []
 dns = []
 fs = []
 fsgsbase = []
+gem-net = []
 idle-poll = []
 
 # Build the kernel with function instrument code for mcount-based tracing

@@ -118,6 +118,7 @@ impl KernelSrc {
 				"dns",
 				"fs",
 				"fsgsbase",
+				"gem-net",
 				"idle-poll",
 				"mmap",
 				"pci",
