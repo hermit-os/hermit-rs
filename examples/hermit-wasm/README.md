@@ -1,17 +1,17 @@
 # Hermit-WASM - Running WASM modules inside a lightweight VM
 
-Hermit-Wasm is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party Wasm code within a VM with very low latency/overhead.
+Hermit-Wasm is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party WASM code within a VM with very low latency/overhead.
 
-The current version of _Hermit-WASM_ requires the Rust's nightly compiler and is a prototype, which just supports the target [wasm32-wasip1](https://doc.rust-lang.org/rustc/platform-support/wasm32-wasip1.html) and [wasm32-wasip1-threads](https://doc.rust-lang.org/rustc/platform-support/wasm32-wasip1-threads.html). In addition, _Hermit-WASM_ realizes only a subset of the required [bindings](https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md).
+The current version of _Hermit-WASM_ requires the Rust's nightly compiler and is a prototype, which just supports the target [wasm32-wasip1](https://doc.rust-lang.org/rustc/platform-support/wasm32-wasip1.html). In addition, _Hermit-WASM_ realizes only a subset of the required [bindings](https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md).
 
 ## Requirements
 
 * [`rustup`](https://www.rust-lang.org/tools/install)
-* Install required toolchains: `rustup target add wasm32-wasip1`
+* Install required toolchain: `rustup target add wasm32-wasip1`
 
 ## Building from source
 
-To build from source, simply checkout the code and use `cargo build` with a hermit target. The following commands build _Hermit-WASM_ for a _x86_64_ processor:
+To build from source, simply checkout the code and use `cargo build` with a hermit target. The following commands build _Hermit-WASM_ for _x86_64_ processors:
 
 ```sh
 # clone Hermit repository
@@ -32,7 +32,7 @@ If Qemu is used as hypervisor, download the loader binary from its [releases pag
 qemu-system-x86_64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64 -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G  -initrd path_to_hermit-wasm
 ```
 
-_path_to_hermit_wasm_ should be replaced by your local path to the binary. Without any arguments, _Hermit-WASM_ starts a [WASM module](https://github.com/hermit-os/hermit-rs/tree/main/examples/wasm-test), which is included in the binary.
+_path_to_hermit_wasm_ should be replaced by your local path to the binary. Without any arguments, _Hermit-WASM_ starts a [WASM module](https://github.com/hermit-os/hermit-rs/tree/main/examples/wasm-test), which is a small demo and included in the binary.
 
 To load a WASM module from the file system, a local directory has to be mounted within the virtual machine.
 _Hermit_ supports the usage of [virtiofsd](https://github.com/hermit-os/hermit-rs/wiki/Advanced-Configuration-Features#using-virtiofs-to-share-a-file-system-only-required-when-using-qemu) to mount a local directory.
