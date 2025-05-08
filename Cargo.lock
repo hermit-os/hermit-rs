@@ -1155,6 +1155,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hermit-abi"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f154ce46856750ed433c8649605bf7ed2de3bc35fd9d2a9f30cddd873c80cb08"
+
+[[package]]
 name = "hermit-wasm"
 version = "0.1.0"
 dependencies = [
@@ -2416,10 +2422,10 @@ dependencies = [
 
 [[package]]
 name = "socket2"
-version = "0.5.7"
-source = "git+https://github.com/hermit-os/socket2.git?branch=v/0.5.7#dfbe3441c1866d2265aefcc0ba489e88742a568a"
+version = "0.5.9"
+source = "git+https://github.com/hermit-os/socket2.git?branch=v0.5.x#2bb3d15b3cf7b3ec7a89852e1605f4a987e00d03"
 dependencies = [
- "hermit-abi 0.3.9",
+ "hermit-abi 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc",
  "windows-sys 0.52.0",
 ]
