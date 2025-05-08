@@ -17,5 +17,5 @@ async fn main() -> io::Result<()> {
 }
 
 async fn root() -> &'static str {
-	"Hello, World!"
+	"Hello, world!\n"
 }
