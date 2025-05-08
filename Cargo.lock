@@ -2623,12 +2623,12 @@ checksum = "2b9e2fdb3a1e862c0661768b7ed25390811df1947a8acbfbefe09b47078d93c4"
 
 [[package]]
 name = "tokio"
-version = "1.40.0"
-source = "git+https://github.com/hermit-os/tokio.git?branch=v/tokio-1.40.0#d1736f4e7f0293903797f9310c59f06a314fe5dc"
+version = "1.45.0"
+source = "git+https://github.com/hermit-os/tokio.git?branch=v/tokio-1.45.0#0e86dc7f13d850f579049761dc2d28eebcc2bf1c"
 dependencies = [
  "backtrace",
  "bytes",
- "hermit-abi 0.3.9",
+ "hermit-abi 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc",
  "mio",
  "parking_lot",
@@ -2640,8 +2640,8 @@ dependencies = [
 
 [[package]]
 name = "tokio-macros"
-version = "2.4.0"
-source = "git+https://github.com/hermit-os/tokio.git?branch=v/tokio-1.40.0#d1736f4e7f0293903797f9310c59f06a314fe5dc"
+version = "2.5.0"
+source = "git+https://github.com/hermit-os/tokio.git?branch=v/tokio-1.45.0#0e86dc7f13d850f579049761dc2d28eebcc2bf1c"
 dependencies = [
  "proc-macro2",
  "quote",
