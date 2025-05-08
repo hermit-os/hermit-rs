@@ -32,4 +32,3 @@ members = [
 hyper-util = { git = "https://github.com/hermit-os/hyper-util.git", branch = "v/0.1.11" }
 socket2 = { git = "https://github.com/hermit-os/socket2.git", branch = "v0.5.x" }
 tokio = { git = "https://github.com/hermit-os/tokio.git", branch = "v/tokio-1.45.0" }
-tokio-rustls = { git = "https://github.com/hermit-os/tokio-rustls.git", branch = "v/0.26.0" }

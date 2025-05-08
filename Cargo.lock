@@ -2658,11 +2658,11 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.26.0"
-source = "git+https://github.com/hermit-os/tokio-rustls.git?branch=v/0.26.0#2adf212ceccca23a9e29b39046b5bd1a823b05da"
+version = "0.26.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e727b36a1a0e8b74c376ac2211e40c2c8af09fb4013c60d910495810f008e9b"
 dependencies = [
  "rustls",
- "rustls-pki-types",
  "tokio",
 ]
 
