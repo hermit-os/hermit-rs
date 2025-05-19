@@ -21,7 +21,7 @@ ci = []
 anyhow = "1.0"
 clap = { version ="4.5", features = ["derive", "env"] }
 chrono = { version = "0.4" }
-bitflags = "2.5"
+bitflags = "2.9"
 cfg-if = "1"
 log = { version = "0.4" } #, features = ["kv_unstable"]}
 env_logger = { version = "0.11", default-features = false }
