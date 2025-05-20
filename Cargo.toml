@@ -4,6 +4,9 @@ members = [
     "benches/alloc",
     "benches/micro",
     "benches/netbench",
+    "benches/mutex",
+    "benches/startup", 
+    "benches/multithreaded",
     "examples/axum",
     "examples/demo",
     "examples/fuse_test",
@@ -20,14 +23,11 @@ members = [
     "examples/tokio",
     "examples/webserver",
     "examples/dns",
-    "examples/mutex",
     "examples/wasm-test",
     "examples/hermit-wasm",
     "examples/vsock",
     "hermit",
-    "hermit-abi", 
-    "benches/startup", 
-    "benches/multithreaded",
+    "hermit-abi",
 ]
 
 [patch.crates-io]
