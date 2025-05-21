@@ -36,12 +36,13 @@ use std::time::Instant;
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
+use hermit_bench_output::log_benchmark_data;
 
 const BENCH_DURATION: f64 = 3.0;
 
 fn main() {
 	let bench_alloc = benchmark_allocator();
-	print_bench_results("Default allocator", &bench_alloc);
+	print_bench_results(&bench_alloc);
 }
 
 /// Result of a bench run.
@@ -152,38 +153,31 @@ fn benchmark_allocator() -> BenchRunResults {
 	}
 }
 
-fn print_bench_results(bench_name: &str, res: &BenchRunResults) {
-	println!("RESULTS OF BENCHMARK: {bench_name}");
-	println!(
-        " {:7} allocation attempts, {:7} successful allocations, {:7} pre-fail allocations, {:7} deallocations",
-        res.allocation_attempts,
-        res.successful_allocations,
-        res.pre_fail_allocations,
-        res.deallocations
-    );
+fn print_bench_results(res: &BenchRunResults) {
+	let allocation_success =
+		(res.successful_allocations as f64 / res.allocation_attempts as f64) * 100.0;
+	log_benchmark_data("Allocation success", "%", allocation_success);
 
-	println!(
-        "            CATEGORY | OCTILE 0       1       2       3       4       5       6       7       8 | AVERAGE"
-    );
-	println!(
-        "---------------------|--------------------------------------------------------------------------|---------"
-    );
-	print_measurement_set(&res.all_alloc_measurements, "All Allocations");
-	print_measurement_set(&res.nofail_alloc_measurements, "Pre-Fail Allocations");
-	print_measurement_set(&res.dealloc_measurements, "Deallocations");
-}
+	let deallocation_success =
+		(res.deallocations as f64 / res.successful_allocations as f64) * 100.0;
+	log_benchmark_data("Deallocation success", "%", deallocation_success);
 
-fn print_measurement_set(measurements: &[u64], set_name: &str) {
-	print!("{set_name:>20} | ");
-	for i in 0..=8 {
-		print!(
-			"{:>8}",
-			measurements[(measurements.len() / 8 * i).min(measurements.len() - 1)]
-		);
-	}
+	let pre_fail_alloc = (res.pre_fail_allocations as f64 / res.allocation_attempts as f64) * 100.0;
+	log_benchmark_data("Pre-fail Allocations", "%", pre_fail_alloc);
 
-	println!(
-		" | {:>7}   ticks",
-		measurements.iter().sum::<u64>() / measurements.len() as u64
+	let avg_all_alloc = res.all_alloc_measurements.iter().sum::<u64>() as f64
+		/ res.all_alloc_measurements.len() as f64;
+	log_benchmark_data("Average Allocation time", "Ticks", avg_all_alloc);
+
+	let avg_nofail_alloc = res.nofail_alloc_measurements.iter().sum::<u64>() as f64
+		/ res.nofail_alloc_measurements.len() as f64;
+	log_benchmark_data(
+		"Average Allocation time (no fail)",
+		"Ticks",
+		avg_nofail_alloc,
 	);
+
+	let avg_dealloc =
+		res.dealloc_measurements.iter().sum::<u64>() as f64 / res.dealloc_measurements.len() as f64;
+	log_benchmark_data("Average Deallocation time", "Ticks", avg_dealloc);
 }

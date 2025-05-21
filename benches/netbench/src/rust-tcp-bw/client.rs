@@ -11,7 +11,7 @@ use rust_tcp_io_perf::connection;
 fn main() {
 	let args = Config::parse();
 
-	println!("Connecting to the server {}...", args.address);
+	println!("Connecting to the server {}:{}...", args.address, args.port);
 
 	if let Ok(mut stream) = connection::client_connect(args.address_and_port()) {
 		connection::setup(&args, &stream);

@@ -1,17 +1,13 @@
 [package]
-name = "alloc_benchmarks"
+name = "mutex"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
-
-[dependencies]
-fastrand = "2.0.0"
-hermit_bench_output = "0.1.0"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
-[target.'cfg(target_arch = "riscv64")'.dependencies]
-riscv = "0.13"
+[dependencies]
+hermit_bench_output = "0.1.1"
 
 [features]
-default = ["hermit/acpi", "hermit/pci"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp"]

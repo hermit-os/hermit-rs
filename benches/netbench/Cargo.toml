@@ -12,25 +12,42 @@ bytes = "1.1"
 clap = { version ="4.5", features = ["derive"] }
 core_affinity = "0.8"
 hdrhist = "0.5"
+hermit_bench_output = "0.1.0"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp", "hermit/udp", "hermit/pci-ids"]
 
 [[bin]]
-name = "server-bw"
+name = "tcp-server-bw"
 path = "src/rust-tcp-bw/server.rs"
 
 [[bin]]
-name = "client-bw"
+name = "tcp-client-bw"
 path = "src/rust-tcp-bw/client.rs"
 
 [[bin]]
-name = "server-latency"
+name = "tcp-server-latency"
 path = "src/rust-tcp-latency/server.rs"
 
 [[bin]]
-name = "client-latency"
+name = "tcp-client-latency"
 path = "src/rust-tcp-latency/client.rs"
+
+[[bin]]
+name = "udp-server-bw"
+path = "src/rust-udp-bw/server.rs"
+
+[[bin]]
+name = "udp-client-bw"
+path = "src/rust-udp-bw/client.rs"
+
+[[bin]]
+name = "udp-server-latency"
+path = "src/rust-udp-latency/server.rs"
+
+[[bin]]
+name = "udp-client-latency"
+path = "src/rust-udp-latency/client.rs"

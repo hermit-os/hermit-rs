@@ -1,10 +1,11 @@
 [package]
-name = "mutex"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
+name = "startup_benchmark"
+authors = ["Carl Wachter"]
 edition = "2021"
+
+[dependencies]
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
