@@ -1,15 +1,9 @@
-#![allow(unused_imports)]
-
-use std::fmt::format;
-use std::io::{self, Write};
 use std::net::UdpSocket;
-use std::{thread, time};
 
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::connection;
 
 fn main() {
 	let args = Config::parse();

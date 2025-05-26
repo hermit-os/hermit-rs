@@ -1,14 +1,11 @@
-#![allow(unused_imports)]
-
 use std::time::Instant;
 use std::{thread, time};
 
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
-use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::{connection, print_utils, threading};
+use rust_tcp_io_perf::{connection, threading};
 
 fn main() {
 	let args = Config::parse();
@@ -55,7 +52,6 @@ fn main() {
 					}
 				}
 				connection::close_connection(&stream);
-				print_utils::print_summary(hist.clone());
 
 				#[cfg(not(target_os = "hermit"))]
 				hermit_bench_output::log_benchmark_data(

@@ -1,8 +1,4 @@
-#![allow(unused_imports)]
-
-use std::io::Read;
 use std::net::UdpSocket;
-use std::thread::sleep;
 use std::time::Instant;
 
 use clap::Parser;
@@ -10,7 +6,6 @@ use clap::Parser;
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::{connection, print_utils};
 
 fn main() {
 	let args = Config::parse();

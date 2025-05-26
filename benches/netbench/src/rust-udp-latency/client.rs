@@ -1,15 +1,10 @@
-#![allow(unused_imports)]
-
 use std::net::UdpSocket;
 use std::time::Instant;
-use std::{thread, time};
 
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
-use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::{connection, print_utils, threading};
 
 fn main() {
 	let args = Config::parse();
@@ -47,8 +42,6 @@ fn main() {
 			println!("{}% completed", i / progress_tracking_percentage);
 		}
 	}
-
-	print_utils::print_summary(hist.clone());
 
 	#[cfg(not(target_os = "hermit"))]
 	hermit_bench_output::log_benchmark_data(

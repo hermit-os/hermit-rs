@@ -1,5 +1,3 @@
-#![allow(unused_imports)]
-
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
