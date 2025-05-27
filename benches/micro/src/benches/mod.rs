@@ -1,13 +1,7 @@
-use std::f64::consts::{E, PI};
 use std::ffi::c_void;
-use std::fs::File;
 use std::hint::black_box;
-use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
 use std::time::Instant;
-use std::{env, str, thread, vec};
-
-use hermit_bench_output::{log_benchmark_data, log_benchmark_data_with_group};
+use std::{thread, vec};
 
 extern "C" {
 	pub fn memcpy(dest: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;

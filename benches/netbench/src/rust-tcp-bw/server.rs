@@ -1,5 +1,3 @@
-#![allow(unused_imports)]
-
 use std::io::Read;
 use std::time::Instant;
 
@@ -8,7 +6,7 @@ use clap::Parser;
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::{connection, print_utils};
+use rust_tcp_io_perf::connection;
 
 fn main() {
 	let args = Config::parse();

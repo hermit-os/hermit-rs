@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_imports)]
 #![feature(test)]
 
 #[cfg(target_os = "hermit")]
