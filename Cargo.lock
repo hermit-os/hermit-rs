@@ -1789,15 +1789,15 @@ dependencies = [
 
 [[package]]
 name = "polling"
-version = "3.7.4"
+version = "3.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a604568c3202727d1507653cb121dbd627a58684eb09a820fd746bee38b4442f"
+checksum = "b53a684391ad002dd6a596ceb6c74fd004fdce75f4be2e3f615068abbea5fd50"
 dependencies = [
  "cfg-if",
  "concurrent-queue",
- "hermit-abi 0.4.0",
+ "hermit-abi 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pin-project-lite",
- "rustix 0.38.44",
+ "rustix 1.0.5",
  "tracing",
  "windows-sys 0.59.0",
 ]

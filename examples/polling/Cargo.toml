@@ -4,7 +4,7 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
 [dependencies]
-polling = "3.6"
+polling = "3.8"
 env_logger = { version = "0.11.2", default-features = false }
 log = { version = "0.4.8" }
 
