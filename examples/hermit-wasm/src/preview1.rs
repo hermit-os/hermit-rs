@@ -6,10 +6,11 @@
 // working directory of the WASI application.
 
 use std::cmp::Ordering;
-use std::ffi::c_char;
+use std::ffi::{OsString, c_char};
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::thread;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use bitflags::bitflags;
@@ -21,13 +22,13 @@ use zerocopy::{Immutable, IntoBytes, KnownLayout};
 static FD: Mutex<Vec<Descriptor>> = Mutex::new(Vec::new());
 
 #[derive(Debug, Clone, PartialEq)]
-struct FileStream {
+pub(crate) struct FileStream {
 	pub raw_fd: i32,
 	pub path: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum Descriptor {
+pub(crate) enum Descriptor {
 	None,
 	Stdin,
 	Stdout,
@@ -111,7 +112,10 @@ fn cvt(err: i32) -> i32 {
 	}
 }
 
-pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
+pub(crate) fn init<T>(
+	linker: &mut wasmtime::Linker<T>,
+	module_and_args: &'static [OsString],
+) -> Result<()> {
 	debug!("Initialize module wasi_snapshot_preview1");
 
 	{
@@ -170,6 +174,118 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 				}
 			},
 		)
+		.unwrap();
+	linker
+		.func_wrap(
+			"wasi_snapshot_preview1",
+			"args_get",
+			|mut caller: Caller<'_, _>, argv_ptr: i32, argv_buf_ptr: i32| {
+				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
+					let mut pos: u32 = argv_buf_ptr as u32;
+					for (i, element) in module_and_args.iter().enumerate() {
+						let _ = mem.write(
+							caller.as_context_mut(),
+							(argv_ptr + (i * size_of::<u32>()) as i32)
+								.try_into()
+								.unwrap(),
+							pos.as_bytes(),
+						);
+
+						let mut arg = element.clone().into_encoded_bytes();
+						arg.push(0); // plus null terminator
+
+						let _ = mem.write(
+							caller.as_context_mut(),
+							pos.try_into().unwrap(),
+							arg.as_bytes(),
+						);
+
+						pos += arg.len() as u32;
+					}
+				}
+				ERRNO_SUCCESS.raw() as i32
+			},
+		)
+		.unwrap();
+	linker
+		.func_wrap(
+			"wasi_snapshot_preview1",
+			"poll_oneoff",
+			|mut caller: Caller<'_, _>,
+			 input: i32,
+			 output: i32,
+			 nsubscriptions: i32,
+			 nevents: i32| {
+				if nsubscriptions == 0 {
+					return ERRNO_INVAL.raw() as i32;
+				}
+
+				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
+					for _i in 0..nsubscriptions {
+						let mut event: MaybeUninit<Subscription> =
+							unsafe { MaybeUninit::zeroed().assume_init() };
+
+						let _ =
+							mem.read(caller.as_context_mut(), input.try_into().unwrap(), unsafe {
+								std::mem::transmute::<
+									&mut Subscription,
+									&mut [u8; size_of::<Subscription>()],
+								>(event.assume_init_mut())
+							});
+
+						// currently, only the event SubscriptionClock is supported
+						assert!(unsafe { event.assume_init().u.u.clock.id } == CLOCKID_MONOTONIC);
+						let duration =
+							Duration::from_nanos(unsafe { event.assume_init().u.u.clock.timeout });
+						thread::sleep(duration);
+
+						const USERDATA: wasi::Userdata = 0x0123_45678;
+						let result = Event {
+							userdata: USERDATA,
+							error: ERRNO_SUCCESS,
+							type_: EVENTTYPE_CLOCK,
+							fd_readwrite: EventFdReadwrite {
+								nbytes: 0,
+								flags: 0,
+							},
+						};
+
+						let _ = mem.write(
+							caller.as_context_mut(),
+							output.try_into().unwrap(),
+							unsafe {
+								std::slice::from_raw_parts(
+									(&result as *const _) as *const u8,
+									size_of::<Event>(),
+								)
+							},
+						);
+					}
+
+					let result: u32 = nsubscriptions.try_into().unwrap();
+					let _ = mem.write(
+						caller.as_context_mut(),
+						nevents.try_into().unwrap(),
+						unsafe {
+							std::slice::from_raw_parts(
+								(&result as *const _) as *const u8,
+								size_of::<u32>(),
+							)
+						},
+					);
+				}
+
+				ERRNO_SUCCESS.raw() as i32
+			},
+		)
+		.unwrap();
+	linker
+		.func_wrap("wasi_snapshot_preview1", "sched_yield", || {
+			unsafe {
+				hermit_abi::yield_now();
+			}
+			ERRNO_SUCCESS.raw() as i32
+		})
 		.unwrap();
 	linker
 		.func_wrap(
@@ -683,21 +799,27 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 		.func_wrap(
 			"wasi_snapshot_preview1",
 			"args_sizes_get",
-			|mut caller: Caller<'_, _>, number_args_ptr: i32, args_size_ptr: i32| {
+			move |mut caller: Caller<'_, _>, number_args_ptr: i32, args_size_ptr: i32| {
+				let nargs: u32 = module_and_args.len().try_into().unwrap();
 				// Currently, we ignore the arguments
 				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
-					// Currently, we ignore the environment
-					let zero: u32 = 0;
-
 					let _ = mem.write(
 						caller.as_context_mut(),
 						number_args_ptr.try_into().unwrap(),
-						zero.as_bytes(),
+						nargs.as_bytes(),
 					);
+
+					let nargs_size: u32 = module_and_args
+						.iter()
+						.fold(0, |acc, arg| {
+							acc + arg.len() + 1 // +1 for the null terminator
+						})
+						.try_into()
+						.unwrap();
 					let _ = mem.write(
 						caller.as_context_mut(),
 						args_size_ptr.try_into().unwrap(),
-						zero.as_bytes(),
+						nargs_size.as_bytes(),
 					);
 
 					return ERRNO_SUCCESS.raw() as i32;
@@ -711,7 +833,35 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 		.func_wrap(
 			"wasi_snapshot_preview1",
 			"environ_get",
-			|_env_ptr: i32, _env_buffer_ptr: i32| ERRNO_INVAL.raw() as i32,
+			|mut caller: Caller<'_, _>, env_ptr: i32, env_buffer_ptr: i32| {
+				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
+					let mut pos: u32 = env_buffer_ptr as u32;
+					for (i, (key, value)) in std::env::vars().enumerate() {
+						let _ = mem.write(
+							caller.as_context_mut(),
+							(env_ptr + (i * size_of::<u32>()) as i32)
+								.try_into()
+								.unwrap(),
+							pos.as_bytes(),
+						);
+
+						let mut env = key;
+						env.push('=');
+						env.push_str(&value);
+						let env = unsafe { env.as_mut_vec() };
+						env.push(0); // plus null terminator
+
+						let _ = mem.write(
+							caller.as_context_mut(),
+							pos.try_into().unwrap(),
+							env.as_bytes(),
+						);
+
+						pos += env.len() as u32;
+					}
+				}
+				ERRNO_SUCCESS.raw() as i32
+			},
 		)
 		.unwrap();
 	linker
@@ -720,18 +870,23 @@ pub(crate) fn init<T>(linker: &mut wasmtime::Linker<T>) -> Result<()> {
 			"environ_sizes_get",
 			|mut caller: Caller<'_, _>, number_env_variables_ptr: i32, env_buffer_size_ptr: i32| {
 				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
-					// Currently, we ignore the environment
-					let zero: u32 = 0;
+					let mut env_buffer_size: u32 = 0;
+					let mut nnumber_env_variables: u32 = 0;
+
+					for (key, value) in std::env::vars() {
+						nnumber_env_variables += 1;
+						env_buffer_size += u32::try_from(key.len() + value.len() + 2).unwrap(); // +2 for the null terminator and '='
+					}
 
 					let _ = mem.write(
 						caller.as_context_mut(),
 						number_env_variables_ptr.try_into().unwrap(),
-						zero.as_bytes(),
+						nnumber_env_variables.as_bytes(),
 					);
 					let _ = mem.write(
 						caller.as_context_mut(),
 						env_buffer_size_ptr.try_into().unwrap(),
-						zero.as_bytes(),
+						env_buffer_size.as_bytes(),
 					);
 
 					return ERRNO_SUCCESS.raw() as i32;
