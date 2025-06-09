@@ -15,6 +15,7 @@ name = "hermit_wasm"
 
 [features]
 default = []
+fs = ["hermit/fs"]
 
 [dependencies]
 anyhow = "1.0"
