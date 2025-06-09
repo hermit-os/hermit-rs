@@ -1,7 +1,7 @@
 #![feature(thread_local)]
 #![feature(maybe_uninit_slice)]
-#![feature(duration_millis_float)]
 
+use std::ffi::OsString;
 use std::time::Instant;
 
 use anyhow::{Context, Result};
@@ -17,7 +17,11 @@ mod capi;
 #[cfg(target_os = "hermit")]
 mod preview1;
 
-pub fn run_preview1(module_bytes: &[u8], config: &wasmtime::Config) -> Result<()> {
+pub fn run_preview1(
+	module_bytes: &[u8],
+	config: &wasmtime::Config,
+	#[allow(unused_variables)] module_and_args: &'static [OsString],
+) -> Result<()> {
 	let engine = Engine::new(config)?;
 	debug!("Wasmtime engine is configured as followed: {config:?}");
 
@@ -38,7 +42,7 @@ pub fn run_preview1(module_bytes: &[u8], config: &wasmtime::Config) -> Result<()
 	{
 		let mut imports = module.imports();
 		if imports.any(|i| i.module() == "wasi_snapshot_preview1") {
-			preview1::init(&mut linker)?;
+			preview1::init(&mut linker, module_and_args)?;
 		}
 	}
 

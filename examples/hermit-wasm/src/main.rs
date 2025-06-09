@@ -1,7 +1,7 @@
-#![allow(dependency_on_unit_never_type_fallback)]
-
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::sync::LazyLock;
 
 use anyhow::Result;
 use chrono::Local;
@@ -14,16 +14,15 @@ use log::{LevelFilter, info};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
+#[command(name = "hermit-wasm")]
 #[command(next_line_help = true)]
 pub struct Config {
-	/// File name of the WASM module
-	#[arg(short, long, value_name = "FILE")]
-	fname: Option<String>,
-
-	/// Defines the usage of the WebAssembly threads proposal for compilation
-	#[arg(short, long, default_value_t = false)]
-	threads: bool,
+	/// The WebAssembly module to run and arguments to pass to it.
+	#[arg(value_name = "WASM")]
+	pub module_and_args: Vec<OsString>,
 }
+
+static CONFIG: LazyLock<Config> = LazyLock::new(Config::parse);
 
 pub fn main() -> Result<()> {
 	Builder::new()
@@ -41,34 +40,16 @@ pub fn main() -> Result<()> {
 		})
 		.init();
 
-	let args = Config::parse();
-
 	// First step is to create the Wasm execution engine with some config.
-	// In this example we are using the default configuration.
-	let mut config = wasmtime::Config::new();
-	config.wasm_threads(args.threads);
+	// Currently, we are using the default configuration.
+	let config = wasmtime::Config::new();
 
-	for argument in std::env::args() {
-		println!("{argument}");
-	}
+	info!("Start Hermit-WASM!");
 
-	if let Some(fname) = args.fname {
-		info!("Start Hermit-WASM!");
+	let mut buffer = Vec::new();
+	let mut f = File::open(CONFIG.module_and_args[0].clone()).expect("Unable to open wasm module");
 
-		let mut buffer = Vec::new();
-		let mut f = File::open(fname)?;
+	f.read_to_end(&mut buffer)?;
 
-		f.read_to_end(&mut buffer)?;
-
-		run_preview1(buffer.as_slice(), &config)
-	} else {
-		info!("Start simple demo application in Hermit-WASM!");
-
-		#[cfg(not(feature = "ci"))]
-		let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/wasm-test.wasm"));
-		#[cfg(feature = "ci")]
-		let module_bytes = include_bytes!(concat!(env!("OUT_DIR"), "/hello_world.wasm"));
-
-		run_preview1(module_bytes, &config)
-	}
+	run_preview1(buffer.as_slice(), &config, &CONFIG.module_and_args)
 }

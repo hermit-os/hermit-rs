@@ -1,8 +1,8 @@
-use std::fs;
 use std::fs::File;
 use std::hint::black_box;
 use std::io::{Read, Write};
-use std::time::Instant;
+use std::time::{Duration, Instant};
+use std::{env, fs, thread};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
@@ -45,7 +45,34 @@ fn fibonacci(n: u64) -> u64 {
 	fib
 }
 
+pub fn sleep() {
+	let duration = Duration::from_millis(100);
+
+	let now = Instant::now();
+	thread::sleep(duration);
+	let elapsed = now.elapsed();
+
+	println!("Measured time for {duration:?} sleep: {elapsed:?}");
+}
+
+pub fn print_env() {
+	println!("Arguments:");
+	for argument in env::args() {
+		println!("{argument}");
+	}
+
+	println!("Environment variables:");
+	for (key, value) in env::vars() {
+		println!("{key}: {value}");
+	}
+}
+
 pub fn main() {
+	print_env();
+
+	println!("Call function sleep");
+	sleep();
+
 	println!("Call function fibonacci");
 	let result = fibonacci(30);
 	println!("fibonacci(30) = {result}");

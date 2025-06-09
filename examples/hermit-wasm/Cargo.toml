@@ -15,7 +15,6 @@ name = "hermit_wasm"
 
 [features]
 default = []
-ci = []
 
 [dependencies]
 anyhow = "1.0"
