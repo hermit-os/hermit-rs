@@ -1,5 +1,8 @@
 # Hermit-WASM - Running WASM modules inside a lightweight VM
 
+[![Crates.io](https://img.shields.io/crates/v/hermit-wasm.svg)](https://crates.io/crates/hermit-wasm)
+[![License](https://img.shields.io/crates/l/hermit-wasm.svg)](https://img.shields.io/crates/l/hermit-wasm.svg)
+
 _Hermit-WASM_ is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party WASM code within a VM with very low latency/overhead.
 
 The current version of _Hermit-WASM_ requires the Rust's nightly compiler and is a prototype, which just supports the target [wasm32-wasip1](https://doc.rust-lang.org/rustc/platform-support/wasm32-wasip1.html). In addition, _Hermit-WASM_ realizes only a subset of the required [bindings](https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md).
