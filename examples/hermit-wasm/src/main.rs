@@ -45,7 +45,7 @@ pub fn main() -> Result<()> {
 	let config = wasmtime::Config::new();
 
 	if CONFIG.module_and_args.is_empty() {
-		eprintln!("No WebAssembly module specified. Please provide a .wacdsm file to run.");
+		eprintln!("No WebAssembly module specified. Please provide a .wasm file to run.");
 		std::process::exit(1);
 	}
 	let fname = CONFIG.module_and_args[0].clone();
