@@ -16,6 +16,9 @@ name = "hermit_wasm"
 [features]
 default = []
 fs = ["hermit/fs"]
+tcp = ["hermit/tcp"]
+udp = ["hermit/udp"]
+dhcpv4 = ["hermit/dhcpv4"]
 
 [dependencies]
 anyhow = "1.0"
@@ -29,6 +32,6 @@ wasmtime = { version = "32", default-features = false, features = ["std", "runti
 zerocopy = { version = "0.8", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit = { version = "=0.11", path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "tcp", "dhcpv4", "mmap"] }
+hermit = { version = "=0.11", path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "mmap"] }
 hermit-abi = { version = "=0.5", path = "../../hermit-abi", default-features = false }
 wasi = { version = "0.11" }
