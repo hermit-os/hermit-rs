@@ -44,10 +44,15 @@ pub fn main() -> Result<()> {
 	// Currently, we are using the default configuration.
 	let config = wasmtime::Config::new();
 
-	info!("Start Hermit-WASM!");
+	if CONFIG.module_and_args.is_empty() {
+		eprintln!("No WebAssembly module specified. Please provide a .wacdsm file to run.");
+		std::process::exit(1);
+	}
+	let fname = CONFIG.module_and_args[0].clone();
+	info!("Start Hermit-WASM: {fname:?}");
 
 	let mut buffer = Vec::new();
-	let mut f = File::open(CONFIG.module_and_args[0].clone()).expect("Unable to open wasm module");
+	let mut f = File::open(fname).expect("Unable to open wasm module");
 
 	f.read_to_end(&mut buffer)?;
 
