@@ -1,6 +1,6 @@
 # Hermit-WASM - Running WASM modules inside a lightweight VM
 
-Hermit-Wasm is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party WASM code within a VM with very low latency/overhead.
+_Hermit-WASM_ is able to run WASM Modules on top of the Unikernel [Hermit](https://hermit-os.org/) inside a lightweight virtual machine. Its purpose is to enable applications to safely run untrusted or third party WASM code within a VM with very low latency/overhead.
 
 The current version of _Hermit-WASM_ requires the Rust's nightly compiler and is a prototype, which just supports the target [wasm32-wasip1](https://doc.rust-lang.org/rustc/platform-support/wasm32-wasip1.html). In addition, _Hermit-WASM_ realizes only a subset of the required [bindings](https://github.com/WebAssembly/WASI/blob/main/legacy/preview1/docs.md).
 
@@ -11,39 +11,43 @@ The current version of _Hermit-WASM_ requires the Rust's nightly compiler and is
 
 ## Building from source
 
-To build from source, simply checkout the code and use `cargo build` with a hermit target. The following commands build _Hermit-WASM_ for _x86_64_ processors:
+To build from source, simply checkout the code and use `cargo build` with a hermit target. The following commands build _Hermit-WASM_ for _aarch64_ processors:
 
 ```sh
 # clone Hermit repository
 git clone --recurse-submodules https://github.com/hermit-os/hermit-rs.git
+# switch the directory of the Hermit repository
+cd hermit-rs
 # build Hermit-WASM
 cargo build -Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem --target aarch64-unknown-hermit -p hermit-wasm --release
 ```
 
-To build _Hermit-WASM_ for other architecture, replace _x86_64-unknown-hermit_ by _aarch64-unknown-hermit_ for the x86 architecture or _riscv64gc-unknown-hermit_ for RISC-V architecture.
+To build _Hermit-WASM_ for other architecture, replace _aarch64-unknown-hermit_ by _x86_64-unknown-hermit_ for the x86 architecture or _riscv64gc-unknown-hermit_ for RISC-V architecture.
 
 ## Usage
 
-This guideline assumes that Linux is used as host operating system on top of x86_64 processor. In addition, the host offers KVM to accelerate the virtual machine.
+This guideline assumes that Linux is used as host operating system on top of aarch64 processor and [virtiofsd](https://virtio-fs.gitlab) is installed. In addition, the host offers KVM to accelerate the virtual machine.
 
-If Qemu is used as hypervisor, download the loader binary from its [releases page](https://github.com/hermit-os/loader/releases) and start the hypervisor as followed:
-
+Build demo application _wasm-test_ for the target _wasm32-wasip1_.
 ```sh
-qemu-system-x86_64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64 -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G  -initrd path_to_hermit-wasm
+cargo build --target wasm32-wasip1  --release -p wasm-test
 ```
 
-_path_to_hermit_wasm_ should be replaced by your local path to the binary. Without any arguments, _Hermit-WASM_ starts a [WASM module](https://github.com/hermit-os/hermit-rs/tree/main/examples/wasm-test), which is a small demo and included in the binary.
-
-To load a WASM module from the file system, a local directory has to be mounted within the virtual machine.
-_Hermit_ supports the usage of [virtiofsd](https://github.com/hermit-os/hermit-rs/wiki/Advanced-Configuration-Features#using-virtiofs-to-share-a-file-system-only-required-when-using-qemu) to mount a local directory.
-
-As alternative, [uhyve](https://github.com/hermit-os/uhyve) can be used, which offers direct access to a local directory. In the following example, a local file is mounted to _/root/module.wasm_.
-
+If Qemu is used as hypervisor, download the loader binary from its [releases page](https://github.com/hermit-os/loader/releases).
+Use _virtiofsd_ to provide the target directory for _Hermit-WASM_.
 ```sh
-uhyve -c 1 -m 1GiB --file-isolation none --file-mapping path_to_module.wasm:/root/module.wasm target/x86_64-unknown-hermit/release/hermit-wasm -- -- -f /root/module.wasm
+virtiofsd --socket-path=./vhostqemu --shared-dir ./target/wasm32-wasip1/release --announce-submounts --sandbox none --seccomp none --inode-file-handles=never
 ```
 
-In this example, _path_to_module.wasm_ should be also replace by a local path to a WASM module.
+Start _Hermit-WASM_ within the hypervisor Qemu as followed:
+```sh
+qemu-system-aarch64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64 -initrd target/aarch64-unknown-hermit/release/hermit-wasm -append "-- /root/wasm-test.wasm" -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G -global virtio-mmio.force-legacy=off -chardev socket,id=char0,path=./vhostqemu -device vhost-user-fs-pci,queue-size=1024,packed=on,chardev=char0,tag=root -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/shm,share=on -numa node,memdev=mem
+```
+
+As alternative, [uhyve](https://github.com/hermit-os/uhyve) can be used, which is a minimal hypervisor for Hermit and offers direct access to a local directory. Consequently, uhyve doesn't depend on _virtiofsd_. In the following example, a local file is mounted to _/root/wasm-test.wasm_.
+```sh
+uhyve -c 1 -m 1GiB --file-isolation none --file-mapping target/wasm32-wasip1/release/wasm-test.wasm:/root/wasm-test.wasm target/aarch64-unknown-hermit/release/hermit-wasm -- -- /root/wasm-test.wasm
+```
 
 ## Credits
 
