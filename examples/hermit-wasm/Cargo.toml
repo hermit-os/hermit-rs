@@ -1,9 +1,9 @@
 [package]
 name = "hermit-wasm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
-repository = "https://github.com/hermit-os/examples/hermit-wasm"
+repository = "https://github.com/hermit-os/hermit-rs/tree/main/examples/hermit-wasm"
 description = "Running WASM modules inside a lightweight virtual machine"
 readme = "README.md"
 license = "MIT/Apache-2.0"
