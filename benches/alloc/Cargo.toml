@@ -11,7 +11,7 @@ hermit_bench_output = "0.1.0"
 hermit = { path = "../../hermit", default-features = false }
 
 [target.'cfg(target_arch = "riscv64")'.dependencies]
-riscv = "0.13"
+riscv = "0.14"
 
 [features]
 default = ["hermit/acpi", "hermit/pci"]
