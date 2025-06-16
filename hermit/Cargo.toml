@@ -19,7 +19,7 @@ generic_once_cell = { version = "0.1", optional = true }
 libm = { version = "0.2", optional = true }
 spinning_top = { version = "0.3", optional = true }
 take-static = { version = "0.1", optional = true }
-talc = { version = "4.2", default-features = false, features = ["lock_api"], optional = true  }
+talc = { version = "4.4", default-features = false, features = ["lock_api"], optional = true  }
 
 [features]
 default = [
