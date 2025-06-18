@@ -73,7 +73,7 @@ pub struct timespec {
 	/// seconds
 	pub tv_sec: time_t,
 	/// nanoseconds
-	pub tv_nsec: i32,
+	pub tv_nsec: i64,
 }
 
 #[repr(C)]
