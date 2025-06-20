@@ -112,7 +112,7 @@ fn cvt(err: i32) -> i32 {
 	}
 }
 
-pub(crate) fn init<T>(
+pub(crate) fn init<T: 'static>(
 	linker: &mut wasmtime::Linker<T>,
 	module_and_args: &'static [OsString],
 ) -> Result<()> {
