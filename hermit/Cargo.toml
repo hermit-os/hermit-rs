@@ -36,6 +36,7 @@ default = [
 ]
 
 acpi = []
+console = []
 dhcpv4 = []
 dns = []
 fs = []
