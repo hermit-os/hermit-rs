@@ -114,6 +114,7 @@ impl KernelSrc {
 			&mut cargo,
 			[
 				"acpi",
+				"console",
 				"dhcpv4",
 				"dns",
 				"fs",
