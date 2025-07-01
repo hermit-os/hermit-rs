@@ -43,6 +43,7 @@ fs = []
 fsgsbase = []
 gem-net = []
 idle-poll = []
+log-target = []
 
 # Build the kernel with function instrument code for mcount-based tracing
 instrument = []

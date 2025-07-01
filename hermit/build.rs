@@ -121,6 +121,7 @@ impl KernelSrc {
 				"fsgsbase",
 				"gem-net",
 				"idle-poll",
+				"log-target",
 				"mmap",
 				"pci",
 				"pci-ids",
