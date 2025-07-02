@@ -1,5 +1,5 @@
 [package]
-name = "mutex"
+name = "mutex_benchmark"
 authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
