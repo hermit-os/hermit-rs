@@ -10,3 +10,4 @@ hermit_bench_output = "0.1.0"
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
