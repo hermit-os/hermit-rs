@@ -384,32 +384,31 @@ pub(crate) fn init<T: 'static>(
 			"fd_prestat_get",
 			|mut caller: Caller<'_, _>, fd: i32, prestat_ptr: i32| {
 				let guard = FD.lock().unwrap();
-				if fd < guard.len().try_into().unwrap() {
-					if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
-						if let Descriptor::Directory(name) = &guard[fd as usize] {
-							let stat = Prestat {
-								tag: PREOPENTYPE_DIR.raw(),
-								u: PrestatU {
-									dir: PrestatDir {
-										pr_name_len: name.len(),
-									},
-								},
-							};
+				if fd < guard.len().try_into().unwrap()
+					&& let Some(Extern::Memory(mem)) = caller.get_export("memory")
+					&& let Descriptor::Directory(name) = &guard[fd as usize]
+				{
+					let stat = Prestat {
+						tag: PREOPENTYPE_DIR.raw(),
+						u: PrestatU {
+							dir: PrestatDir {
+								pr_name_len: name.len(),
+							},
+						},
+					};
 
-							let _ = mem.write(
-								caller.as_context_mut(),
-								prestat_ptr.try_into().unwrap(),
-								unsafe {
-									std::slice::from_raw_parts(
-										(&stat as *const _) as *const u8,
-										size_of::<Prestat>(),
-									)
-								},
-							);
+					let _ = mem.write(
+						caller.as_context_mut(),
+						prestat_ptr.try_into().unwrap(),
+						unsafe {
+							std::slice::from_raw_parts(
+								(&stat as *const _) as *const u8,
+								size_of::<Prestat>(),
+							)
+						},
+					);
 
-							return ERRNO_SUCCESS.raw() as i32;
-						}
-					}
+					return ERRNO_SUCCESS.raw() as i32;
 				}
 
 				ERRNO_BADF.raw() as i32
@@ -422,22 +421,20 @@ pub(crate) fn init<T: 'static>(
 			"fd_tell",
 			|mut caller: Caller<'_, _>, fd: i32, offset_ptr: i32| {
 				let guard = FD.lock().unwrap();
-				if fd < guard.len().try_into().unwrap() {
-					if let Descriptor::File(file) = &guard[fd as usize] {
-						if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
-							let offset =
-								unsafe { hermit_abi::lseek(file.raw_fd, 0, hermit_abi::SEEK_CUR) };
+				if fd < guard.len().try_into().unwrap()
+					&& let Descriptor::File(file) = &guard[fd as usize]
+					&& let Some(Extern::Memory(mem)) = caller.get_export("memory")
+				{
+					let offset = unsafe { hermit_abi::lseek(file.raw_fd, 0, hermit_abi::SEEK_CUR) };
 
-							if offset > 0 {
-								let _ = mem.write(
-									caller.as_context_mut(),
-									offset_ptr.try_into().unwrap(),
-									offset.as_bytes(),
-								);
+					if offset > 0 {
+						let _ = mem.write(
+							caller.as_context_mut(),
+							offset_ptr.try_into().unwrap(),
+							offset.as_bytes(),
+						);
 
-								return ERRNO_SUCCESS.raw() as i32;
-							}
-						}
+						return ERRNO_SUCCESS.raw() as i32;
 					}
 				}
 
@@ -451,25 +448,25 @@ pub(crate) fn init<T: 'static>(
 			"fd_prestat_dir_name",
 			|mut caller: Caller<'_, _>, fd: i32, path_ptr: i32, path_len: i32| {
 				let guard = FD.lock().unwrap();
-				if fd < guard.len().try_into().unwrap() {
-					if let Descriptor::Directory(path) = &guard[fd as usize] {
-						if let Some(Extern::Memory(mem)) = caller.get_export(
-							"memory
+				if fd < guard.len().try_into().unwrap()
+					&& let Descriptor::Directory(path) = &guard[fd as usize]
+				{
+					if let Some(Extern::Memory(mem)) = caller.get_export(
+						"memory
 ",
-						) {
-							if path_len < path.len().try_into().unwrap() {
-								return ERRNO_INVAL.raw() as i32;
-							}
-
-							let _ = mem.write(
-								caller.as_context_mut(),
-								path_ptr.try_into().unwrap(),
-								path.as_bytes(),
-							);
+					) {
+						if path_len < path.len().try_into().unwrap() {
+							return ERRNO_INVAL.raw() as i32;
 						}
 
-						return ERRNO_SUCCESS.raw() as i32;
+						let _ = mem.write(
+							caller.as_context_mut(),
+							path_ptr.try_into().unwrap(),
+							path.as_bytes(),
+						);
 					}
+
+					return ERRNO_SUCCESS.raw() as i32;
 				}
 
 				ERRNO_BADF.raw() as i32
@@ -479,13 +476,13 @@ pub(crate) fn init<T: 'static>(
 	linker
 		.func_wrap("wasi_snapshot_preview1", "fd_close", |fd: i32| {
 			let mut guard = FD.lock().unwrap();
-			if fd < guard.len().try_into().unwrap() {
-				if let Descriptor::File(file) = &guard[fd as usize] {
-					unsafe {
-						hermit_abi::close(file.raw_fd);
-					}
-					guard[fd as usize] = Descriptor::None;
+			if fd < guard.len().try_into().unwrap()
+				&& let Descriptor::File(file) = &guard[fd as usize]
+			{
+				unsafe {
+					hermit_abi::close(file.raw_fd);
 				}
+				guard[fd as usize] = Descriptor::None;
 			}
 
 			ERRNO_SUCCESS.raw() as i32
