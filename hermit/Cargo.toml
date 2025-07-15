@@ -66,6 +66,7 @@ tcp = []
 trace = []
 udp = []
 vga = []
+virtio-net = []
 vsock = []
 common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
 
