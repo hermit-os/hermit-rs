@@ -133,6 +133,7 @@ impl KernelSrc {
 				"trace",
 				"udp",
 				"vga",
+				"virtio-net",
 				"vsock",
 			]
 			.into_iter(),
