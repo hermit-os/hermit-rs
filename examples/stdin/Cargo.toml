@@ -3,4 +3,7 @@ name = "stdin"
 edition = "2024"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit = { path = "../../hermit" }
+hermit = { path = "../../hermit", default-features = false }
+
+[features]
+default = ["hermit/acpi", "hermit/pci"]
