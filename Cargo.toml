@@ -16,6 +16,7 @@ members = [
     "examples/mioudp",
     "examples/polling",
     "examples/rftrace-example",
+    "examples/stdin",
     "examples/testtcp",
     "examples/testudp",
     "examples/tls",
