@@ -123,6 +123,7 @@ impl KernelSrc {
 				"idle-poll",
 				"log-target",
 				"mmap",
+				"net",
 				"pci",
 				"pci-ids",
 				"rtl8139",
