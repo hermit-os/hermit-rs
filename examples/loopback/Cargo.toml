@@ -1,0 +1,9 @@
+[package]
+name = "loopback"
+edition = "2021"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+
+[features]
+default = ["hermit/acpi", "hermit/net", "hermit/pci", "hermit/pci-ids", "hermit/tcp"]
