@@ -10,7 +10,9 @@ A Rust-based, lightweight unikernel.
 Unikernel means, you bundle your application directly with the kernel library, so that it can run without any installed operating system.
 This reduces overhead, therefore, interesting applications include virtual machines and high-performance computing.
 
-The kernel is able to run [Rust](https://github.com/hermit-os/hermit-rs) applications, as well as [C/C++/Go/Fortran](https://github.com/hermit-os/hermit-playground) applications.
+The kernel is able to run applications authored in [Rust](https://github.com/hermit-os/hermit-rs), [C](https://github.com/hermit-os/hermit-c), among others.
+
+---
 
 The repository contains following directories and submodules:
 
