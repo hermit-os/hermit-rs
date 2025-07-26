@@ -10,7 +10,7 @@ use env_logger::Builder;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use hermit_wasm::run_preview1;
-use log::{LevelFilter, info};
+use log::{LevelFilter, debug, info};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -43,6 +43,7 @@ pub fn main() -> Result<()> {
 	// First step is to create the Wasm execution engine with some config.
 	// Currently, we are using the default configuration.
 	let config = wasmtime::Config::new();
+	debug!("Configuration of Wasmtime: {config:?}");
 
 	if CONFIG.module_and_args.is_empty() {
 		eprintln!("No WebAssembly module specified. Please provide a .wasm file to run.");
