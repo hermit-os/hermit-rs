@@ -50,6 +50,7 @@ instrument = []
 
 libc = []
 mmap = []
+net = []
 pci = []
 pci-ids = ["pci"]
 
