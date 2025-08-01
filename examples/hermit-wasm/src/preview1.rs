@@ -533,6 +533,13 @@ pub(crate) fn init<T: 'static>(
 	linker
 		.func_wrap(
 			"wasi_snapshot_preview1",
+			"fd_fdstat_set_flags",
+			|_fd: i32, _fdflags: i32| i32::from(ERRNO_NOSYS.raw()),
+		)
+		.unwrap();
+	linker
+		.func_wrap(
+			"wasi_snapshot_preview1",
 			"fd_filestat_get",
 			|mut caller: Caller<'_, _>, fd: i32, filestat_ptr: i32| {
 				let guard = FD.lock().unwrap();
