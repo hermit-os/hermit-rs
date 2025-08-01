@@ -1164,6 +1164,7 @@ dependencies = [
  "env_logger",
  "hermit",
  "hermit-abi 0.5.2",
+ "libc",
  "log",
  "wasi",
  "wasmtime",

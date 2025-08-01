@@ -14,7 +14,6 @@ use wasmtime::*;
 mod arch;
 #[cfg(target_os = "hermit")]
 mod capi;
-#[cfg(target_os = "hermit")]
 mod preview1;
 
 pub fn run_preview1(
@@ -38,7 +37,6 @@ pub fn run_preview1(
 	#[allow(unused_mut)]
 	let mut linker = Linker::new(&engine);
 
-	#[cfg(target_os = "hermit")]
 	{
 		let mut imports = module.imports();
 		if imports.any(|i| i.module() == "wasi_snapshot_preview1") {
