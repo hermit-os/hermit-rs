@@ -9,11 +9,13 @@ use std::cmp::Ordering;
 use std::ffi::{OsString, c_char};
 use std::mem::MaybeUninit;
 use std::sync::{Mutex, OnceLock};
-use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::{io, thread};
 
 use anyhow::Result;
 use bitflags::bitflags;
+#[cfg(target_os = "hermit")]
+use hermit_abi as libc;
 use log::{debug, error};
 use wasi::*;
 use wasmtime::{AsContext, AsContextMut, Caller, Extern};
@@ -105,9 +107,9 @@ pub(crate) struct FdStat {
 
 fn cvt(err: i32) -> i32 {
 	match err {
-		hermit_abi::EINVAL => ERRNO_INVAL.raw() as i32,
-		hermit_abi::EFAULT => ERRNO_FAULT.raw() as i32,
-		hermit_abi::ENOMEM => ERRNO_NOMEM.raw() as i32,
+		libc::EINVAL => ERRNO_INVAL.raw() as i32,
+		libc::EFAULT => ERRNO_FAULT.raw() as i32,
+		libc::ENOMEM => ERRNO_NOMEM.raw() as i32,
 		_ => ERRNO_NOSYS.raw() as i32,
 	}
 }
@@ -150,7 +152,7 @@ pub(crate) fn init<T: 'static>(
 
 							ERRNO_INVAL.raw() as i32
 						}
-						Err(_) => unsafe { cvt(hermit_abi::get_errno()) },
+						Err(_) => cvt(io::Error::last_os_error().raw_os_error().unwrap()),
 					},
 					1 => {
 						static NOW: OnceLock<Instant> = OnceLock::new();
@@ -281,9 +283,7 @@ pub(crate) fn init<T: 'static>(
 		.unwrap();
 	linker
 		.func_wrap("wasi_snapshot_preview1", "sched_yield", || {
-			unsafe {
-				hermit_abi::yield_now();
-			}
+			std::thread::yield_now();
 			ERRNO_SUCCESS.raw() as i32
 		})
 		.unwrap();
@@ -314,18 +314,18 @@ pub(crate) fn init<T: 'static>(
 
 					let mut flags: i32 = 0;
 					if oflags.contains(Oflags::OFLAGS_CREAT) {
-						flags |= hermit_abi::O_CREAT;
+						flags |= libc::O_CREAT;
 					}
 					if oflags.contains(Oflags::OFLAGS_TRUNC) {
-						flags |= hermit_abi::O_TRUNC;
+						flags |= libc::O_TRUNC;
 					}
-					flags |= hermit_abi::O_RDWR;
+					flags |= libc::O_RDWR;
 
 					let mut c_path = vec![0u8; path.len() + 1];
 					c_path[..path.len()].copy_from_slice(path.as_bytes());
 					{
 						let raw_fd =
-							unsafe { hermit_abi::open(c_path.as_ptr() as *const c_char, flags, 0) };
+							unsafe { libc::open(c_path.as_ptr() as *const c_char, flags, 0) };
 						let mut guard = FD.lock().unwrap();
 						for (i, entry) in guard.iter_mut().enumerate() {
 							if entry.is_none() {
@@ -425,7 +425,7 @@ pub(crate) fn init<T: 'static>(
 					&& let Descriptor::File(file) = &guard[fd as usize]
 					&& let Some(Extern::Memory(mem)) = caller.get_export("memory")
 				{
-					let offset = unsafe { hermit_abi::lseek(file.raw_fd, 0, hermit_abi::SEEK_CUR) };
+					let offset = unsafe { libc::lseek(file.raw_fd, 0, libc::SEEK_CUR) };
 
 					if offset > 0 {
 						let _ = mem.write(
@@ -480,7 +480,7 @@ pub(crate) fn init<T: 'static>(
 				&& let Descriptor::File(file) = &guard[fd as usize]
 			{
 				unsafe {
-					hermit_abi::close(file.raw_fd);
+					libc::close(file.raw_fd);
 				}
 				guard[fd as usize] = Descriptor::None;
 			}
@@ -633,9 +633,9 @@ pub(crate) fn init<T: 'static>(
 						}
 
 						let result = unsafe {
-							hermit_abi::read(
+							libc::read(
 								fd,
-								data.assume_init_mut().as_mut_ptr(),
+								data.assume_init_mut().as_mut_ptr().cast(),
 								len.try_into().unwrap(),
 							)
 						};
@@ -699,7 +699,8 @@ pub(crate) fn init<T: 'static>(
 					}
 				};
 
-				let result = unsafe { hermit_abi::lseek(fd, offset.try_into().unwrap(), whence) };
+				#[allow(clippy::useless_conversion)]
+				let result = unsafe { libc::lseek(fd, offset.try_into().unwrap(), whence) };
 
 				if let Some(Extern::Memory(mem)) = caller.get_export("memory") {
 					let _ = mem.write(
@@ -767,9 +768,9 @@ pub(crate) fn init<T: 'static>(
 								data.assume_init_mut()
 							});
 						let result = unsafe {
-							hermit_abi::write(
+							libc::write(
 								fd,
-								data.assume_init_ref().as_ptr(),
+								data.assume_init_ref().as_ptr().cast(),
 								len.try_into().unwrap(),
 							)
 						};
