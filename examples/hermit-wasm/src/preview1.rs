@@ -326,6 +326,9 @@ pub(crate) fn init<T: 'static>(
 					{
 						let raw_fd =
 							unsafe { libc::open(c_path.as_ptr() as *const c_char, flags, 0) };
+						if raw_fd < 0 {
+							return cvt(io::Error::last_os_error().raw_os_error().unwrap());
+						}
 						let mut guard = FD.lock().unwrap();
 						for (i, entry) in guard.iter_mut().enumerate() {
 							if entry.is_none() {
