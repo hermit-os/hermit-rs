@@ -1,14 +1,21 @@
 use std::io::Read;
 use std::time::Instant;
 
+#[cfg(feature = "rftrace")]
+extern crate rftrace as _;
 use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
+#[cfg(feature = "rftrace")]
+use rftrace_frontend as rftrace;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::connection;
 
 fn main() {
+	#[cfg(feature = "rftrace")]
+	let events = rftrace::init(100000, false);
+
 	let args = Config::parse();
 	let tot_bytes = args.n_rounds * args.n_bytes;
 
@@ -18,6 +25,10 @@ fn main() {
 	connection::setup(&args, &stream);
 
 	let start = Instant::now();
+
+	#[cfg(feature = "rftrace")]
+	rftrace::enable();
+
 	for i in 0..args.n_rounds {
 		print!("round {i}: ");
 		let round_start = Instant::now();
@@ -27,6 +38,10 @@ fn main() {
 		let mbits = buf.len() as f64 * 8.0f64 / (1024.0f64 * 1024.0f64 * duration.as_secs_f64());
 		println!("{mbits} Mbit/s");
 	}
+
+	#[cfg(feature = "rftrace")]
+	rftrace::disable();
+
 	let end = Instant::now();
 	let duration = end.duration_since(start);
 
@@ -45,4 +60,7 @@ fn main() {
 	);
 
 	connection::close_connection(&stream);
+
+	#[cfg(feature = "rftrace")]
+	rftrace::dump_full_uftrace(events, "/tracedir", "tcp-server-bw").unwrap();
 }
