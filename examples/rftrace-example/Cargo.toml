@@ -4,8 +4,8 @@ authors = ["Martin Kröning <mkroening@posteo.net>"]
 edition = "2021"
 
 [dependencies]
-rftrace = "0.2"
-rftrace-frontend = "0.2"
+rftrace = "0.3"
+rftrace-frontend = "0.3"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit" }
