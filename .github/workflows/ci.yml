@@ -17,10 +17,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
+        with:
+          targets: x86_64-unknown-none
       - run: |
           rustup component add clippy llvm-tools
           rustup target add wasm32-wasip1
@@ -49,10 +48,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rust-src
       - uses: mkroening/rust-toolchain-toml@main
+        with:
+          targets: x86_64-unknown-none
       - run: |
           rustup component add llvm-tools
           rustup target add wasm32-wasip1
