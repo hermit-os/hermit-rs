@@ -4,6 +4,7 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>", "Marco Ruppert-Maas 
 edition = "2024"
 
 [dependencies]
+ndarray = { version = "0.16", features = ["rayon"] }
 rayon = "1.5"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
