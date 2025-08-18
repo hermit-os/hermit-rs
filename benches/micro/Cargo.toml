@@ -4,7 +4,7 @@ authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
 [dependencies]
-rayon = "1.5"
+rayon = "1.11"
 hermit_bench_output = "0.1.1"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
