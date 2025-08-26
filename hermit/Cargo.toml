@@ -27,6 +27,7 @@ default = [
     "dhcpv4",
     "fs",
     "fsgsbase",
+    "kernel-stack",
     "pci",
     "pci-ids",
     "smp",
@@ -43,6 +44,7 @@ fs = []
 fsgsbase = []
 gem-net = []
 idle-poll = []
+kernel-stack = []
 log-target = []
 
 # Build the kernel with function instrument code for mcount-based tracing
