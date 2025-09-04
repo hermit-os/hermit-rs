@@ -77,7 +77,7 @@ pub fn seq_matmulz(a: &[f32], b: &[f32], dest: &mut [f32]) {
 	// All inputs need to be the same length.
 	assert!(a.len() == b.len() && a.len() == dest.len());
 	// Input matrices must be square with each side a power of 2.
-	assert!(a.len().count_ones() == 1 && a.len().trailing_zeros() % 2 == 0);
+	assert!(a.len().count_ones() == 1 && a.len().trailing_zeros().is_multiple_of(2));
 	// Zero dest, as it may be uninitialized.
 	for d in dest.iter_mut() {
 		*d = 0.0;
