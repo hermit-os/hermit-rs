@@ -13,12 +13,16 @@ clap = { version ="4.5", features = ["derive"] }
 core_affinity = "0.8"
 hdrhist = "0.5"
 hermit_bench_output = "0.1.0"
+rftrace = { version = "0.2", optional = true }
+rftrace-frontend = { version = "0.2", optional = true }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp", "hermit/udp"]
+default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp", "hermit/udp", "hermit/virtio-net"]
+rftrace = ["dep:rftrace", "dep:rftrace-frontend", "hermit/fs", "hermit/instrument"]
+dhcp = ["hermit/dhcpv4"]
 
 [[bin]]
 name = "tcp-server-bw"
