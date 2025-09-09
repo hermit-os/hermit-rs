@@ -75,8 +75,13 @@ impl KernelSrc {
 			"kernel manifest path `{}` does not exist",
 			manifest_path.display()
 		);
-		let arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
+		let mut arch = env::var_os("CARGO_CFG_TARGET_ARCH").unwrap();
+		let endian = env::var_os("CARGO_CFG_TARGET_ENDIAN").unwrap();
 		let profile = env::var("PROFILE").expect("PROFILE was not set");
+
+		if arch == "aarch64" && endian == "big" {
+			arch = "aarch64_be".into();
+		}
 
 		let mut cargo = cargo();
 
