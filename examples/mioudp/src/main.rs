@@ -1,10 +1,9 @@
+//! Adapted from <https://github.com/tokio-rs/mio/blob/c9831c78d14fd54c41bab79f5347764a56dc8326/examples/udp_server.rs>.
+
 use std::io;
-use std::str::from_utf8;
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
-// This example is derived from
-// https://github.com/tokio-rs/mio/blob/master/examples/tcp_server.rs
 use log::warn;
 use mio::{Events, Interest, Poll, Token};
 
@@ -63,11 +62,6 @@ fn main() -> io::Result<()> {
 						Ok((packet_size, source_address)) => {
 							// Echo the data.
 							socket.send_to(&buf[..packet_size], source_address)?;
-							if let Ok(str_buf) = from_utf8(&buf[..packet_size]) {
-								if str_buf.trim_end() == "exit" {
-									return Ok(());
-								}
-							}
 						}
 						Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
 							// If we get a `WouldBlock` error we know our socket
