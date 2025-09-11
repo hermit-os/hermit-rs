@@ -29,7 +29,7 @@ cfg-if = "1"
 log = { version = "0.4" } #, features = ["kv_unstable"]}
 libc = "0.2"
 env_logger = { version = "0.11", default-features = false }
-wasi = "0.11"
+wasi = "0.14"
 wasmtime = { version = "36", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation", "custom-virtual-memory", "gc", "gc-drc", 'gc-null',] } #"pooling-allocator", "incremental-cache", "component-model"] }
 zerocopy = { version = "0.8", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
