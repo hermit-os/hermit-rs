@@ -14,7 +14,7 @@ hermit = { path = "../../hermit", default-features = false }
 aarch64-cpu = "10"
 
 [target.'cfg(target_arch = "riscv64")'.dependencies]
-riscv = "0.14"
+riscv = "0.15"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 syscalls = { version = "0.6", default-features = false }
