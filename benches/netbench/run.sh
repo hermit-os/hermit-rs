@@ -23,7 +23,7 @@ hermit() {
 
     echo "Launching $bin image on QEMU"
 
-    qemu-system-x86_64 -cpu host \
+    sudo qemu-system-x86_64 -cpu host \
             -enable-kvm -display none -smp 1 -m 1G -serial stdio \
             -kernel "$root_dir"/kernel/hermit-loader-x86_64 \
             -initrd "$root_dir"/target/x86_64-unknown-hermit/release/$bin \
