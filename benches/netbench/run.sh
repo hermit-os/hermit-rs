@@ -27,7 +27,7 @@ hermit() {
             -enable-kvm -display none -smp 1 -m 1G -serial stdio \
             -kernel "$root_dir"/kernel/hermit-loader-x86_64 \
             -initrd "$root_dir"/target/x86_64-unknown-hermit/release/$bin \
-            -netdev tap,id=net0,ifname=tap10,script=no,downscript=no,vhost=on \
+            -netdev tap,id=net0,script="$root_dir"/kernel/xtask/hermit-ifup,vhost=on \
             -device virtio-net-pci,netdev=net0,disable-legacy=on \
             -append "-- --address 10.0.5.1 $args"
 }
