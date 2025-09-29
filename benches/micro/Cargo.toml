@@ -17,7 +17,7 @@ aarch64-cpu = "10"
 riscv = "0.15"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-syscalls = { version = "0.6", default-features = false }
+syscalls = { version = "0.7", default-features = false }
 
 [features]
 default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
