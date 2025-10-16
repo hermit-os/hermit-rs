@@ -26,7 +26,7 @@ thread_local! {
 
 // A custom type with 128-byte alignment.
 #[derive(Clone, Copy)]
-#[repr(align(128))]
+#[repr(align(0x1000))]
 struct AlignedType(u8);
 thread_local! {
 	static TLS_ALIGNED: Cell<AlignedType> = const { Cell::new(AlignedType(0x42)) };
