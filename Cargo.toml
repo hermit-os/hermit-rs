@@ -35,3 +35,7 @@ members = [
 [patch.crates-io]
 socket2 = { git = "https://github.com/hermit-os/socket2.git", branch = "v0.5.x" }
 tokio = { git = "https://github.com/hermit-os/tokio.git", branch = "v/tokio-1.45.0" }
+
+[profile.profiling]
+inherits = "release"
+debug = "line-tables-only"
