@@ -136,6 +136,20 @@ fn benchmark_allocator() -> BenchRunResults {
 		}
 	}
 
+	while !active_allocations.is_empty() {
+		let index = fastrand::usize(..active_allocations.len());
+		let allocation = active_allocations.swap_remove(index);
+
+		let dealloc_begin = now_fn();
+		unsafe {
+			dealloc(allocation.0, allocation.1);
+		}
+		let dealloc_ticks = now_fn() - dealloc_begin;
+
+		deallocations += 1;
+		dealloc_measurements.push(dealloc_ticks);
+	}
+
 	// sort
 	all_alloc_measurements.sort();
 	nofail_alloc_measurements.sort();
