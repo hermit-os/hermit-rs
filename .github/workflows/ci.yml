@@ -98,14 +98,6 @@ jobs:
       - uses: mkroening/rust-toolchain-toml@main
         with:
           toolchain-file: 'kernel/rust-toolchain.toml'
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.arch }}-${{ matrix.profile }}
-          save-if: ${{ github.ref == 'refs/heads/main' }}
-          workspaces: |
-            .
-            kernel
-            kernel/hermit-builtins
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu ${{ matrix.flags }}
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
