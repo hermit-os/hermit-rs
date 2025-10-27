@@ -85,7 +85,7 @@ jobs:
           sudo apt-get install ${{ matrix.packages }}
       - uses: dtolnay/rust-toolchain@stable
       - run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
-      - run: cargo +stable install --locked uhyve --git https://github.com/hermit-os/uhyve.git --rev 357a022f4f381b1ac80b064f88caae1a657b3687
+      - run: cargo +stable install --locked uhyve --git https://github.com/hermit-os/uhyve.git --rev b6df160bc6c26abc19249c3f847cd526319538cf
         if: matrix.arch == 'x86_64'
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
