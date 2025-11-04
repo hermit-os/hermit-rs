@@ -10,8 +10,6 @@ use generic_once_cell::Lazy;
 use hermit_abi as abi;
 use spinning_top::RawSpinlock;
 
-use crate::syscall;
-
 pub(crate) enum SyscallNo {
 	/// number of the system call `exit`
 	Exit = 0,
