@@ -47,7 +47,7 @@ impl KernelSrc {
 	}
 
 	fn download() -> Self {
-		let version = "0.10.0";
+		let version = "0.12.0";
 		let out_dir = out_dir();
 		let src_dir = out_dir.join(format!("kernel-{version}"));
 

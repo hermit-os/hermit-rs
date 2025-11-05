@@ -34,5 +34,5 @@ wasmtime = { version = "38", default-features = false, features = ["std", "runti
 zerocopy = { version = "0.8", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit = { version = "=0.11", path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "mmap"] }
+hermit = { path = "../../hermit", default-features = false, features = ["acpi", "pci", "fsgsbase", "mmap"] }
 hermit-abi = { version = "=0.5", path = "../../hermit-abi", default-features = false }
