@@ -41,6 +41,15 @@ struct KernelSrc {
 
 impl KernelSrc {
 	fn local() -> Option<Self> {
+		if let Some(src_dir) = env::var_os("HERMIT_MANIFEST_DIR") {
+			assert!(
+				!src_dir.is_empty(),
+				"HERMIT_MANIFEST_DIR is set to the empty string"
+			);
+			let src_dir = PathBuf::from(src_dir);
+			return Some(Self { src_dir });
+		}
+
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("kernel");
 		src_dir.exists().then_some(Self { src_dir })
@@ -169,6 +178,7 @@ impl KernelSrc {
 		);
 
 		// HERMIT_LOG_LEVEL_FILTER sets the log level filter at compile time
+		println!("cargo:rerun-if-env-changed=HERMIT_MANIFEST_DIR");
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 		println!("cargo:rerun-if-env-changed=HERMIT_CAREFUL");
 		println!("cargo:rerun-if-env-changed=HERMIT_MTU");
