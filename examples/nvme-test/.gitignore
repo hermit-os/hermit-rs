@@ -1,0 +1,5 @@
+hermit-loader-x86_64
+hermit-loader-aarch64
+hermit-loader-riscv64
+opensbi*
+nvme.img
