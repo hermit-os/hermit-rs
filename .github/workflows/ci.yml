@@ -83,10 +83,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install ${{ matrix.packages }}
-      - uses: dtolnay/rust-toolchain@stable
-      - run: echo "$CARGO_HOME/bin" >> "$GITHUB_PATH"
-      - run: cargo +stable install --locked uhyve --git https://github.com/hermit-os/uhyve.git --rev b6df160bc6c26abc19249c3f847cd526319538cf
-        if: matrix.arch == 'x86_64'
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
       - name: Dowload OpenSBI
@@ -105,5 +101,3 @@ jobs:
         if: matrix.arch != 'riscv64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
-      - run: UHYVE=$CARGO_HOME/bin/uhyve cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo uhyve --sudo
-        if: matrix.arch == 'x86_64'
