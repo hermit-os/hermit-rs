@@ -8,7 +8,7 @@ readme = "README.md"
 description = "A Rust program to measure bandwidth or latency over a Rust TCP connection"
 
 [dependencies]
-bytes = "1.1"
+bytes = "1.11"
 clap = { version ="4.5", features = ["derive"] }
 core_affinity = "0.8"
 hdrhist = "0.5"
