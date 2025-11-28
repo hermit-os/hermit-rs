@@ -178,10 +178,12 @@ impl KernelSrc {
 		);
 
 		println!("cargo:rerun-if-env-changed=HERMIT_CAREFUL");
+		println!("cargo:rerun-if-env-changed=HERMIT_ENCODED_RUSTFLAGS");
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 		println!("cargo:rerun-if-env-changed=HERMIT_MANIFEST_DIR");
 		println!("cargo:rerun-if-env-changed=HERMIT_MRG_RXBUF_SIZE");
 		println!("cargo:rerun-if-env-changed=HERMIT_MTU");
+		println!("cargo:rerun-if-env-changed=HERMIT_RUSTFLAGS");
 		println!("cargo:rerun-if-env-changed=NO_COLOR");
 	}
 
