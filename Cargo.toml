@@ -5,7 +5,7 @@ members = [
     "benches/micro",
     "benches/netbench",
     "benches/mutex",
-    "benches/startup", 
+    "benches/startup",
     "benches/multithreaded",
     "examples/axum",
     "examples/demo",
