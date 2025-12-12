@@ -29,7 +29,6 @@ jobs:
           cargo clippy -Zbuild-std=std,panic_abort --target=x86_64-unknown-hermit --all-targets
           cargo clippy -Zbuild-std=std,panic_abort --target=aarch64-unknown-hermit --all-targets
           cargo clippy -Zbuild-std=std,panic_abort --target=riscv64gc-unknown-hermit --all-targets
-          cargo clippy -Zbuild-std=std,panic_abort --target=x86_64-unknown-hermit --package hermit --features common-os
 
   format:
     name: Format

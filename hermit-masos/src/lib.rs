@@ -1,3 +1,5 @@
+#![feature(thread_local)]
+
 mod math;
 #[cfg(target_arch = "x86_64")]
 #[macro_use]
@@ -487,6 +489,7 @@ pub extern "C" fn sys_getaddrinfo(
 	-22
 }
 
+#[expect(clippy::missing_safety_doc)]
 #[no_mangle]
 pub unsafe extern "C" fn _start(_argc: i32, _argv: *const *const c_char) -> ! {
 	extern "C" {

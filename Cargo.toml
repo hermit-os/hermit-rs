@@ -30,6 +30,7 @@ members = [
     "examples/vsock",
     "hermit",
     "hermit-abi",
+    "hermit-masos",
 ]
 
 [patch.crates-io]

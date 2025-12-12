@@ -1,0 +1,11 @@
+[package]
+name = "hermit-masos"
+edition = "2021"
+
+[dependencies]
+hermit-abi = "0.4"
+generic_once_cell = "0.1"
+libm = "0.2"
+spinning_top = "0.3"
+take-static = "0.1"
+talc = { version = "4.4", default-features = false, features = ["lock_api"]  }
