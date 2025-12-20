@@ -44,6 +44,22 @@ pub(crate) enum SyscallNo {
 #[thread_local]
 static ERRNO: core::cell::UnsafeCell<i32> = core::cell::UnsafeCell::new(0);
 
+macro_rules! set_errno {
+	($result:expr) => {{
+		let result = $result;
+		if result < 0 {
+			unsafe {
+				ERRNO.get().write((-result).try_into().unwrap());
+			}
+		} else {
+			unsafe {
+				ERRNO.get().write(0);
+			}
+		}
+		result
+	}};
+}
+
 /// Get the last error number from the thread local storage
 #[no_mangle]
 pub extern "C" fn sys_get_errno() -> i32 {
@@ -57,38 +73,16 @@ pub extern "C" fn sys_futex_wait(
 	timeout: *const abi::timespec,
 	flags: u32,
 ) -> i32 {
-	let result: i32 = syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
+	set_errno!(syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
 		.try_into()
-		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_futex_wake(address: *mut u32, count: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::FutexWake, address, count)
+	set_errno!(syscall!(SyscallNo::FutexWake, address, count)
 		.try_into()
-		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 static MYPID: Lazy<RawSpinlock, u32> =
@@ -124,7 +118,7 @@ pub extern "C" fn sys_spawn(
 	_prio: u8,
 	_core_id: isize,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -140,7 +134,7 @@ pub extern "C" fn sys_spawn2(
 
 #[no_mangle]
 pub extern "C" fn sys_join(_id: abi::Tid) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -150,80 +144,72 @@ pub extern "C" fn sys_yield_now() {
 
 #[no_mangle]
 pub extern "C" fn sys_clock_gettime(_clock_id: u64, _tp: *mut abi::timespec) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Open, name, flags, mode)
+	set_errno!(syscall!(SyscallNo::Open, name, flags, mode)
 		.try_into()
-		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_unlink(_name: *const i8) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_rmdir(_name: *const i8) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_stat(_name: *const i8, _stat: *mut abi::stat) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_lstat(_name: *const i8, _stat: *mut abi::stat) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_fstat(_fd: i32, _stat: *mut abi::stat) -> i32 {
-	-22
+	set_errno!(-22)
 }
+
+static CPU_COUNT: Lazy<RawSpinlock, usize> =
+	Lazy::new(|| syscall!(SyscallNo::GetProcessorCount).try_into().unwrap());
 
 #[no_mangle]
 pub extern "C" fn sys_get_processor_count() -> usize {
-	syscall!(SyscallNo::GetProcessorCount).try_into().unwrap()
+	*CPU_COUNT
 }
 
 #[no_mangle]
 pub extern "C" fn sys_notify(_id: usize, _count: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_add_queue(_id: usize, _timeout_ns: i64) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_wait(_id: usize) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_init_queue(_id: usize) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_destroy_queue(_id: usize) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -241,12 +227,12 @@ pub extern "C" fn sys_accept(
 	_addr: *mut abi::sockaddr,
 	_addrlen: *mut abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_bind(_s: i32, _name: *const abi::sockaddr, _namelen: abi::socklen_t) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -255,72 +241,36 @@ pub extern "C" fn sys_connect(
 	_name: *const abi::sockaddr,
 	_namelen: abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_read(fd: i32, buf: *mut u8, len: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Read, fd, buf, len).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+	set_errno!(syscall!(SyscallNo::Read, fd, buf, len).try_into().unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_readv(fd: i32, iov: *const u8, iovcnt: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Readv, fd, iov, iovcnt)
+	set_errno!(syscall!(SyscallNo::Readv, fd, iov, iovcnt)
 		.try_into()
-		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_mkdir(_name: *const i8, _mode: u32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_read_entropy(buf: *mut u8, len: usize, flags: u32) -> isize {
-	let result: isize = syscall!(SyscallNo::ReadEntropy, buf, len, flags)
+	set_errno!(syscall!(SyscallNo::ReadEntropy, buf, len, flags)
 		.try_into()
-		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_recv(_socket: i32, _buf: *mut u8, _len: usize, _flags: i32) -> isize {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -332,65 +282,29 @@ pub extern "C" fn sys_recvfrom(
 	_addr: *mut abi::sockaddr,
 	_addrlen: *mut abi::socklen_t,
 ) -> isize {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_write(fd: i32, buf: *const u8, len: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Write, fd, buf, len).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+	set_errno!(syscall!(SyscallNo::Write, fd, buf, len).try_into().unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_writev(fd: i32, iov: *const u8, iovcnt: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Writev, fd, iov, iovcnt)
+	set_errno!(syscall!(SyscallNo::Writev, fd, iov, iovcnt)
 		.try_into()
-		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+		.unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_close(fd: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Close, fd).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
-	}
-
-	result
+	set_errno!(syscall!(SyscallNo::Close, fd).try_into().unwrap())
 }
 
 #[no_mangle]
 pub extern "C" fn sys_dup(_fd: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -399,7 +313,7 @@ pub extern "C" fn sys_getpeername(
 	_name: *mut abi::sockaddr,
 	_namelen: *mut abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -408,7 +322,7 @@ pub extern "C" fn sys_getsockname(
 	_name: *mut abi::sockaddr,
 	_namelen: *mut abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -419,7 +333,7 @@ pub extern "C" fn sys_getsockopt(
 	_optval: *mut c_void,
 	_optlen: *mut abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -430,27 +344,27 @@ pub extern "C" fn sys_setsockopt(
 	_optval: *const c_void,
 	_optlen: abi::socklen_t,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_ioctl(_s: i32, _cmd: i32, _argp: *mut c_void) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_poll(_fds: *mut abi::pollfd, _nfds: abi::nfds_t, _timeout: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_listen(_s: i32, _backlog: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_send(_s: i32, _mem: *const c_void, _len: usize, _flags: i32) -> isize {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -462,17 +376,17 @@ pub extern "C" fn sys_sendto(
 	_to: *const abi::sockaddr,
 	_tolen: abi::socklen_t,
 ) -> isize {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_shutdown(_s: i32, _how: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
 pub extern "C" fn sys_socket(_domain: i32, _type_: i32, _protocol: i32) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
@@ -484,7 +398,7 @@ pub extern "C" fn sys_getaddrinfo(
 	_servname: *const u8,
 	_res: *mut *mut abi::addrinfo,
 ) -> i32 {
-	-22
+	set_errno!(-22)
 }
 
 #[no_mangle]
