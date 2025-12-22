@@ -49,7 +49,7 @@ macro_rules! set_errno {
 		let result = $result;
 		if result < 0 {
 			unsafe {
-				ERRNO.get().write((-result).try_into().unwrap());
+				ERRNO.get().write((-(result as i32)).try_into().unwrap());
 			}
 		} else {
 			unsafe {
@@ -73,9 +73,11 @@ pub extern "C" fn sys_futex_wait(
 	timeout: *const abi::timespec,
 	flags: u32,
 ) -> i32 {
-	set_errno!(syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
-		.try_into()
-		.unwrap())
+	set_errno!(
+		syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
+			.try_into()
+			.unwrap()
+	)
 }
 
 #[no_mangle]
