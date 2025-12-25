@@ -128,7 +128,6 @@ impl KernelSrc {
 			&mut cargo,
 			[
 				"acpi",
-				"console",
 				"dhcpv4",
 				"dns",
 				"fs",
@@ -149,7 +148,12 @@ impl KernelSrc {
 				"trace",
 				"udp",
 				"vga",
+				"virtio-console",
+				"virtio-fs",
 				"virtio-net",
+				"virtio-vsock",
+				// Deprecated
+				"console",
 				"vsock",
 			]
 			.into_iter(),

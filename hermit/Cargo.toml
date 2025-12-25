@@ -37,7 +37,6 @@ default = [
 ]
 
 acpi = []
-console = []
 dhcpv4 = []
 dns = []
 fs = []
@@ -69,9 +68,15 @@ tcp = []
 trace = []
 udp = []
 vga = []
+virtio-console = []
+virtio-fs = []
 virtio-net = []
-vsock = []
+virtio-vsock = []
 common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
+
+# Deprecated
+console = []
+vsock = []
 
 [build-dependencies]
 cc = "1"
