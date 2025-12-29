@@ -98,6 +98,7 @@ impl KernelSrc {
 			.current_dir(&self.src_dir)
 			.arg("run")
 			.arg("--package=xtask")
+			.arg("--no-default-features")
 			.arg("--target-dir")
 			.arg(&target_dir)
 			.arg("--")
