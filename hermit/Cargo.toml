@@ -61,6 +61,7 @@ randomize-layout = []
 # if this feature isn't set, the Virtio interface will be used
 rtl8139 = ["pci"]
 
+semihosting = []
 shell = []
 smp = []
 strace = []
