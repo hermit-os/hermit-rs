@@ -142,6 +142,7 @@ impl KernelSrc {
 				"pci",
 				"pci-ids",
 				"rtl8139",
+				"semihosting",
 				"shell",
 				"smp",
 				"strace",
