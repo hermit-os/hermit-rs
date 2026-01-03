@@ -31,7 +31,9 @@ pub extern "C" fn sys_malloc(size: usize, align: usize) -> *mut u8 {
 pub extern "C" fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size: usize) -> *mut u8 {
 	unsafe {
 		let layout = Layout::from_size_align(size, align).unwrap();
-		if new_size > size {
+		if new_size == size {
+			ptr
+		} else if new_size > size {
 			ALLOC
 				.lock()
 				.grow(NonNull::new_unchecked(ptr), layout, new_size)
@@ -48,6 +50,10 @@ pub extern "C" fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size:
 
 #[no_mangle]
 pub extern "C" fn sys_free(ptr: *mut u8, size: usize, align: usize) {
+	if ptr.is_null() {
+		return;
+	}
+
 	let layout = Layout::from_size_align(size, align).unwrap();
 	unsafe {
 		ALLOC.lock().free(NonNull::new_unchecked(ptr), layout);
