@@ -52,6 +52,7 @@ instrument = []
 libc = []
 mmap = []
 net = []
+nvme = []
 pci = []
 pci-ids = ["pci"]
 
