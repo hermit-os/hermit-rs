@@ -6,9 +6,7 @@ mod allocator;
 
 use core::ffi::{c_char, c_void};
 
-use generic_once_cell::Lazy;
 use hermit_abi as abi;
-use spinning_top::RawSpinlock;
 
 pub(crate) enum SyscallNo {
 	/// number of the system call `exit`
@@ -44,6 +42,13 @@ pub(crate) enum SyscallNo {
 #[thread_local]
 static ERRNO: core::cell::UnsafeCell<i32> = core::cell::UnsafeCell::new(0);
 
+unsafe fn update_errno(value: i32) {
+	match value {
+		v if v < 0 => ERRNO.get().write(-v),
+		_ => ERRNO.get().write(0),
+	}
+}
+
 /// Get the last error number from the thread local storage
 #[no_mangle]
 pub extern "C" fn sys_get_errno() -> i32 {
@@ -57,52 +62,34 @@ pub extern "C" fn sys_futex_wait(
 	timeout: *const abi::timespec,
 	flags: u32,
 ) -> i32 {
-	let result: i32 = syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
+	let value: i32 = syscall!(SyscallNo::FutexWait, address, expected, timeout, flags)
 		.try_into()
 		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
 pub extern "C" fn sys_futex_wake(address: *mut u32, count: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::FutexWake, address, count)
+	let value: i32 = syscall!(SyscallNo::FutexWake, address, count)
 		.try_into()
 		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value);
 	}
-
-	result
+	value
 }
-
-static MYPID: Lazy<RawSpinlock, u32> =
-	Lazy::new(|| syscall!(SyscallNo::Getpid).try_into().unwrap());
 
 #[no_mangle]
 pub extern "C" fn sys_getpid() -> u32 {
-	*MYPID
+	syscall!(SyscallNo::Getpid).try_into().unwrap()
 }
 
 #[no_mangle]
 pub extern "C" fn sys_exit(arg: i32) -> ! {
 	syscall!(SyscallNo::Exit, arg);
-
 	unreachable!()
 }
 
@@ -155,20 +142,13 @@ pub extern "C" fn sys_clock_gettime(_clock_id: u64, _tp: *mut abi::timespec) -> 
 
 #[no_mangle]
 pub extern "C" fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Open, name, flags, mode)
+	let value: i32 = syscall!(SyscallNo::Open, name, flags, mode)
 		.try_into()
 		.unwrap();
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
@@ -260,38 +240,22 @@ pub extern "C" fn sys_connect(
 
 #[no_mangle]
 pub extern "C" fn sys_read(fd: i32, buf: *mut u8, len: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Read, fd, buf, len).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	let value: isize = syscall!(SyscallNo::Read, fd, buf, len).try_into().unwrap();
+	unsafe {
+		update_errno(value as i32);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
 pub extern "C" fn sys_readv(fd: i32, iov: *const u8, iovcnt: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Readv, fd, iov, iovcnt)
+	let value: isize = syscall!(SyscallNo::Readv, fd, iov, iovcnt)
 		.try_into()
 		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value as i32);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
@@ -301,21 +265,13 @@ pub extern "C" fn sys_mkdir(_name: *const i8, _mode: u32) -> i32 {
 
 #[no_mangle]
 pub extern "C" fn sys_read_entropy(buf: *mut u8, len: usize, flags: u32) -> isize {
-	let result: isize = syscall!(SyscallNo::ReadEntropy, buf, len, flags)
+	let value: isize = syscall!(SyscallNo::ReadEntropy, buf, len, flags)
 		.try_into()
 		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value as i32);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
@@ -337,55 +293,31 @@ pub extern "C" fn sys_recvfrom(
 
 #[no_mangle]
 pub extern "C" fn sys_write(fd: i32, buf: *const u8, len: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Write, fd, buf, len).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	let value: isize = syscall!(SyscallNo::Write, fd, buf, len).try_into().unwrap();
+	unsafe {
+		update_errno(value as i32);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
 pub extern "C" fn sys_writev(fd: i32, iov: *const u8, iovcnt: usize) -> isize {
-	let result: isize = syscall!(SyscallNo::Writev, fd, iov, iovcnt)
+	let value: isize = syscall!(SyscallNo::Writev, fd, iov, iovcnt)
 		.try_into()
 		.unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write((-result).try_into().unwrap());
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	unsafe {
+		update_errno(value as i32);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
 pub extern "C" fn sys_close(fd: i32) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Close, fd).try_into().unwrap();
-
-	if result < 0 {
-		unsafe {
-			ERRNO.get().write(-result);
-		}
-	} else {
-		unsafe {
-			ERRNO.get().write(0);
-		}
+	let value: i32 = syscall!(SyscallNo::Close, fd).try_into().unwrap();
+	unsafe {
+		update_errno(value);
 	}
-
-	result
+	value
 }
 
 #[no_mangle]
