@@ -139,6 +139,7 @@ impl KernelSrc {
 				"log-target",
 				"mmap",
 				"net",
+				"nvme",
 				"pci",
 				"pci-ids",
 				"rtl8139",
