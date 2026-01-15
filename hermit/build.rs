@@ -137,6 +137,7 @@ impl KernelSrc {
 				"idle-poll",
 				"kernel-stack",
 				"log-target",
+				"mman",
 				"mmap",
 				"net",
 				"pci",

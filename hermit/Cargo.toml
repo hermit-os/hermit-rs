@@ -50,6 +50,7 @@ log-target = []
 instrument = []
 
 libc = []
+mman = []
 mmap = []
 net = []
 pci = []
