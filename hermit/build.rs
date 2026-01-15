@@ -2,9 +2,6 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{env, str};
 
-use flate2::read::GzDecoder;
-use tar::Archive;
-
 fn main() {
 	let targets_hermit =
 		env::var_os("CARGO_CFG_TARGET_OS").is_some_and(|target_os| target_os == "hermit");
@@ -16,7 +13,7 @@ fn main() {
 		return;
 	}
 
-	let kernel_src = KernelSrc::local().unwrap_or_else(KernelSrc::download);
+	let kernel_src = KernelSrc::get();
 
 	kernel_src.build();
 
@@ -40,39 +37,19 @@ struct KernelSrc {
 }
 
 impl KernelSrc {
-	fn local() -> Option<Self> {
+	fn get() -> Self {
 		if let Some(src_dir) = env::var_os("HERMIT_MANIFEST_DIR") {
 			assert!(
 				!src_dir.is_empty(),
 				"HERMIT_MANIFEST_DIR is set to the empty string"
 			);
 			let src_dir = PathBuf::from(src_dir);
-			return Some(Self { src_dir });
+			return Self { src_dir };
 		}
 
 		let mut src_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
 		src_dir.set_file_name("kernel");
-		src_dir.exists().then_some(Self { src_dir })
-	}
-
-	fn download() -> Self {
-		let version = "0.12.0";
-		let out_dir = out_dir();
-		let src_dir = out_dir.join(format!("kernel-{version}"));
-
-		if !src_dir.exists() {
-			let url =
-				format!("https://github.com/hermit-os/kernel/archive/refs/tags/v{version}.tar.gz");
-			let response = ureq::get(url.as_str())
-				.call()
-				.unwrap()
-				.into_body()
-				.into_reader();
-			let tar = GzDecoder::new(response);
-			let mut archive = Archive::new(tar);
-			archive.unpack(src_dir.parent().unwrap()).unwrap();
-		}
-
+		assert!(src_dir.exists(), "could not find kernel source");
 		Self { src_dir }
 	}
 
