@@ -30,7 +30,10 @@ fn main() {
 			.stdout;
 		let libc = str::from_utf8(&libc).unwrap().trim_ascii_end();
 		let libc_dir = Path::new(libc).parent().unwrap();
-		println!("cargo:rustc-link-search={}", libc_dir.display());
+		if libc_dir.is_dir() {
+			println!("cargo:rustc-link-search={}", libc_dir.display());
+		}
+
 		println!("cargo:rustc-link-lib=static=c");
 	}
 }
