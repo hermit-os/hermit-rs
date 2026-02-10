@@ -1,5 +1,4 @@
 #![feature(thread_local)]
-#![feature(maybe_uninit_slice)]
 
 use std::ffi::OsString;
 use std::time::Instant;
