@@ -44,10 +44,7 @@ gem-net = []
 idle-poll = []
 kernel-stack = []
 log-target = []
-
-# Build the kernel with function instrument code for mcount-based tracing
-instrument = []
-
+instrument-mcount = [] # Inserts function instrument code for mcount-based tracing
 libc = []
 mman = []
 mmap = []
@@ -78,6 +75,7 @@ common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-st
 # Deprecated
 console = []
 fs = []
+instrument = ["instrument-mcount"]
 vsock = []
 
 [build-dependencies]
