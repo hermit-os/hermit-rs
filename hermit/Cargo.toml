@@ -39,7 +39,6 @@ default = [
 acpi = []
 dhcpv4 = []
 dns = []
-fs = []
 fsgsbase = []
 gem-net = []
 idle-poll = []
@@ -78,6 +77,7 @@ common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-st
 
 # Deprecated
 console = []
+fs = []
 vsock = []
 
 [build-dependencies]
