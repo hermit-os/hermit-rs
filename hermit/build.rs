@@ -118,10 +118,6 @@ impl KernelSrc {
 			.arg("--target-dir")
 			.arg(&target_dir);
 
-		if has_feature("instrument") {
-			cargo.arg("--instrument-mcount");
-		}
-
 		if has_feature("randomize-layout") {
 			cargo.arg("--randomize-layout");
 		}
@@ -138,6 +134,7 @@ impl KernelSrc {
 				"fsgsbase",
 				"gem-net",
 				"idle-poll",
+				"instrument-mcount",
 				"kernel-stack",
 				"log-target",
 				"mman",
