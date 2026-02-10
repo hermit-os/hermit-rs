@@ -25,7 +25,7 @@ talc = { version = "4.4", default-features = false, features = ["lock_api"], opt
 default = [
     "acpi",
     "dhcpv4",
-    "fs",
+    "virtio-fs",
     "fsgsbase",
     "kernel-stack",
     "pci",

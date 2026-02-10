@@ -14,4 +14,4 @@ env_logger = { version = "0.11" }
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/dhcpv4", "hermit/fs", "hermit/pci", "hermit/pci-ids", "hermit/tcp"]
+default = ["hermit/acpi", "hermit/dhcpv4", "hermit/virtio-fs", "hermit/pci", "hermit/pci-ids", "hermit/tcp"]
