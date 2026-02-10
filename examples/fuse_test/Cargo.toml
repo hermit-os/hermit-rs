@@ -6,4 +6,4 @@ edition = "2021"
 hermit = { path = "../../hermit", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/fs", "hermit/pci"]
+default = ["hermit/acpi", "hermit/virtio-fs", "hermit/pci"]
