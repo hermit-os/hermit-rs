@@ -9,6 +9,3 @@ rftrace-frontend = "0.3"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit" }
-
-[features]
-instrument-kernel = ["hermit/instrument"]
