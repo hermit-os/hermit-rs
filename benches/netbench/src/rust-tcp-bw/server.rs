@@ -8,6 +8,32 @@ use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::connection;
 
+fn mean(data: &[f64]) -> Option<f64> {
+	let sum = data.iter().sum::<f64>();
+	match data.len() {
+		positive if positive > 0 => Some(sum / positive as f64),
+		_ => None,
+	}
+}
+
+fn std_deviation(data: &[f64]) -> Option<f64> {
+	match (mean(data), data.len()) {
+		(Some(data_mean), count) if count > 0 => {
+			let variance =
+				data.iter()
+					.map(|value| {
+						let diff = data_mean - *value;
+
+						diff * diff
+					})
+					.sum::<f64>() / count as f64;
+
+			Some(variance.sqrt())
+		}
+		_ => None,
+	}
+}
+
 fn main() {
 	let args = Config::parse();
 
@@ -53,10 +79,12 @@ fn main() {
 		durations.push(mbits);
 	}
 
+	log_benchmark_data("TCP server", "Mbit/s", mean(&durations).unwrap());
+
 	log_benchmark_data(
-		"TCP server",
+		"TCP server-StdDev",
 		"Mbit/s",
-		durations.iter().sum::<f64>() / durations.len() as f64,
+		std_deviation(&durations).unwrap(),
 	);
 
 	connection::close_connection(&stream);
