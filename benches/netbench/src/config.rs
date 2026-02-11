@@ -47,6 +47,13 @@ pub struct Config {
         help = "id of process to pin thread to, -1 for no pinning"
     )]
 	pub p_id: i8,
+	#[arg(
+		long = "warmup",
+		short = 'w',
+		default_value_t = 50,
+		help = "nr. of warmup runs"
+	)]
+	pub warmup: usize,
 }
 
 impl Config {
