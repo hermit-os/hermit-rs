@@ -185,11 +185,17 @@ impl KernelSrc {
 		);
 
 		println!("cargo:rerun-if-env-changed=HERMIT_CAREFUL");
+		println!("cargo:rerun-if-env-changed=HERMIT_DNS1");
+		println!("cargo:rerun-if-env-changed=HERMIT_DNS2");
+		println!("cargo:rerun-if-env-changed=HERMIT_GATEWAY");
+		println!("cargo:rerun-if-env-changed=HERMIT_IP");
 		println!("cargo:rerun-if-env-changed=HERMIT_LOG_LEVEL_FILTER");
 		println!("cargo:rerun-if-env-changed=HERMIT_MANIFEST_DIR");
+		println!("cargo:rerun-if-env-changed=HERMIT_MASK");
 		println!("cargo:rerun-if-env-changed=HERMIT_MRG_RXBUF_SIZE");
 		println!("cargo:rerun-if-env-changed=HERMIT_MTU");
 		println!("cargo:rerun-if-env-changed=NO_COLOR");
+		println!("cargo:rerun-if-env-changed=UHYVE_MOUNT");
 	}
 
 	fn rerun_if_changed_cargo(&self, cargo_toml: &Path) {
