@@ -35,6 +35,53 @@ fn std_deviation(data: &[f64]) -> Option<f64> {
 	}
 }
 
+#[derive(Debug)]
+#[allow(dead_code)]
+struct BoxplotValues {
+	whisk_min: f64,
+	whisk_max: f64,
+	median: f64,
+	q1: f64,
+	q3: f64,
+	nr_outliers: usize,
+	mean: f64,
+	std_deviation: f64,
+}
+
+fn calculate_boxplot(durations: &[f64]) -> BoxplotValues {
+	let mut durations = Vec::from(durations);
+	durations.sort_by(|a, b| a.partial_cmp(b).unwrap());
+	let q1 = *durations.get(durations.len() / 4).unwrap();
+	let q3 = *durations.get(durations.len() * 3 / 4).unwrap();
+	let outlier_min = q1 - 1.5 * (q3 - q1);
+	let outlier_max = q3 + 1.5 * (q3 - q1);
+	let filtered_durations = durations
+		.iter()
+		.filter(|&x| *x >= outlier_min && *x <= outlier_max)
+		.collect::<Vec<&f64>>();
+
+	let min = *filtered_durations[0];
+	let max = *filtered_durations[filtered_durations.len() - 1];
+	let median = **filtered_durations
+		.get(filtered_durations.len() / 2)
+		.unwrap_or(&&0.0);
+	let outliers = durations
+		.iter()
+		.filter(|&x| *x < outlier_min || *x > outlier_max)
+		.copied()
+		.collect::<Vec<f64>>();
+	BoxplotValues {
+		whisk_min: min,
+		whisk_max: max,
+		median,
+		q1,
+		q3,
+		nr_outliers: outliers.len(),
+		std_deviation: std_deviation(&durations).unwrap(),
+		mean: mean(&durations).unwrap(),
+	}
+}
+
 fn receive_rounds(
 	stream: &mut TcpStream,
 	rounds: usize,
@@ -92,10 +139,12 @@ fn main() {
 
 	log_benchmark_data("TCP server", "Mbit/s", mean(&durations).unwrap());
 
-	log_benchmark_data(
-		"TCP server-StdDev",
-		"Mbit/s",
-		std_deviation(&durations).unwrap(),
+	let statistics = calculate_boxplot(&durations);
+	println!("{statistics:#.2?}");
+	println!(
+		"{} outliers ({:.1}%)",
+		statistics.nr_outliers,
+		100.0 * statistics.nr_outliers as f64 / durations.len() as f64
 	);
 
 	connection::close_connection(&stream);
