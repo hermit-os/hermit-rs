@@ -14,13 +14,32 @@ fn main() {
 	let mut buf = vec![0; args.n_bytes];
 	let mut durations = Vec::with_capacity(args.n_rounds);
 
+	println!(
+		"starting server with {} bytes and {} rounds",
+		args.n_bytes, args.n_rounds
+	);
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port.to_string());
 	connection::setup(&args, &stream);
 
+	let progress_prints = [
+		1,
+		args.n_rounds / 10,
+		args.n_rounds / 10 * 2,
+		args.n_rounds / 10 * 3,
+		args.n_rounds / 10 * 4,
+		args.n_rounds / 10 * 5,
+		args.n_rounds / 10 * 6,
+		args.n_rounds / 10 * 7,
+		args.n_rounds / 10 * 8,
+		args.n_rounds / 10 * 9,
+	];
+
 	for i in 0..args.n_rounds {
-		print!("round {i}: ");
+		if progress_prints.contains(&i) {
+			println!("round {i}/{}", args.n_rounds)
+		}
 		let round_start = Instant::now();
-		if let Err(e) = stream.read_exact(&mut buf){
+		if let Err(e) = stream.read_exact(&mut buf) {
 			if e.kind() == ErrorKind::UnexpectedEof {
 				println!("Client ended transmission after {i} rounds");
 				break;
