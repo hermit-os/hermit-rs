@@ -966,6 +966,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
+
+[[package]]
 name = "fuse_test"
 version = "0.0.0"
 dependencies = [
