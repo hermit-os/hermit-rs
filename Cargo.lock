@@ -943,12 +943,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "fork"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.3",
+]
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fs_benchmark"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit_bench_output",
 ]
 
 [[package]]
@@ -1128,19 +1144,13 @@ version = "0.13.2"
 dependencies = [
  "cc",
  "generic_once_cell",
- "hermit-abi 0.4.0",
+ "hermit-abi 0.5.2",
  "home",
  "libm",
  "spinning_top",
  "take-static",
  "talc",
 ]
-
-[[package]]
-name = "hermit-abi"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
 
 [[package]]
 name = "hermit-abi"
@@ -1179,6 +1189,16 @@ name = "hermit_bench_output"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e622f2484751a4f8887e3eab0a6358c1bd66e190c5c54805fdc215c3ea0a871"
+
+[[package]]
+name = "hesh"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "hermit",
+ "log",
+]
 
 [[package]]
 name = "hkdf"
