@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{ErrorKind, Read};
 use std::time::Instant;
 
 use clap::Parser;
@@ -20,7 +20,14 @@ fn main() {
 	for i in 0..args.n_rounds {
 		print!("round {i}: ");
 		let round_start = Instant::now();
-		stream.read_exact(&mut buf).unwrap();
+		if let Err(e) = stream.read_exact(&mut buf){
+			if e.kind() == ErrorKind::UnexpectedEof {
+				println!("Client ended transmission after {i} rounds");
+				break;
+			} else {
+				panic!("Error in reading from stream: {}", e.kind());
+			}
+		}
 		let round_end = Instant::now();
 		let duration = round_end.duration_since(round_start);
 		let mbits = buf.len() as f64 * 8.0f64 / (1024.0f64 * 1024.0f64 * duration.as_secs_f64());
