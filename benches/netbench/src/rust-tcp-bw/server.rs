@@ -30,16 +30,8 @@ fn main() {
 	let end = Instant::now();
 	let duration = end.duration_since(start);
 
-	#[cfg(target_os = "hermit")]
 	log_benchmark_data(
 		"TCP server",
-		"Mbit/s",
-		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64()),
-	);
-
-	#[cfg(not(target_os = "hermit"))]
-	log_benchmark_data(
-		"TCP client",
 		"Mbit/s",
 		(tot_bytes as f64 * 8.0f64) / (1024.0f64 * 1024.0f64 * duration.as_secs_f64()),
 	);
