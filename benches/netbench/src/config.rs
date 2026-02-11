@@ -21,7 +21,7 @@ pub struct Config {
 	#[arg(
 		long = "bytes",
 		short = 'k',
-		default_value_t = 1,
+		default_value_t = 10000,
 		help = "number of bytes to transfer every round"
 	)]
 	pub n_bytes: usize,
