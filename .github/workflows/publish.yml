@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sfdisk kpartx grub
     - uses: actions/checkout@v6
       with:
         submodules: true
@@ -47,6 +51,30 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/hermit-os/rusty_demo:latest
+    - name: Build httpd
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4,hermit/virtio-net --release
+    - name: Create bootable image for httpd
+      run: |
+        dd if=/dev/zero of=httpd.img bs=1k count=1M
+        echo ',,,*;' | sfdisk httpd.img
+        mkfs.ext2 -F -E offset=1048576 httpd.img
+        kpartx -a -v httpd.img
+        grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" loop0
+        cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
+        mkdir -p /mnt/boot/loader
+        cp hermit-loader-x86_64 /mnt/boot/loader
+        cat << END > /mnt/boot/grub/grub.cfg
+        default=0
+        timeout=0
+        menuentry "httpd" {
+          multiboot --quirk-bad-kludge /boot/loader
+          module /boot/httpd
+          boot
+        }
+        END
+        umount /mnt
+        kpartx -d httpd.img
+        qemu-img convert -f raw -O qcow2 httpd.img httpd.qcow2
     - name: Build httpd
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4 --release
     - name: Copy httpd out of target dir
