@@ -10,6 +10,8 @@ use generic_once_cell::Lazy;
 use hermit_abi as abi;
 use spinning_top::RawSpinlock;
 
+pub type Pid = i32;
+
 pub(crate) enum SyscallNo {
 	/// number of the system call `exit`
 	Exit = 0,
@@ -39,6 +41,10 @@ pub(crate) enum SyscallNo {
 	Writev = 12,
 	/// number of the system call `readv`
 	Readv = 13,
+	/// number of the system call `fork`
+	Fork = 14,
+	/// number of the system call `waitpid`
+	Waitpid = 15,
 }
 
 #[thread_local]
@@ -137,7 +143,7 @@ pub extern "C" fn sys_join(_id: abi::Tid) -> i32 {
 }
 
 #[no_mangle]
-pub extern "C" fn sys_yield_now() {
+pub extern "C" fn sys_yield() {
 	syscall!(SyscallNo::Yield);
 }
 
@@ -422,4 +428,38 @@ pub unsafe extern "C" fn _start(_argc: i32, _argv: *const *const c_char) -> ! {
 
 	// And finally start the application.
 	runtime_entry(1, argv.as_ptr(), environ)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_waitpid(pid: Pid) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Waitpid, pid).try_into().unwrap();
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write(-result);
+		}
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+	}
+
+	result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_fork() -> Pid {
+	let result = syscall!(SyscallNo::Fork) as Pid;
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write(-result);
+		}
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+	}
+
+	result as Pid
 }
