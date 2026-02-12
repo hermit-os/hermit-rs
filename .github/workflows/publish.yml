@@ -9,6 +9,10 @@ env:
   GH_TOKEN: ${{ github.token }}
   CARGO_TERM_COLOR: always
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   publish_image:
     name: Publish container image
@@ -58,7 +62,8 @@ jobs:
         dd if=/dev/zero of=httpd.img bs=1k count=1M
         echo ',,,*;' | sfdisk httpd.img
         mkfs.ext2 -F -E offset=1048576 httpd.img
-        kpartx -a -v httpd.img
+        sudo kpartx -a -v httpd.img
+        sudo mount /dev/mapper/loop0p1 /mnt
         grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" loop0
         cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
         mkdir -p /mnt/boot/loader
@@ -72,8 +77,8 @@ jobs:
           boot
         }
         END
-        umount /mnt
-        kpartx -d httpd.img
+        sudo umount /mnt
+        sudo kpartx -d httpd.img
         qemu-img convert -f raw -O qcow2 httpd.img httpd.qcow2
     - name: Build httpd
       run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4 --release
