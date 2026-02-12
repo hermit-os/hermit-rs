@@ -7,8 +7,8 @@ use clap::Parser;
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::connection;
 use rust_tcp_io_perf::print_utils::BoxplotValues;
+use rust_tcp_io_perf::{connection, threading};
 
 fn receive_rounds(
 	stream: &mut TcpStream,
@@ -61,6 +61,7 @@ fn main() {
 	);
 	let mut stream = connection::server_listen_and_get_first_connection(&args.port.to_string());
 	connection::setup(&args, &stream);
+	threading::setup(&args);
 
 	let _ = receive_rounds(&mut stream, args.warmup, args.n_bytes, false);
 	let durations = receive_rounds(&mut stream, args.n_rounds, args.n_bytes, true);
