@@ -20,17 +20,24 @@ fn main() {
 
 	let progress_tracking_percentage = (n_rounds) / 100;
 
-	let mut stream = loop {
-		match connection::client_connect(args.address_and_port()) {
-			Ok(stream) => {
-				break stream;
+	const MAX_RETRIES: i32 = 30;
+	let mut retries = 0;
+	let mut stream =
+		loop {
+			match connection::client_connect(args.address_and_port()) {
+				Ok(stream) => {
+					break stream;
+				}
+				Err(error) => {
+					retries += 1;
+					println!("Couldn't connect to server, retrying ({retries}/{MAX_RETRIES})... ({error})");
+					if retries >= MAX_RETRIES {
+						panic!("Can't establish connection to server. Aborting after {MAX_RETRIES} attempts");
+					}
+					thread::sleep(time::Duration::from_secs(1));
+				}
 			}
-			Err(error) => {
-				println!("Couldn't connect to server, retrying... Error {error}");
-				thread::sleep(time::Duration::from_secs(1));
-			}
-		}
-	};
+		};
 
 	connection::setup(&args, &stream);
 	threading::setup(&args);
