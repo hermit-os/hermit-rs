@@ -18,7 +18,7 @@ fn main() {
 	let wbuf: Vec<u8> = vec![0; n_bytes];
 	let mut rbuf: Vec<u8> = vec![0; n_bytes];
 
-	let progress_tracking_percentage = (n_rounds * 2) / 100;
+	let progress_tracking_percentage = (n_rounds) / 100;
 
 	let mut connected = false;
 
@@ -32,19 +32,21 @@ fn main() {
 
 				println!("Connection established! Ready to send...");
 
-				// To avoid TCP slowstart we do double iterations and measure only the second half
-				for i in 0..(n_rounds * 2) {
+				for _ in 0..(args.warmup) {
+					connection::send_message(n_bytes, &mut stream, &wbuf);
+					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
+				}
+
+				for i in 0..n_rounds {
 					let start = Instant::now();
 
 					connection::send_message(n_bytes, &mut stream, &wbuf);
 					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
 
 					let duration = Instant::now().duration_since(start);
-					if i >= n_rounds {
-						hist.add_value(
-							duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64,
-						);
-					}
+					hist.add_value(
+						duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64,
+					);
 
 					if i % progress_tracking_percentage == 0 {
 						// Track progress on screen
