@@ -5,6 +5,7 @@ use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use rust_tcp_io_perf::config::Config;
+use rust_tcp_io_perf::print_utils::BoxplotValues;
 use rust_tcp_io_perf::{connection, threading};
 
 fn main() {
@@ -42,6 +43,7 @@ fn main() {
 	connection::setup(&args, &stream);
 	threading::setup(&args);
 	let mut hist = hdrhist::HDRHist::new();
+	let mut latencies = Vec::with_capacity(n_rounds);
 
 	println!("Connection established! Ready to send...");
 
@@ -57,7 +59,9 @@ fn main() {
 		connection::receive_message(n_bytes, &mut stream, &mut rbuf);
 
 		let duration = Instant::now().duration_since(start);
-		hist.add_value(duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64);
+		let duration_u64 = duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64;
+		hist.add_value(duration_u64);
+		latencies.push(duration_u64);
 
 		if i % progress_tracking_percentage == 0 {
 			// Track progress on screen
@@ -76,6 +80,9 @@ fn main() {
 		"ns",
 		get_percentiles(hist.summary(), 1.0),
 	);
+
+	let statistics = BoxplotValues::from(latencies.as_slice());
+	println!("{statistics:#.2?}");
 }
 
 fn get_percentiles(summary: impl Iterator<Item = (f64, u64, u64)>, percentile: f64) -> f64 {
