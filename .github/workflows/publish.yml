@@ -64,11 +64,11 @@ jobs:
         mkfs.ext2 -F -E offset=1048576 httpd.img
         sudo kpartx -a -v httpd.img
         sudo mount /dev/mapper/loop0p1 /mnt
-        mkdir -p /mnt/boot/loader
-        grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" loop0
-        cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
-        cp hermit-loader-x86_64 /mnt/boot/loader
-        cat << END > /mnt/boot/grub/grub.cfg
+        sudo mkdir -p /mnt/boot/loader
+        sudo grub-install --root-directory=/mnt --locales= --themes= --fonts= --no-floppy --modules="normal part_msdos ext2 multiboot biosdisk" loop0
+        sudo cp target/x86_64-unknown-hermit/release/httpd /mnt/boot/
+        sudo cp hermit-loader-x86_64 /mnt/boot/loader
+        sudo cat << END > /mnt/boot/grub/grub.cfg
         default=0
         timeout=0
         menuentry "httpd" {
