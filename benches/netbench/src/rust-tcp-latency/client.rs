@@ -53,26 +53,11 @@ fn main() {
 				}
 				connection::close_connection(&stream);
 
-				#[cfg(not(target_os = "hermit"))]
-				hermit_bench_output::log_benchmark_data(
-					"95th percentile TCP Server Latency",
-					"ns",
-					get_percentiles(hist.summary(), 0.95),
-				);
-				#[cfg(not(target_os = "hermit"))]
-				hermit_bench_output::log_benchmark_data(
-					"Max TCP Server Latency",
-					"ns",
-					get_percentiles(hist.summary(), 1.0),
-				);
-
-				#[cfg(target_os = "hermit")]
 				hermit_bench_output::log_benchmark_data(
 					"95th percentile TCP Client Latency",
 					"ns",
 					get_percentiles(hist.summary(), 0.95),
 				);
-				#[cfg(target_os = "hermit")]
 				hermit_bench_output::log_benchmark_data(
 					"Max TCP Client Latency",
 					"ns",
