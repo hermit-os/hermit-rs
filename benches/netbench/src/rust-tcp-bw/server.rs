@@ -8,7 +8,7 @@ use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::connection;
-use rust_tcp_io_perf::print_utils::{calculate_boxplot, mean};
+use rust_tcp_io_perf::print_utils::BoxplotValues;
 
 fn receive_rounds(
 	stream: &mut TcpStream,
@@ -65,9 +65,9 @@ fn main() {
 	let _ = receive_rounds(&mut stream, args.warmup, args.n_bytes, false);
 	let durations = receive_rounds(&mut stream, args.n_rounds, args.n_bytes, true);
 
-	log_benchmark_data("TCP server", "Mbit/s", mean(&durations).unwrap());
+	let statistics = BoxplotValues::<f64>::from(durations.as_slice());
+	log_benchmark_data("TCP server", "Mbit/s", statistics.mean);
 
-	let statistics = calculate_boxplot(&durations);
 	println!("{statistics:#.2?}");
 	println!(
 		"{} outliers ({:.1}%)",
