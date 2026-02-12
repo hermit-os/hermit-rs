@@ -20,58 +20,55 @@ fn main() {
 
 	let progress_tracking_percentage = (n_rounds) / 100;
 
-	let mut connected = false;
-
-	while !connected {
+	let mut stream = loop {
 		match connection::client_connect(args.address_and_port()) {
-			Ok(mut stream) => {
-				connection::setup(&args, &stream);
-				threading::setup(&args);
-				connected = true;
-				let mut hist = hdrhist::HDRHist::new();
-
-				println!("Connection established! Ready to send...");
-
-				for _ in 0..(args.warmup) {
-					connection::send_message(n_bytes, &mut stream, &wbuf);
-					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
-				}
-
-				for i in 0..n_rounds {
-					let start = Instant::now();
-
-					connection::send_message(n_bytes, &mut stream, &wbuf);
-					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
-
-					let duration = Instant::now().duration_since(start);
-					hist.add_value(
-						duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64,
-					);
-
-					if i % progress_tracking_percentage == 0 {
-						// Track progress on screen
-						println!("{}% completed", i / progress_tracking_percentage);
-					}
-				}
-				connection::close_connection(&stream);
-
-				hermit_bench_output::log_benchmark_data(
-					"95th percentile TCP Client Latency",
-					"ns",
-					get_percentiles(hist.summary(), 0.95),
-				);
-				hermit_bench_output::log_benchmark_data(
-					"Max TCP Client Latency",
-					"ns",
-					get_percentiles(hist.summary(), 1.0),
-				);
+			Ok(stream) => {
+				break stream;
 			}
 			Err(error) => {
 				println!("Couldn't connect to server, retrying... Error {error}");
 				thread::sleep(time::Duration::from_secs(1));
 			}
 		}
+	};
+
+	connection::setup(&args, &stream);
+	threading::setup(&args);
+	let mut hist = hdrhist::HDRHist::new();
+
+	println!("Connection established! Ready to send...");
+
+	for _ in 0..(args.warmup) {
+		connection::send_message(n_bytes, &mut stream, &wbuf);
+		connection::receive_message(n_bytes, &mut stream, &mut rbuf);
 	}
+
+	for i in 0..n_rounds {
+		let start = Instant::now();
+
+		connection::send_message(n_bytes, &mut stream, &wbuf);
+		connection::receive_message(n_bytes, &mut stream, &mut rbuf);
+
+		let duration = Instant::now().duration_since(start);
+		hist.add_value(duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64);
+
+		if i % progress_tracking_percentage == 0 {
+			// Track progress on screen
+			println!("{}% completed", i / progress_tracking_percentage);
+		}
+	}
+	connection::close_connection(&stream);
+
+	hermit_bench_output::log_benchmark_data(
+		"95th percentile TCP Client Latency",
+		"ns",
+		get_percentiles(hist.summary(), 0.95),
+	);
+	hermit_bench_output::log_benchmark_data(
+		"Max TCP Client Latency",
+		"ns",
+		get_percentiles(hist.summary(), 1.0),
+	);
 }
 
 fn get_percentiles(summary: impl Iterator<Item = (f64, u64, u64)>, percentile: f64) -> f64 {
