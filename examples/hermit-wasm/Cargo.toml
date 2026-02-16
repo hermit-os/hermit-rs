@@ -24,7 +24,7 @@ dhcpv4 = ["hermit/dhcpv4"]
 anyhow = "1.0"
 clap = { version ="4.5", features = ["derive", "env"] }
 chrono = { version = "0.4" }
-bitflags = "2.10"
+bitflags = "2.11"
 cfg-if = "1"
 log = { version = "0.4" } #, features = ["kv_unstable"]}
 libc = "0.2"
