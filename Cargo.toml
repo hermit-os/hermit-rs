@@ -9,6 +9,7 @@ members = [
     "benches/multithreaded",
     "examples/axum",
     "examples/demo",
+    "examples/fs",
     "examples/fuse_test",
     "examples/hello_world",
     "examples/httpd",
