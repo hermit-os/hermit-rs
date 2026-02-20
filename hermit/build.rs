@@ -140,6 +140,7 @@ impl KernelSrc {
 				"mman",
 				"mmap",
 				"net",
+				"pcap",
 				"pci",
 				"pci-ids",
 				"rtl8139",
