@@ -135,6 +135,7 @@ impl KernelSrc {
 				"net",
 				"virtio",
 				"warn-prebuilt",
+				"write-pcap-file",
 				"console",
 				"fs",
 				"fuse",
@@ -178,6 +179,7 @@ impl KernelSrc {
 		println!("cargo:rerun-if-env-changed=HERMIT_MASK");
 		println!("cargo:rerun-if-env-changed=HERMIT_MRG_RXBUF_SIZE");
 		println!("cargo:rerun-if-env-changed=HERMIT_MTU");
+		println!("cargo:rerun-if-env-changed=HERMIT_PCAP_NAME");
 		println!("cargo:rerun-if-env-changed=NO_COLOR");
 		println!("cargo:rerun-if-env-changed=UHYVE_MOUNT");
 	}
