@@ -118,6 +118,7 @@ impl KernelSrc {
 				"dhcpv4",
 				"dns",
 				"net-trace",
+				"write-pcap-file",
 				"virtio-net",
 				"rtl8139",
 				"gem-net",
