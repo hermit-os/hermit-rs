@@ -49,6 +49,7 @@ libc = []
 mman = []
 mmap = []
 net = []
+pcap = []
 pci = []
 pci-ids = ["pci"]
 
