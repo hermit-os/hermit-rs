@@ -1,8 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![cfg_attr(
-	all(target_os = "hermit", feature = "common-os"),
-	feature(thread_local)
-)]
 
-#[cfg(all(target_os = "hermit", feature = "common-os"))]
-mod syscall;
+#[cfg(not(docsrs))]
+compile_error!("This crate is no longer distributed via crates.io. Use the crate via Git instead. For details, see the README.");

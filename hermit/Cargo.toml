@@ -1,6 +1,6 @@
 [package]
 name = "hermit"
-version = "0.12.0"
+version = "0.13.0"
 authors = [
     "Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
     "Martin Kröning <mkroening@posteo.net>",
@@ -11,73 +11,3 @@ repository = "https://github.com/hermit-os/hermit-rs"
 license = "MIT OR Apache-2.0"
 keywords = ["unikernel", "libos"]
 categories = ["os"]
-links = "hermit"
-
-[dependencies]
-hermit-abi = { version = "0.4", optional = true }
-generic_once_cell = { version = "0.1", optional = true }
-libm = { version = "0.2", optional = true }
-spinning_top = { version = "0.3", optional = true }
-take-static = { version = "0.1", optional = true }
-talc = { version = "4.4", default-features = false, features = ["lock_api"], optional = true  }
-
-[features]
-default = [
-    "acpi",
-    "dhcpv4",
-    "dns",
-    "fsgsbase",
-    "kernel-stack",
-    "pci-ids",
-    "pci",
-    "smp",
-    "tcp",
-    "udp",
-    "virtio-fs",
-]
-
-acpi = []
-dhcpv4 = []
-dns = []
-fsgsbase = []
-gem-net = []
-idle-poll = []
-kernel-stack = []
-log-target = []
-instrument-mcount = [] # Inserts function instrument code for mcount-based tracing
-libc = []
-mman = []
-mmap = []
-net = []
-pci = []
-pci-ids = ["pci"]
-
-# Enables -Z randomize-layout in the kernel
-randomize-layout = []
-
-# if this feature isn't set, the Virtio interface will be used
-rtl8139 = ["pci"]
-
-semihosting = []
-shell = []
-smp = []
-strace = []
-tcp = []
-trace = []
-udp = []
-vga = []
-virtio-console = []
-virtio-fs = []
-virtio-net = []
-virtio-vsock = []
-common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
-
-# Deprecated
-console = []
-fs = []
-instrument = ["instrument-mcount"]
-vsock = []
-
-[build-dependencies]
-cc = "1"
-home = "0.5"

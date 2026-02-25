@@ -1,3 +1,0 @@
-[submodule "kernel"]
-	path = kernel
-	url = https://github.com/hermit-os/kernel.git
