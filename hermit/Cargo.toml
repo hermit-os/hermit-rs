@@ -1,6 +1,6 @@
 [package]
 name = "hermit"
-version = "0.12.0"
+version = "0.13.0"
 authors = [
     "Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
     "Martin Kröning <mkroening@posteo.net>",
@@ -35,48 +35,62 @@ default = [
     "udp",
     "virtio-fs",
 ]
-
-acpi = []
-dhcpv4 = []
-dns = []
-fsgsbase = []
-gem-net = []
-idle-poll = []
-kernel-stack = []
-log-target = []
-instrument-mcount = [] # Inserts function instrument code for mcount-based tracing
-libc = []
-mman = []
-mmap = []
-net = []
-pci = []
-pci-ids = ["pci"]
-
-# Enables -Z randomize-layout in the kernel
-randomize-layout = []
-
-# if this feature isn't set, the Virtio interface will be used
-rtl8139 = ["pci"]
-
-semihosting = []
-shell = []
-smp = []
-strace = []
-tcp = []
-trace = []
-udp = []
-vga = []
-virtio-console = []
-virtio-fs = []
-virtio-net = []
-virtio-vsock = []
 common-os = ["hermit-abi", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
 
-# Deprecated
+## Links against libc.a.
+libc = []
+
+## Builds the kernel with `--randomize-layout`.
+randomize-layout = []
+
+#! ### Kernel Features
+#!
+#! For details, see the kernel [docs].
+#!
+#! [docs]: https://hermit-os.github.io/kernel
+
+mman = []
+newlib = []
+acpi = []
+fsgsbase = []
+pci = []
+pci-ids = []
+semihosting = []
+smp = []
+tcp = []
+udp = []
+dhcpv4 = []
+dns = []
+net-trace = []
+virtio-net = []
+rtl8139 = []
+gem-net = []
+virtio-console = []
+virtio-fs = []
+virtio-vsock = []
+vga = []
+idle-poll = []
+alloc-stats = []
+instrument-mcount = []
+kernel-stack = []
+shell = []
+strace = []
+document-features = []
+net = []
+virtio = []
+warn-prebuilt = []
 console = []
 fs = []
-instrument = ["instrument-mcount"]
+fuse = []
+mmap = []
+nostd = []
+trace = []
 vsock = []
+
+#! ### Deprecated Features
+
+instrument = ["instrument-mcount"]
+log-target = []
 
 [build-dependencies]
 cc = "1"
