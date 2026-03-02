@@ -3,10 +3,10 @@
 use std::ffi::OsString;
 use std::time::Instant;
 
-use anyhow::{Context, Result};
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use log::debug;
+use wasmtime::error::Context;
 use wasmtime::*;
 
 #[cfg(target_os = "hermit")]
