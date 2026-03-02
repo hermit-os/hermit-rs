@@ -12,13 +12,12 @@ use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use std::{io, thread};
 
-use anyhow::Result;
 use bitflags::bitflags;
 #[cfg(target_os = "hermit")]
 use hermit_abi as libc;
 use log::{debug, error};
 use wasi::*;
-use wasmtime::{AsContext, AsContextMut, Caller, Extern};
+use wasmtime::{AsContext, AsContextMut, Caller, Extern, Result};
 use zerocopy::{Immutable, IntoBytes, KnownLayout};
 
 static FD: Mutex<Vec<Descriptor>> = Mutex::new(Vec::new());

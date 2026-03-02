@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::LazyLock;
 
-use anyhow::Result;
 use chrono::Local;
 use clap::Parser;
 use env_logger::Builder;
@@ -11,6 +10,7 @@ use env_logger::Builder;
 use hermit as _;
 use hermit_wasm::run_preview1;
 use log::{LevelFilter, debug, info};
+use wasmtime::Result;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
