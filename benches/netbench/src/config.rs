@@ -21,7 +21,7 @@ pub struct Config {
 	#[arg(
 		long = "bytes",
 		short = 'k',
-		default_value_t = 1,
+		default_value_t = 10000,
 		help = "number of bytes to transfer every round"
 	)]
 	pub n_bytes: usize,
@@ -47,6 +47,13 @@ pub struct Config {
         help = "id of process to pin thread to, -1 for no pinning"
     )]
 	pub p_id: i8,
+	#[arg(
+		long = "warmup",
+		short = 'w',
+		default_value_t = 50,
+		help = "nr. of warmup runs"
+	)]
+	pub warmup: usize,
 }
 
 impl Config {
