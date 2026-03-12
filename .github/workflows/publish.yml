@@ -15,6 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install fdisk qemu-utils
     - uses: actions/checkout@v6
       with:
         submodules: true
@@ -32,6 +36,7 @@ jobs:
       run: |
         gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
         gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64-fc
+        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64.efi
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
@@ -48,7 +53,34 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/rusty_demo:latest
     - name: Build httpd
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4,hermit/virtio-net --release
+    - name: Create UEFI image with httpd
+      run: |
+        truncate -s 1G uefi-httpd.raw
+        sfdisk uefi-httpd.raw <<EOF
+        label: gpt
+        type=uefi
+        EOF
+
+        lo=$(sudo losetup --show -Pf uefi-httpd.raw)
+        p1="${lo}p1"
+
+        sudo mkfs.fat "$p1"
+
+        sudo mount "$p1" /mnt
+        sudo mkdir -p /mnt/EFI/BOOT
+        sudo cp hermit-loader-x86_64.efi /mnt/EFI/BOOT/BOOTX64.EFI
+        sudo cp target/x86_64-unknown-hermit/release/httpd /mnt/EFI/BOOT/hermit-app
+        sudo umount /mnt
+
+        sudo losetup --detach "$lo"
+
+        qemu-img convert -c -f raw -O qcow2 uefi-httpd.raw uefi-httpd.qcow2
+    - name: Upload image artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: uefi-httpd
+        path: uefi-httpd.qcow2
     - name: Copy httpd out of target dir
       run: cp target/x86_64-unknown-hermit/release/httpd .
     - name: Create dockerfile for httpd
@@ -82,7 +114,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/httpd_alpine:latest
     - name: Build webserver
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/virtio-fs,hermit/virtio-net --release
     - name: Copy webserver out of target dir
       run: cp target/x86_64-unknown-hermit/release/webserver .
     - name: Create static website
@@ -116,7 +148,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/webserver:latest
     - name: Build tls-demo
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features hermit/dhcpv4,hermit/virtio-net --release
     - name: Copy tls-demo out of target dir
       run: cp target/x86_64-unknown-hermit/release/tls .
     - name: Create dockerfile for tls-demo
@@ -135,7 +167,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/tls:latest
     - name: Build axum
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fs --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/virtio-fs,hermit/virtio-net --release
     - name: Copy axum out of target dir
       run: cp target/x86_64-unknown-hermit/release/axum-example .
     - name: Create dockerfile for axum
