@@ -48,7 +48,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/rusty_demo:latest
     - name: Build httpd
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p httpd --features hermit/dhcpv4,hermit/virtio-net --release
     - name: Copy httpd out of target dir
       run: cp target/x86_64-unknown-hermit/release/httpd .
     - name: Create dockerfile for httpd
@@ -82,7 +82,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/httpd_alpine:latest
     - name: Build webserver
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p webserver --features hermit/dhcpv4,hermit/fs,hermit/virtio-net --release
     - name: Copy webserver out of target dir
       run: cp target/x86_64-unknown-hermit/release/webserver .
     - name: Create static website
@@ -116,7 +116,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/webserver:latest
     - name: Build tls-demo
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features hermit/dhcpv4 --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p tls --features hermit/dhcpv4,hermit/virtio-net --release
     - name: Copy tls-demo out of target dir
       run: cp target/x86_64-unknown-hermit/release/tls .
     - name: Create dockerfile for tls-demo
@@ -135,7 +135,7 @@ jobs:
         push: true
         tags: ghcr.io/hermit-os/tls:latest
     - name: Build axum
-      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fs --release
+      run: cargo build -Zbuild-std=std,panic_abort --target x86_64-unknown-hermit -p axum-example --features hermit/dhcpv4,hermit/fs,hermit/virtio-net --release
     - name: Copy axum out of target dir
       run: cp target/x86_64-unknown-hermit/release/axum-example .
     - name: Create dockerfile for axum
