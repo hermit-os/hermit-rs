@@ -1115,7 +1115,7 @@ dependencies = [
 
 [[package]]
 name = "hermit"
-version = "0.13.1"
+version = "0.13.2"
 dependencies = [
  "cc",
  "generic_once_cell",
