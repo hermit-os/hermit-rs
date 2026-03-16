@@ -5,6 +5,7 @@ edition = "2021"
 [dependencies]
 axum = "0.8"
 tokio = "1"
+serde = { version = "1", features = ["derive"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]
 hermit = { path = "../../hermit" }
