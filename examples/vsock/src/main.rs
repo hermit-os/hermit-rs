@@ -61,6 +61,7 @@ fn main() {
 			Ok(received) => {
 				let msg = std::str::from_utf8(&buf[..received]).unwrap();
 				print!("{}", msg);
+				socket.write_all(&buf[..received]).unwrap();
 
 				if msg.trim() == "exit" {
 					break;
