@@ -43,6 +43,11 @@ fn main() {
 // Use `socat - SOCKET-LISTEN:9975` to communicate with the unikernel.
 #[cfg(feature = "client")]
 fn main() {
+	use std::thread;
+	use std::time::Duration;
+
+	thread::sleep(Duration::from_secs(1));
+
 	let addr = vsock::VsockAddr::new(2, 9975);
 	let mut socket = vsock::VsockStream::connect(addr).expect("connection failed");
 	let mut buf = [0u8; 1000];
@@ -56,6 +61,7 @@ fn main() {
 			Ok(received) => {
 				let msg = std::str::from_utf8(&buf[..received]).unwrap();
 				print!("{}", msg);
+				socket.write_all(&buf[..received]).unwrap();
 
 				if msg.trim() == "exit" {
 					break;
