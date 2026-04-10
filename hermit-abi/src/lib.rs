@@ -902,6 +902,12 @@ extern "C" {
 	#[link_name = "sys_fork"]
 	pub fn fork() -> Pid;
 
+	/// spawn_process crend the path to the binary
+	/// is given by `name`ates a new process and the path to the binary
+	/// is given by `name`
+	#[link_name = "sys_spawn_process"]
+	pub fn spawn_process(name: *const c_char) -> Pid;
+
 	/// Wait for the termination of process `pid`
 	#[link_name = "sys_waitpid"]
 	pub fn waitpid(pid: Pid);

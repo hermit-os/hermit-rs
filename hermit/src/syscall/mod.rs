@@ -45,6 +45,8 @@ pub(crate) enum SyscallNo {
 	Fork = 14,
 	/// number of the system call `waitpid`
 	Waitpid = 15,
+	/// number of the system call `spawn_process`
+	SpawnProcess = 16,
 }
 
 #[thread_local]
@@ -449,7 +451,24 @@ pub unsafe extern "C" fn sys_waitpid(pid: Pid) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn sys_fork() -> Pid {
-	let result = syscall!(SyscallNo::Fork) as Pid;
+	let result: i32 = syscall!(SyscallNo::Fork).try_into().unwrap();
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write(-result);
+		}
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+	}
+
+	result as Pid
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_spawn_process(name: *const c_char) -> Pid {
+	let result: i32 = syscall!(SyscallNo::SpawnProcess, name).try_into().unwrap();
 
 	if result < 0 {
 		unsafe {

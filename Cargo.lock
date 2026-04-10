@@ -2436,6 +2436,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "spawn"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.2",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
