@@ -62,7 +62,7 @@ pub(crate) fn syscall0(arg0: u64) -> u64 {
 			inlateout("rax") arg0 => ret,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -78,7 +78,7 @@ pub(crate) fn syscall1(arg0: u64, arg1: u64) -> u64 {
 			in("rdi") arg1,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -95,7 +95,7 @@ pub(crate) fn syscall2(arg0: u64, arg1: u64, arg2: u64) -> u64 {
 			in("rsi") arg2,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -113,7 +113,7 @@ pub(crate) fn syscall3(arg0: u64, arg1: u64, arg2: u64, arg3: u64) -> u64 {
 			in("rdx") arg3,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -132,7 +132,7 @@ pub(crate) fn syscall4(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64) ->
 			in("r10") arg4,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -152,7 +152,7 @@ pub(crate) fn syscall5(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64, ar
 			in("r8") arg5,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
@@ -181,7 +181,7 @@ pub(crate) fn syscall6(
 			in("r9") arg6,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags, nostack)
+			options(preserves_flags)
 		);
 	}
 	ret
