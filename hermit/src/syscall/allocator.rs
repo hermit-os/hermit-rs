@@ -8,7 +8,7 @@ use talc::{ErrOnOom, Talc, Talck};
 
 static ALLOC: Lazy<RawSpinlock, Talck<RawSpinlock, ErrOnOom>> = Lazy::new(|| {
 	take_static::take_static! {
-		static MEM: [MaybeUninit<u8>; 0x1000] = [MaybeUninit::uninit(); 0x1000];
+		static MEM: [MaybeUninit<u8>; 0x10000] = [MaybeUninit::uninit(); 0x10000];
 	}
 
 	let mem = MEM.take().unwrap();
