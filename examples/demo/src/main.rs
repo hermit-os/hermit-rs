@@ -18,8 +18,8 @@ fn main() -> io::Result<()> {
 	thread::spawn()?;
 	fs::fs()?;
 	pi::pi();
-	matmul::matmul();
-	laplace::laplace();
+	//matmul::matmul();
+	//laplace::laplace();
 	mandelbrot::mandelbrot();
 	Ok(())
 }
