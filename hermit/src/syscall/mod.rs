@@ -121,6 +121,12 @@ pub(crate) enum SyscallNo {
 	Getaddrinfo = 52,
 	/// number of the system call `freeaddrinfo`
 	Freeaddrinfo = 53,
+	/// number of the system call `availale_parallelism`
+	AvailableParallelism = 54,
+	/// number of the system call `getdents64`
+	GetDents64 = 55,
+	/// number of the system call `exec`
+	Exec = 56,
 }
 
 #[thread_local]
@@ -642,8 +648,8 @@ pub unsafe extern "C" fn sys_fork() -> Pid {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_spawn_process(name: *const c_char) -> Pid {
-	let result: i32 = syscall!(SyscallNo::SpawnProcess, name).try_into().unwrap();
+pub unsafe extern "C" fn sys_spawn_process(path: *const c_char) -> Pid {
+	let result: i32 = syscall!(SyscallNo::SpawnProcess, path).try_into().unwrap();
 
 	if result < 0 {
 		unsafe {
@@ -656,4 +662,49 @@ pub unsafe extern "C" fn sys_spawn_process(name: *const c_char) -> Pid {
 	}
 
 	result as Pid
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_available_parallelism() -> usize {
+	syscall!(SyscallNo::AvailableParallelism)
+		.try_into()
+		.unwrap()
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_getdents64(fd: i32, dirp: *mut abi::dirent64, count: usize) -> i64 {
+	let result: i64 = syscall!(SyscallNo::GetDents64, fd, dirp, count)
+		.try_into()
+		.unwrap();
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write((-result).try_into().unwrap());
+		}
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+	}
+
+	result
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn sys_exec(path: *const c_char) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Exec, path).try_into().unwrap();
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write(-result);
+		}
+
+		-1
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+
+		0
+	}
 }

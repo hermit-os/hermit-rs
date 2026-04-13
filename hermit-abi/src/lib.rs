@@ -912,6 +912,11 @@ extern "C" {
 	#[link_name = "sys_waitpid"]
 	pub fn waitpid(pid: Pid);
 
+	/// The function sys_exec function replace the current process image
+	/// with a new process image.
+	#[link_name = "sys_exec"]
+	pub fn exec(path: *const c_char) -> i32;
+
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);
 }
