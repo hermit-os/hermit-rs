@@ -107,6 +107,7 @@ impl KernelSrc {
 				"common-os",
 				"mman",
 				"newlib",
+				"uhyve",
 				"acpi",
 				"fsgsbase",
 				"pci",
