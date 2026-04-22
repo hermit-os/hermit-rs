@@ -51,6 +51,7 @@ randomize-layout = []
 
 mman = []
 newlib = []
+uhyve = []
 acpi = []
 fsgsbase = []
 pci = []
