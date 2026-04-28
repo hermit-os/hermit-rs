@@ -112,6 +112,7 @@ impl KernelSrc {
 				"fsgsbase",
 				"pci",
 				"pci-ids",
+				"msix",
 				"semihosting",
 				"smp",
 				"tcp",
