@@ -208,7 +208,7 @@ pub extern "C" fn sys_spawn(
 	prio: u8,
 	core_id: isize,
 ) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Spawn, id, func, arg, prio, core_id)
+	let result: i32 = syscall!(SyscallNo::Spawn, id, func as usize, arg, prio, core_id)
 		.try_into()
 		.unwrap();
 	update_errno!(result);
@@ -223,9 +223,16 @@ pub extern "C" fn sys_spawn2(
 	stack_size: usize,
 	core_id: isize,
 ) -> abi::Tid {
-	syscall!(SyscallNo::Spawn2, func, arg, prio, stack_size, core_id)
-		.try_into()
-		.unwrap()
+	syscall!(
+		SyscallNo::Spawn2,
+		func as usize,
+		arg,
+		prio,
+		stack_size,
+		core_id
+	)
+	.try_into()
+	.unwrap()
 }
 
 #[no_mangle]

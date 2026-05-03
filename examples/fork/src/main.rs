@@ -9,13 +9,12 @@ fn fork_bench(count: usize) -> Duration {
 	let mut pids = vec![Pid::default(); count]; // Pre-allocate with zeros
 
 	let start = Instant::now();
-	for i in 0..count {
-		let pid = unsafe { fork() };
+	for pid in pids.iter_mut().take(count) {
+		*pid = unsafe { fork() };
 
-		if pid == 0 {
+		if *pid == 0 {
 			exit(0);
 		}
-		pids[i] = pid;
 	}
 
 	for pid in &pids {
@@ -23,9 +22,8 @@ fn fork_bench(count: usize) -> Duration {
 			waitpid(*pid);
 		}
 	}
-	let elapsed = start.elapsed();
 
-	elapsed
+	start.elapsed()
 }
 
 fn main() {
