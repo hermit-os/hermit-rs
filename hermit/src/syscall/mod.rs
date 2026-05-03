@@ -2,6 +2,9 @@ mod math;
 #[cfg(target_arch = "x86_64")]
 #[macro_use]
 pub(crate) mod x86_64;
+#[cfg(target_arch = "aarch64")]
+#[macro_use]
+pub(crate) mod aarch64;
 mod allocator;
 
 use core::ffi::{c_char, c_void};
