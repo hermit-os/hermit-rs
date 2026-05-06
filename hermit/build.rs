@@ -95,58 +95,7 @@ impl KernelSrc {
 			.arg("--target-dir")
 			.arg(&target_dir);
 
-		if has_feature("randomize-layout") {
-			cargo.arg("--randomize-layout");
-		}
-
-		// Control enabled features via this crate's features
-		cargo.arg("--no-default-features");
-		forward_features(
-			&mut cargo,
-			[
-				"common-os",
-				"mman",
-				"newlib",
-				"uhyve",
-				"acpi",
-				"fsgsbase",
-				"pci",
-				"pci-ids",
-				"semihosting",
-				"smp",
-				"tcp",
-				"udp",
-				"dhcpv4",
-				"dns",
-				"net-trace",
-				"write-pcap-file",
-				"virtio-net",
-				"rtl8139",
-				"gem-net",
-				"virtio-console",
-				"virtio-fs",
-				"virtio-vsock",
-				"vga",
-				"idle-poll",
-				"alloc-stats",
-				"instrument-mcount",
-				"kernel-stack",
-				"shell",
-				"strace",
-				"document-features",
-				"net",
-				"virtio",
-				"warn-prebuilt",
-				"console",
-				"fs",
-				"fuse",
-				"mmap",
-				"nostd",
-				"trace",
-				"vsock",
-			]
-			.into_iter(),
-		);
+		forward_features(&mut cargo);
 
 		println!("cargo:warning=$ {cargo:?}");
 		let status = cargo.status().expect("failed to start kernel build");
@@ -266,9 +215,16 @@ fn has_feature(feature: &str) -> bool {
 	env::var_os(&var).is_some()
 }
 
-fn forward_features<'a>(cmd: &mut Command, features: impl Iterator<Item = &'a str>) {
-	let features = features.filter(|f| has_feature(f)).collect::<Vec<_>>();
-	if !features.is_empty() {
-		cmd.args(["--features", &features.join(" ")]);
-	}
+/// Forward Cargo features to kernel build.
+fn forward_features<'a>(cargo: &mut Command) {
+	cargo.arg("--no-default-features");
+
+	let cargo_cfg_feature = env::var("CARGO_CFG_FEATURE").unwrap();
+	let cargo_cfg_feature = cargo_cfg_feature
+		.split(',')
+		.filter(|feature| *feature != "libc")
+		.collect::<Vec<_>>();
+	let cargo_cfg_feature = cargo_cfg_feature.join(",");
+
+	cargo.arg("--features").arg(cargo_cfg_feature);
 }
