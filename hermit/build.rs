@@ -6,7 +6,7 @@ fn main() {
 	let targets_hermit =
 		env::var_os("CARGO_CFG_TARGET_OS").is_some_and(|target_os| target_os == "hermit");
 	let runs_clippy =
-		env::var_os("CARGO_CFG_FEATURE").is_some_and(|feature| feature == "cargo-clippy");
+		env::var("RUSTC_WORKSPACE_WRAPPER").is_ok_and(|feature| feature.ends_with("clippy-driver"));
 	let is_docs_rs = env::var_os("DOCS_RS").is_some();
 	let is_common_os = has_feature("common-os");
 	if !targets_hermit || runs_clippy || is_docs_rs || is_common_os {
