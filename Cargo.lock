@@ -906,6 +906,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "false"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2756,6 +2763,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "true"
+version = "0.0.0"
+dependencies = [
+ "hermit",
 ]
 
 [[package]]
