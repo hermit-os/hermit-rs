@@ -906,6 +906,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "false"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -944,6 +951,14 @@ name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
+
+[[package]]
+name = "fork"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.2",
+]
 
 [[package]]
 name = "form_urlencoded"
@@ -1140,19 +1155,13 @@ version = "0.13.2"
 dependencies = [
  "cc",
  "generic_once_cell",
- "hermit-abi 0.4.0",
+ "hermit-abi 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "home",
  "libm",
  "spinning_top",
  "take-static",
  "talc",
 ]
-
-[[package]]
-name = "hermit-abi"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
 
 [[package]]
 name = "hermit-abi"
@@ -2434,6 +2443,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "spawn"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.2",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2746,6 +2763,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "true"
+version = "0.0.0"
+dependencies = [
+ "hermit",
 ]
 
 [[package]]
