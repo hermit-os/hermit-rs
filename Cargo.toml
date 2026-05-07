@@ -10,6 +10,8 @@ members = [
     "examples/axum",
     "examples/demo",
     "examples/fork",
+    "examples/true",
+    "examples/false",
     "examples/fuse_test",
     "examples/hello_world",
     "examples/httpd",
