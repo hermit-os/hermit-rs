@@ -104,6 +104,7 @@ impl KernelSrc {
 		forward_features(
 			&mut cargo,
 			[
+				"default",
 				"common-os",
 				"mman",
 				"newlib",
