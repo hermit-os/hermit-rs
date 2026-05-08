@@ -1,4 +1,3 @@
-use std::process::exit;
 use std::time::{Duration, Instant};
 
 #[cfg(target_os = "hermit")]
@@ -7,13 +6,17 @@ use hermit_abi::{exec, fork, getpid, waitpid, Pid};
 
 fn fork_bench(count: usize) -> Duration {
 	let mut pids = vec![Pid::default(); count]; // Pre-allocate with zeros
+	let app = c"/bin/true";
 
 	let start = Instant::now();
 	for pid in pids.iter_mut().take(count) {
 		*pid = unsafe { fork() };
 
 		if *pid == 0 {
-			exit(0);
+			//std::process::exit(0);
+			unsafe {
+				let _ = exec(app.as_ptr());
+			}
 		}
 	}
 
