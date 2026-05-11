@@ -17,6 +17,9 @@ pub use self::errno::*;
 /// A thread handle type
 pub type Tid = u32;
 
+/// A process handle type
+pub type Pid = i32;
+
 /// Maximum number of priorities
 pub const NO_PRIORITIES: usize = 31;
 
@@ -893,6 +896,26 @@ extern "C" {
 		hints: *const addrinfo,
 		res: *mut *mut addrinfo,
 	) -> i32;
+
+	/// fork() causes creation of a new process.  The new process (child process) is
+	/// an exact copy of the calling process (parent process)
+	#[link_name = "sys_fork"]
+	pub fn fork() -> Pid;
+
+	/// spawn_process crend the path to the binary
+	/// is given by `name`ates a new process and the path to the binary
+	/// is given by `name`
+	#[link_name = "sys_spawn_process"]
+	pub fn spawn_process(name: *const c_char) -> Pid;
+
+	/// Wait for the termination of process `pid`
+	#[link_name = "sys_waitpid"]
+	pub fn waitpid(pid: Pid);
+
+	/// The function sys_exec function replace the current process image
+	/// with a new process image.
+	#[link_name = "sys_exec"]
+	pub fn exec(path: *const c_char) -> i32;
 
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);
