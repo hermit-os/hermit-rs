@@ -32,10 +32,8 @@ common-os = [
 	"dep:take-static",
 	"dep:talc",
 ]
-<<<<<<< HEAD
-=======
+
 common-os = ["hermit-abi", "align-address", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
->>>>>>> be76f60 (add basic support of sys_mmap for common-os)
 
 ## Links against libc.a.
 libc = []
