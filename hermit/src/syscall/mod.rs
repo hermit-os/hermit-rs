@@ -130,6 +130,8 @@ pub(crate) enum SyscallNo {
 	GetDents64 = 55,
 	/// number of the system call `exec`
 	Exec = 56,
+	/// number of the system call `mmap`
+	Mmap = 57,
 }
 
 #[thread_local]
@@ -703,6 +705,32 @@ pub unsafe extern "C" fn sys_getdents64(fd: i32, dirp: *mut abi::dirent64, count
 #[no_mangle]
 pub unsafe extern "C" fn sys_exec(path: *const c_char) -> i32 {
 	let result: i32 = syscall!(SyscallNo::Exec, path).try_into().unwrap();
+
+	if result < 0 {
+		unsafe {
+			ERRNO.get().write(-result);
+		}
+
+		-1
+	} else {
+		unsafe {
+			ERRNO.get().write(0);
+		}
+
+		0
+	}
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn mmap(size: usize, prot_flags: u32, ret: &mut *mut u8) -> i32 {
+	let result: i32 = syscall!(
+		SyscallNo::Mmap,
+		size,
+		prot_flags,
+		ret as *mut *mut _ as usize
+	)
+	.try_into()
+	.unwrap();
 
 	if result < 0 {
 		unsafe {
