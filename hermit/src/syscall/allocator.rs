@@ -1,30 +1,65 @@
 use core::alloc::Layout;
-use core::ptr::NonNull;
-use std::mem::MaybeUninit;
+use std::ptr::{null_mut, NonNull};
+use std::sync::atomic::{AtomicPtr, Ordering};
 
+use align_address::Align;
 use generic_once_cell::Lazy;
 use spinning_top::RawSpinlock;
-use talc::{ErrOnOom, Talc, Talck};
+use talc::source::Claim;
+use talc::TalcLock;
 
-static ALLOC: Lazy<RawSpinlock, Talck<RawSpinlock, ErrOnOom>> = Lazy::new(|| {
-	take_static::take_static! {
-		static MEM: [MaybeUninit<u8>; 0x10000] = [MaybeUninit::uninit(); 0x10000];
+const MIN_SIZE: usize = 1 * 1024 * 1024;
+
+static HEAP_END: AtomicPtr<u8> = AtomicPtr::new(null_mut());
+static ALLOC: Lazy<RawSpinlock, TalcLock<RawSpinlock, Claim>> = Lazy::new(|| {
+	let mut mem: *mut u8 = null_mut();
+
+	if unsafe {
+		crate::syscall::mmap(
+			MIN_SIZE,
+			hermit_abi::PROT_READ | hermit_abi::PROT_WRITE,
+			&mut mem,
+		)
+	} == 0
+	{
+		unsafe { HEAP_END.store(mem.offset(MIN_SIZE.try_into().unwrap()), Ordering::Relaxed) };
+		TalcLock::new(unsafe { Claim::new(mem, MIN_SIZE) })
+	} else {
+		panic!("Unable to initialize heap!");
 	}
-
-	let mem = MEM.take().unwrap();
-
-	let mut talc = Talc::new(talc::ErrOnOom);
-	unsafe {
-		talc.claim(mem.into()).unwrap();
-	}
-
-	Talck::new(talc)
 });
 
 #[no_mangle]
 pub extern "C" fn sys_malloc(size: usize, align: usize) -> *mut u8 {
 	let layout = Layout::from_size_align(size, align).unwrap();
-	unsafe { ALLOC.lock().malloc(layout).unwrap().as_mut() }
+	unsafe {
+		if let Some(mut addr) = ALLOC.lock().allocate(layout) {
+			return addr.as_mut();
+		}
+		
+		let heap_end = HEAP_END.load(Ordering::Acquire);
+		let extend_size = size.align_up(MIN_SIZE);
+		let mut result: *mut u8 = heap_end;
+
+		if crate::syscall::mmap(
+			extend_size,
+			hermit_abi::PROT_READ | hermit_abi::PROT_WRITE,
+			&mut result,
+		) == 0
+		{
+			let mut new_heap_end = ALLOC.lock().extend(
+				NonNull::new_unchecked(heap_end),
+				heap_end.offset(extend_size.try_into().unwrap()),
+			);
+			HEAP_END.store(new_heap_end.as_mut(), Ordering::Release);
+
+			if let Some(mut addr) = ALLOC.lock().allocate(layout) {
+				return addr.as_mut();
+			}
+		}
+
+		std::ptr::null_mut()
+	}
 }
 
 #[no_mangle]
@@ -32,15 +67,13 @@ pub extern "C" fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size:
 	unsafe {
 		let layout = Layout::from_size_align(size, align).unwrap();
 		if new_size > size {
-			ALLOC
-				.lock()
-				.grow(NonNull::new_unchecked(ptr), layout, new_size)
-				.unwrap()
-				.as_mut()
+			if ALLOC.lock().try_grow_in_place(ptr, layout, new_size) {
+				ptr
+			} else {
+				std::ptr::null_mut()
+			}
 		} else {
-			ALLOC
-				.lock()
-				.shrink(NonNull::new_unchecked(ptr), layout, new_size);
+			ALLOC.lock().shrink(ptr, layout, new_size);
 			ptr
 		}
 	}
@@ -50,6 +83,6 @@ pub extern "C" fn sys_realloc(ptr: *mut u8, size: usize, align: usize, new_size:
 pub extern "C" fn sys_free(ptr: *mut u8, size: usize, align: usize) {
 	let layout = Layout::from_size_align(size, align).unwrap();
 	unsafe {
-		ALLOC.lock().free(NonNull::new_unchecked(ptr), layout);
+		ALLOC.lock().deallocate(ptr, layout);
 	}
 }
