@@ -1,0 +1,20 @@
+[package]
+name = "vsock_server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[target.'cfg(target_os = "hermit")'.dependencies.hermit-abi]
+path = "../../hermit-abi"
+
+[target.'cfg(target_os = "hermit")'.dependencies.hermit]
+path = "../../hermit"
+default-features = false
+
+[features]
+default = ["pci", "pci-ids", "acpi", "vsock"]
+pci = ["hermit/pci"]
+pci-ids = ["hermit/pci-ids"]
+acpi = ["hermit/acpi"]
+vsock = ["hermit/vsock"]
