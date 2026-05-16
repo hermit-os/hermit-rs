@@ -17,26 +17,26 @@ const PORT: u32 = 9975;
 pub const CONNECTIONS: usize = 2;
 
 fn main() {
-    println!("vsock_server_test: waiting for {CONNECTIONS} sequential connections on port {PORT}");
+	println!("vsock_server_test: waiting for {CONNECTIONS} sequential connections on port {PORT}");
 
-    let listener = VsockListener::bind(PORT).expect("bind failed");
-    println!("[server] listening on port {PORT}");
+	let listener = VsockListener::bind(PORT).expect("bind failed");
+	println!("[server] listening on port {PORT}");
 
-    for i in 1..=CONNECTIONS {
-        println!("[server] waiting for connection {i}/{CONNECTIONS}");
-        let (mut stream, _addr) = listener.accept().expect("accept failed");
-        println!("[server] accepted connection {i}");
+	for i in 1..=CONNECTIONS {
+		println!("[server] waiting for connection {i}/{CONNECTIONS}");
+		let (mut stream, _addr) = listener.accept().expect("accept failed");
+		println!("[server] accepted connection {i}");
 
-        let mut buf = [0u8; 64];
-        let n = stream.read(&mut buf).expect("read failed");
-        let msg = std::str::from_utf8(&buf[..n]).unwrap_or("<invalid>");
-        println!("[server] received: {msg:?}");
-        assert_eq!(msg, "ping", "connection {i}: unexpected message");
+		let mut buf = [0u8; 64];
+		let n = stream.read(&mut buf).expect("read failed");
+		let msg = std::str::from_utf8(&buf[..n]).unwrap_or("<invalid>");
+		println!("[server] received: {msg:?}");
+		assert_eq!(msg, "ping", "connection {i}: unexpected message");
 
-        stream.write_all(b"pong").expect("write failed");
-        println!("[server] sent pong for connection {i}");
-        // stream drops here, closing the connection
-    }
+		stream.write_all(b"pong").expect("write failed");
+		println!("[server] sent pong for connection {i}");
+		// stream drops here, closing the connection
+	}
 
-    println!("vsock_server_test: PASSED");
+	println!("vsock_server_test: PASSED");
 }
