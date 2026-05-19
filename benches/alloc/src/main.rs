@@ -36,7 +36,7 @@ use std::time::Instant;
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 
-const BENCH_DURATION: f64 = 3.0;
+const BENCH_DURATION: f64 = 2.0;
 
 fn main() {
 	let bench_alloc = benchmark_allocator();
