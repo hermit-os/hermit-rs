@@ -30,13 +30,12 @@ SOFTWARE.
  */
 
 use std::alloc::{alloc, dealloc, Layout};
-use std::time::Instant;
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 
-const BENCH_DURATION: f64 = 2.0;
+const MAX_ALLOCATIONS: usize = 10;
 
 fn main() {
 	let bench_alloc = benchmark_allocator();
@@ -89,9 +88,7 @@ fn benchmark_allocator() -> BenchRunResults {
 
 	let mut any_alloc_failed = false;
 
-	// run for 10s
-	let bench_begin_time = Instant::now();
-	while bench_begin_time.elapsed().as_secs_f64() <= BENCH_DURATION {
+	while all_alloc_measurements.len() < MAX_ALLOCATIONS {
 		let size = fastrand::usize((1 << 6)..(1 << 15));
 		let align = 8 << (fastrand::u16(..).trailing_zeros() / 2);
 		let layout = Layout::from_size_align(size, align).unwrap();
