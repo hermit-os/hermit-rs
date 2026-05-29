@@ -77,11 +77,10 @@ fn benchmark_allocator() -> BenchRunResults {
 
 	fastrand::seed(0x55a72645d29afb98);
 
-	let mut active_allocations = Vec::new();
-
-	let mut all_alloc_measurements = Vec::new();
-	let mut nofail_alloc_measurements = Vec::new();
-	let mut dealloc_measurements = Vec::new();
+	let mut active_allocations = Vec::with_capacity(MAX_ALLOCATIONS);
+	let mut all_alloc_measurements = Vec::with_capacity(MAX_ALLOCATIONS);
+	let mut nofail_alloc_measurements = Vec::with_capacity(MAX_ALLOCATIONS);
+	let mut dealloc_measurements = Vec::with_capacity(MAX_ALLOCATIONS);
 
 	let mut allocation_attempts = 0;
 	let mut successful_allocations = 0;
