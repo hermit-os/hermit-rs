@@ -6,12 +6,16 @@ use clap::Parser;
 use hermit as _;
 use rust_tcp_io_perf::config::Config;
 use rust_tcp_io_perf::connection;
+use rust_tcp_io_perf::print_utils::ProgressPrinter;
 
-fn send_rounds(stream: &mut TcpStream, rounds: usize, bytes: usize) {
+fn send_rounds(stream: &mut TcpStream, rounds: usize, bytes: usize, progress_print: bool) {
 	// Create a buffer of 0s, size n_bytes, to be sent over multiple times
 	let buf = vec![0; bytes];
 
-	for _i in 0..rounds {
+	let progress_printer = ProgressPrinter::new(rounds, progress_print);
+
+	for i in 0..rounds {
+		progress_printer.print(i);
 		let mut pos = 0;
 
 		while pos < buf.len() {
@@ -35,8 +39,8 @@ fn main() {
 		connection::setup(&args, &stream);
 		println!("Connection established! Ready to send...");
 
-		send_rounds(&mut stream, args.warmup, args.n_bytes);
-		send_rounds(&mut stream, args.n_rounds, args.n_bytes);
+		send_rounds(&mut stream, args.warmup, args.n_bytes, false);
+		send_rounds(&mut stream, args.n_rounds, args.n_bytes, true);
 
 		stream.flush().expect("Unexpected behaviour");
 		connection::close_connection(&stream);
