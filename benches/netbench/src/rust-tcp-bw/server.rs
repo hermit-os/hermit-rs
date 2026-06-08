@@ -7,7 +7,7 @@ use clap::Parser;
 use hermit as _;
 use hermit_bench_output::log_benchmark_data;
 use rust_tcp_io_perf::config::Config;
-use rust_tcp_io_perf::print_utils::BoxplotValues;
+use rust_tcp_io_perf::print_utils::{BoxplotValues, ProgressPrinter};
 use rust_tcp_io_perf::{connection, threading};
 
 fn receive_rounds(
@@ -19,22 +19,10 @@ fn receive_rounds(
 	let mut buf = vec![0; bytes];
 	let mut durations = Vec::with_capacity(rounds);
 
-	let progress_prints = [
-		1,
-		rounds / 10,
-		rounds / 10 * 2,
-		rounds / 10 * 3,
-		rounds / 10 * 4,
-		rounds / 10 * 5,
-		rounds / 10 * 6,
-		rounds / 10 * 7,
-		rounds / 10 * 8,
-		rounds / 10 * 9,
-	];
+	let progress_printer = ProgressPrinter::new(rounds, progress_print);
+
 	for i in 0..rounds {
-		if progress_print && progress_prints.contains(&i) {
-			println!("round {i}/{}", rounds)
-		}
+		progress_printer.print(i);
 		let round_start = Instant::now();
 		if let Err(e) = stream.read_exact(&mut buf) {
 			if e.kind() == ErrorKind::UnexpectedEof {

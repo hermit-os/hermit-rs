@@ -78,6 +78,50 @@ impl StatCalcs for u64 {
 	}
 }
 
+/// Helper struct to print benchmark progress on the terminal.
+/// 
+/// Example:
+/// ```
+/// let progress_printer = ProgressPrinter::new(100);
+/// for i in 0..100 {
+///     progress_printer.print(i);
+///     // do something
+/// }
+/// ```
+pub struct ProgressPrinter {
+	total: usize,
+	progress_prints: Vec<usize>,
+	enabled: bool,
+}
+impl ProgressPrinter {
+	pub fn new(total: usize, enabled: bool) -> Self {
+		let progress_prints = [
+			1,
+			total / 10,
+			total / 10 * 2,
+			total / 10 * 3,
+			total / 10 * 4,
+			total / 10 * 5,
+			total / 10 * 6,
+			total / 10 * 7,
+			total / 10 * 8,
+			total / 10 * 9,
+		]
+		.into();
+		Self {
+			total,
+			progress_prints,
+			enabled,
+		}
+	}
+
+	pub fn print(&self, current: usize) {
+		if self.progress_prints.contains(&current) {
+			println!("round {current}/{}", self.total)
+		}
+	}
+}
+
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct BoxplotValues<T> {
