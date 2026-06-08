@@ -28,6 +28,7 @@ members = [
     "examples/wasm-test",
     "examples/hermit-wasm",
     "examples/vsock",
+    "examples/vsock_server",
     "hermit",
     "hermit-abi",
 ]

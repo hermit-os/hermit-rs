@@ -2795,6 +2795,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "vsock_server"
+version = "0.1.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.2",
+ "libc",
+]
+
+[[package]]
 name = "wasi"
 version = "0.11.1+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
