@@ -5,6 +5,7 @@ use clap::Parser;
 #[cfg(target_os = "hermit")]
 use hermit as _;
 use rust_tcp_io_perf::config::Config;
+use rust_tcp_io_perf::print_utils::BoxplotValues;
 use rust_tcp_io_perf::{connection, threading};
 
 fn main() {
@@ -18,73 +19,70 @@ fn main() {
 	let wbuf: Vec<u8> = vec![0; n_bytes];
 	let mut rbuf: Vec<u8> = vec![0; n_bytes];
 
-	let progress_tracking_percentage = (n_rounds * 2) / 100;
+	let progress_tracking_percentage = (n_rounds) / 100;
 
-	let mut connected = false;
-
-	while !connected {
-		match connection::client_connect(args.address_and_port()) {
-			Ok(mut stream) => {
-				connection::setup(&args, &stream);
-				threading::setup(&args);
-				connected = true;
-				let mut hist = hdrhist::HDRHist::new();
-
-				println!("Connection established! Ready to send...");
-
-				// To avoid TCP slowstart we do double iterations and measure only the second half
-				for i in 0..(n_rounds * 2) {
-					let start = Instant::now();
-
-					connection::send_message(n_bytes, &mut stream, &wbuf);
-					connection::receive_message(n_bytes, &mut stream, &mut rbuf);
-
-					let duration = Instant::now().duration_since(start);
-					if i >= n_rounds {
-						hist.add_value(
-							duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64,
-						);
-					}
-
-					if i % progress_tracking_percentage == 0 {
-						// Track progress on screen
-						println!("{}% completed", i / progress_tracking_percentage);
-					}
+	const MAX_RETRIES: i32 = 30;
+	let mut retries = 0;
+	let mut stream =
+		loop {
+			match connection::client_connect(args.address_and_port()) {
+				Ok(stream) => {
+					break stream;
 				}
-				connection::close_connection(&stream);
-
-				#[cfg(not(target_os = "hermit"))]
-				hermit_bench_output::log_benchmark_data(
-					"95th percentile TCP Server Latency",
-					"ns",
-					get_percentiles(hist.summary(), 0.95),
-				);
-				#[cfg(not(target_os = "hermit"))]
-				hermit_bench_output::log_benchmark_data(
-					"Max TCP Server Latency",
-					"ns",
-					get_percentiles(hist.summary(), 1.0),
-				);
-
-				#[cfg(target_os = "hermit")]
-				hermit_bench_output::log_benchmark_data(
-					"95th percentile TCP Client Latency",
-					"ns",
-					get_percentiles(hist.summary(), 0.95),
-				);
-				#[cfg(target_os = "hermit")]
-				hermit_bench_output::log_benchmark_data(
-					"Max TCP Client Latency",
-					"ns",
-					get_percentiles(hist.summary(), 1.0),
-				);
+				Err(error) => {
+					retries += 1;
+					println!("Couldn't connect to server, retrying ({retries}/{MAX_RETRIES})... ({error})");
+					if retries >= MAX_RETRIES {
+						panic!("Can't establish connection to server. Aborting after {MAX_RETRIES} attempts");
+					}
+					thread::sleep(time::Duration::from_secs(1));
+				}
 			}
-			Err(error) => {
-				println!("Couldn't connect to server, retrying... Error {error}");
-				thread::sleep(time::Duration::from_secs(1));
-			}
+		};
+
+	connection::setup(&args, &stream);
+	threading::setup(&args);
+	let mut hist = hdrhist::HDRHist::new();
+	let mut latencies = Vec::with_capacity(n_rounds);
+
+	println!("Connection established! Ready to send...");
+
+	for _ in 0..(args.warmup) {
+		connection::send_message(n_bytes, &mut stream, &wbuf);
+		connection::receive_message(n_bytes, &mut stream, &mut rbuf);
+	}
+
+	for i in 0..n_rounds {
+		let start = Instant::now();
+
+		connection::send_message(n_bytes, &mut stream, &wbuf);
+		connection::receive_message(n_bytes, &mut stream, &mut rbuf);
+
+		let duration = Instant::now().duration_since(start);
+		let duration_u64 = duration.as_secs() * 1_000_000_000u64 + duration.subsec_nanos() as u64;
+		hist.add_value(duration_u64);
+		latencies.push(duration_u64);
+
+		if i % progress_tracking_percentage == 0 {
+			// Track progress on screen
+			println!("{}% completed", i / progress_tracking_percentage);
 		}
 	}
+	connection::close_connection(&stream);
+
+	hermit_bench_output::log_benchmark_data(
+		"95th percentile TCP Client Latency",
+		"ns",
+		get_percentiles(hist.summary(), 0.95),
+	);
+	hermit_bench_output::log_benchmark_data(
+		"Max TCP Client Latency",
+		"ns",
+		get_percentiles(hist.summary(), 1.0),
+	);
+
+	let statistics = BoxplotValues::from(latencies.as_slice());
+	println!("{statistics:#.2?}");
 }
 
 fn get_percentiles(summary: impl Iterator<Item = (f64, u64, u64)>, percentile: f64) -> f64 {

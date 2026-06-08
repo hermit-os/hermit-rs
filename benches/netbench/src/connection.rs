@@ -27,7 +27,14 @@ pub fn receive_message(n_bytes: usize, stream: &mut TcpStream, rbuf: &mut [u8]) 
 	let mut recv = 0;
 	while recv < n_bytes {
 		match stream.read(&mut rbuf[recv..]) {
-			Ok(n) => recv += n,
+			Ok(n) => {
+				if n == 0 {
+					// TODO: Return err instead and handle gracefully
+					panic!("Connection closed prematurely")
+				} else {
+					recv += n
+				}
+			}
 			Err(err) => match err.kind() {
 				WouldBlock => {}
 				_ => panic!("Error occurred while reading: {err:?}"),
