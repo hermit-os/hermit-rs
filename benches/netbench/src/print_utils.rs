@@ -116,7 +116,7 @@ impl ProgressPrinter {
 	}
 
 	pub fn print(&self, current: usize) {
-		if self.progress_prints.contains(&current) {
+		if self.enabled && self.progress_prints.contains(&current) {
 			println!("round {current}/{}", self.total)
 		}
 	}
