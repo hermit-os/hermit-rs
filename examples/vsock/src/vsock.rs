@@ -17,12 +17,12 @@ use std::os::unix::io::{FromRawFd, OwnedFd, RawFd};
 #[cfg(target_os = "hermit")]
 use hermit_abi::{
 	accept, bind, close, connect, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
-	socklen_t, write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+	socklen_t, write, AF_VSOCK, SOCK_STREAM,
 };
 #[cfg(unix)]
 use libc::{
 	accept, bind, c_void, close, connect, listen, read, sa_family_t, sockaddr, sockaddr_vm, socket,
-	socklen_t, write, AF_VSOCK, SOCK_STREAM, VMADDR_CID_ANY,
+	socklen_t, write, AF_VSOCK, SOCK_STREAM,
 };
 
 #[derive(Copy, Clone)]
@@ -125,15 +125,16 @@ pub struct VsockListener {
 }
 
 impl VsockListener {
-	/// Create a new VsockListener which is bound and listening on the socket address.
-	pub fn bind(port: u32) -> io::Result<Self> {
+	/// Create a new VsockListener bound and listening on the given local
+	/// `cid`/`port`. Pass `VMADDR_CID_ANY` as `cid` to listen on any local CID.
+	pub fn bind(cid: u32, port: u32) -> io::Result<Self> {
 		unsafe {
 			let saddr = sockaddr_vm {
 				#[cfg(target_os = "hermit")]
 				svm_len: std::mem::size_of::<sockaddr_vm>().try_into().unwrap(),
 				svm_reserved1: 0,
 				svm_family: AF_VSOCK.try_into().unwrap(),
-				svm_cid: VMADDR_CID_ANY,
+				svm_cid: cid,
 				svm_port: port,
 				svm_zero: [0; 4],
 			};
