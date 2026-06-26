@@ -1,12 +1,12 @@
 use std::io;
 use std::io::ErrorKind::WouldBlock;
 use std::io::{Read, Write};
-use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs, UdpSocket};
 
 use crate::config::Config;
 
-/// Sends first n_bytes from wbuf using the given stream.
-/// Make sure wbuf.len >= n_bytes
+pub const UDP_CLIENT_BIND_ADDR: &str = "0.0.0.0:9975";
+
 pub fn send_message(n_bytes: usize, stream: &mut TcpStream, wbuf: &[u8]) {
 	let mut send = 0;
 	while send < n_bytes {
@@ -20,16 +20,12 @@ pub fn send_message(n_bytes: usize, stream: &mut TcpStream, wbuf: &[u8]) {
 	}
 }
 
-/// Reads n_bytes into rbuf from the given stream.
-/// Make sure rbuf.len >= n_bytes
 pub fn receive_message(n_bytes: usize, stream: &mut TcpStream, rbuf: &mut [u8]) {
-	// Make sure we receive the full buf back
 	let mut recv = 0;
 	while recv < n_bytes {
 		match stream.read(&mut rbuf[recv..]) {
 			Ok(n) => {
 				if n == 0 {
-					// TODO: Return err instead and handle gracefully
 					panic!("Connection closed prematurely")
 				} else {
 					recv += n
@@ -43,7 +39,6 @@ pub fn receive_message(n_bytes: usize, stream: &mut TcpStream, rbuf: &mut [u8]) 
 	}
 }
 
-/// Setup the streams and eventually pins the thread according to the configuration.
 pub fn setup(config: &Config, stream: &TcpStream) {
 	if config.no_delay {
 		stream
@@ -67,7 +62,6 @@ pub fn close_connection(stream: &TcpStream) {
 		.expect("shutdown call failed");
 }
 
-/// Starts listening on given port and return first connection to that port as a stream.
 pub fn server_listen_and_get_first_connection(port: &str) -> TcpStream {
 	let listener = TcpListener::bind("0.0.0.0:".to_owned() + port).unwrap();
 	println!("Server running, listening for connection on 0.0.0.0:{port}");
@@ -78,4 +72,38 @@ pub fn server_listen_and_get_first_connection(port: &str) -> TcpStream {
 	);
 
 	stream
+}
+
+pub fn bind_udp_client() -> io::Result<UdpSocket> {
+	UdpSocket::bind(UDP_CLIENT_BIND_ADDR)
+}
+
+pub fn bind_udp_server(port: u16) -> io::Result<UdpSocket> {
+	UdpSocket::bind(format!("0.0.0.0:{port}"))
+}
+
+pub fn udp_exchange(
+	socket: &UdpSocket,
+	wbuf: &[u8],
+	rbuf: &mut [u8],
+	dest: &str,
+) -> io::Result<()> {
+	socket.send_to(wbuf, dest)?;
+	socket.recv(rbuf)?;
+	Ok(())
+}
+
+pub fn udp_echo_round(socket: &UdpSocket, buf: &mut [u8], expected: usize) -> io::Result<usize> {
+	let (amt, src) = socket.recv_from(buf)?;
+	socket.send_to(&buf[..amt], src)?;
+	if amt != expected {
+		println!("Received {amt} bytes, expected {expected}");
+	}
+	Ok(amt * 2)
+}
+
+pub fn udp_echo(socket: &UdpSocket, buf: &mut [u8]) -> io::Result<()> {
+	let (amt, src) = socket.recv_from(buf)?;
+	socket.send_to(&buf[..amt], src)?;
+	Ok(())
 }

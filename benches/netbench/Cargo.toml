@@ -1,7 +1,10 @@
 [package]
 
 name = "rust-tcp-io-perf"
-authors = ["Lorenzo Martini <lmartini@student.ethz.ch>"]
+authors = [
+    "Lorenzo Martini <lmartini@student.ethz.ch>",
+    "Jonathan Klimt <jonathan.klimt@eonerc.rwth-aachen.de>"
+]
 edition = "2021"
 readme = "README.md"
 
@@ -19,19 +22,3 @@ hermit = { path = "../../hermit", default-features = false }
 
 [features]
 default = ["hermit/acpi", "hermit/pci", "hermit/smp", "hermit/tcp", "hermit/udp"]
-
-[[bin]]
-name = "tcp-bw"
-path = "src/rust-tcp-bw.rs"
-
-[[bin]]
-name = "tcp-latency"
-path = "src/rust-tcp-latency.rs"
-
-[[bin]]
-name = "udp-bw"
-path = "src/rust-udp-bw.rs"
-
-[[bin]]
-name = "udp-latency"
-path = "src/rust-udp-latency.rs"

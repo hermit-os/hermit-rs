@@ -4,6 +4,7 @@ fn print_line() {
 }
 
 /// Nicely outputs summary of execution with stats and CDF points.
+#[allow(dead_code)]
 pub fn print_summary(hist: hdrhist::HDRHist) {
 	println!("Sent/received everything!");
 	print_line();
@@ -71,7 +72,7 @@ impl StatCalcs for u64 {
 					})
 					.sum::<f64>() / count as f64;
 
-				Some((variance as f64).sqrt())
+				Some(variance.sqrt())
 			}
 			_ => None,
 		}
@@ -79,7 +80,7 @@ impl StatCalcs for u64 {
 }
 
 /// Helper struct to print benchmark progress on the terminal.
-/// 
+///
 /// Example:
 /// ```
 /// let progress_printer = ProgressPrinter::new(100);
@@ -152,13 +153,13 @@ impl<
 		durations.sort_by(|a, b| a.partial_cmp(b).unwrap());
 		let median = *durations
 			.get(durations.len() / 2)
-			.unwrap_or(&&Default::default());
+			.unwrap_or(&Default::default());
 
 		let q1 = *durations.get(durations.len() / 4).unwrap();
 		let q3 = *durations.get(durations.len() * 3 / 4).unwrap();
 		let iqr: T = <u8 as Into<T>>::into(3_u8) * (q3 - q1) / <u8 as Into<T>>::into(2_u8);
-		let outlier_min = q1 - iqr.into();
-		let outlier_max = q3 + iqr.into();
+		let outlier_min = q1 - iqr;
+		let outlier_max = q3 + iqr;
 		let outliers = durations
 			.iter()
 			.filter(|&x| *x < outlier_min || *x > outlier_max)
