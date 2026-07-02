@@ -1,11 +1,11 @@
-use std::ffi::c_void;
+use std::ffi::{c_int, c_void};
 use std::hint::black_box;
 use std::time::Instant;
 use std::{thread, vec};
 
 extern "C" {
 	pub fn memcpy(dest: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;
-	pub fn memset(dest: *mut c_void, c: u8, n: usize) -> *mut c_void;
+	pub fn memset(dest: *mut c_void, ch: c_int, count: usize) -> *mut c_void;
 }
 
 const NR_RUNS: usize = 1000;
