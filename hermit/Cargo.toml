@@ -41,6 +41,7 @@ libc = []
 #!
 #! [docs]: https://hermit-os.github.io/kernel
 
+masos = []
 mman = []
 newlib = []
 uhyve = []
