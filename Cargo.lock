@@ -1334,6 +1334,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "initramfs-test"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
+
+[[package]]
 name = "inout"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

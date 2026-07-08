@@ -1,0 +1,9 @@
+[package]
+name = "initramfs-test"
+edition = "2024"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+
+[features]
+default = ["hermit/acpi", "hermit/initramfs", "hermit/uhyve", "hermit/virtio-fs", "hermit/pci"]

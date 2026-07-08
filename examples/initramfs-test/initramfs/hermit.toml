@@ -1,0 +1,9 @@
+version = "1"
+kernel = "initramfs-test"
+
+[input]
+kernel_args = []
+app_args = []
+env_vars = []
+
+[requirements]
