@@ -902,20 +902,30 @@ extern "C" {
 	#[link_name = "sys_fork"]
 	pub fn fork() -> Pid;
 
-	/// spawn_process crend the path to the binary
-	/// is given by `name`ates a new process and the path to the binary
-	/// is given by `name`
+	/// spawn_process creates a new process. The path to the binary is
+	/// given by `name`. `argv` and `envp` are optional NULL-terminated
+	/// arrays of C strings defining the argument vector and the
+	/// environment of the new process. If `argv` is null, the new
+	/// process gets `[name]` as its argument vector.
 	#[link_name = "sys_spawn_process"]
-	pub fn spawn_process(name: *const c_char) -> Pid;
+	pub fn spawn_process(
+		name: *const c_char,
+		argv: *const *const c_char,
+		envp: *const *const c_char,
+	) -> Pid;
 
 	/// Wait for the termination of process `pid`
 	#[link_name = "sys_waitpid"]
 	pub fn waitpid(pid: Pid);
 
 	/// The function sys_exec function replace the current process image
-	/// with a new process image.
+	/// with a new process image. `argv` and `envp` are optional
+	/// NULL-terminated arrays of C strings defining the argument vector
+	/// and the environment of the new process image. If `argv` is null,
+	/// the new image gets `[path]` as its argument vector.
 	#[link_name = "sys_exec"]
-	pub fn exec(path: *const c_char) -> i32;
+	pub fn exec(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char)
+		-> i32;
 
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);

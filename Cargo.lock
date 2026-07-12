@@ -1045,6 +1045,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "getpid"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.2",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -613,16 +613,25 @@ pub extern "C" fn sys_getaddrinfo(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn _start(_argc: i32, _argv: *const *const c_char) -> ! {
+pub unsafe extern "C" fn _start(
+	argc: i32,
+	argv: *const *const c_char,
+	env: *const *const c_char,
+) -> ! {
 	extern "C" {
 		fn runtime_entry(argc: i32, argv: *const *const c_char, env: *const *const c_char) -> !;
 	}
 
-	let environ = core::ptr::null::<*const c_char>();
-	let argv = [c"dummy".as_ptr()];
+	// The kernel passes `argc`, a NULL-terminated `argv` array, and a
+	// NULL-terminated `env` array on the user stack. Fall back to a
+	// dummy argument vector if no arguments were handed over.
+	if argv.is_null() || argc <= 0 {
+		let argv = [c"dummy".as_ptr(), core::ptr::null()];
+		runtime_entry(1, argv.as_ptr(), env)
+	}
 
 	// And finally start the application.
-	runtime_entry(1, argv.as_ptr(), environ)
+	runtime_entry(argc, argv, env)
 }
 
 #[no_mangle]
@@ -660,8 +669,14 @@ pub unsafe extern "C" fn sys_fork() -> Pid {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_spawn_process(path: *const c_char) -> Pid {
-	let result: i32 = syscall!(SyscallNo::SpawnProcess, path).try_into().unwrap();
+pub unsafe extern "C" fn sys_spawn_process(
+	path: *const c_char,
+	argv: *const *const c_char,
+	envp: *const *const c_char,
+) -> Pid {
+	let result: i32 = syscall!(SyscallNo::SpawnProcess, path, argv, envp)
+		.try_into()
+		.unwrap();
 
 	if result < 0 {
 		unsafe {
@@ -703,8 +718,14 @@ pub unsafe extern "C" fn sys_getdents64(fd: i32, dirp: *mut abi::dirent64, count
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_exec(path: *const c_char) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Exec, path).try_into().unwrap();
+pub unsafe extern "C" fn sys_exec(
+	path: *const c_char,
+	argv: *const *const c_char,
+	envp: *const *const c_char,
+) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Exec, path, argv, envp)
+		.try_into()
+		.unwrap();
 
 	if result < 0 {
 		unsafe {

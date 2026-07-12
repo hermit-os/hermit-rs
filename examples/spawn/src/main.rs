@@ -10,7 +10,7 @@ fn spawn_bench(count: usize) -> Duration {
 
 	let start = Instant::now();
 	for pid in pids.iter_mut().take(count) {
-		*pid = unsafe { spawn_process(app.as_ptr()) };
+		*pid = unsafe { spawn_process(app.as_ptr(), std::ptr::null(), std::ptr::null()) };
 
 		if *pid <= 0 {
 			println!("Unable to spawn a process!");
@@ -30,7 +30,11 @@ fn main() {
 	println!("Try to spawn a process...");
 
 	let app = c"/bin/hello_world";
-	let pid = unsafe { spawn_process(app.as_ptr()) };
+	// Pass an argument vector and an environment to the new process;
+	// both arrays are NULL-terminated.
+	let argv = [app.as_ptr(), c"--from-spawn".as_ptr(), std::ptr::null()];
+	let envp = [c"GREETING=Hello from spawn!".as_ptr(), std::ptr::null()];
+	let pid = unsafe { spawn_process(app.as_ptr(), argv.as_ptr(), envp.as_ptr()) };
 	if pid > 0 {
 		println!("Spawn process {app:?} with id {pid}!");
 

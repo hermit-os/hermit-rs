@@ -15,7 +15,7 @@ fn fork_bench(count: usize) -> Duration {
 		if *pid == 0 {
 			//std::process::exit(0);
 			unsafe {
-				let _ = exec(app.as_ptr());
+				let _ = exec(app.as_ptr(), std::ptr::null(), std::ptr::null());
 			}
 		}
 	}
@@ -37,8 +37,12 @@ fn main() {
 		println!("Hello from child process with id {}!", unsafe { getpid() });
 
 		let app = c"/bin/hello_world";
+		// Pass an argument vector and an environment to the new
+		// process image; both arrays are NULL-terminated.
+		let argv = [app.as_ptr(), c"--from-exec".as_ptr(), std::ptr::null()];
+		let envp = [c"GREETING=Hello from exec!".as_ptr(), std::ptr::null()];
 		unsafe {
-			let _ = exec(app.as_ptr());
+			let _ = exec(app.as_ptr(), argv.as_ptr(), envp.as_ptr());
 		}
 
 		println!("ERROR: Exec failed!!!");
