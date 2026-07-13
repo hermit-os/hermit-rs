@@ -33,8 +33,6 @@ common-os = [
 	"dep:talc",
 ]
 
-common-os = ["hermit-abi", "align-address", "generic_once_cell", "libm", "spinning_top", "take-static", "talc"]
-
 ## Links against libc.a.
 libc = []
 
