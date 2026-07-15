@@ -25,6 +25,7 @@ align-address = { version = "0.4", optional = true }
 [features]
 default = []
 common-os = [
+	"dep:align-address",
 	"dep:hermit-abi",
 	"dep:generic_once_cell",
 	"dep:libm",

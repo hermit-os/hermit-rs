@@ -8,7 +8,7 @@ use spinning_top::RawSpinlock;
 use talc::source::Claim;
 use talc::TalcLock;
 
-const MIN_SIZE: usize = 1 * 1024 * 1024;
+const MIN_SIZE: usize = 1024 * 1024;
 
 static HEAP_END: AtomicPtr<u8> = AtomicPtr::new(null_mut());
 static ALLOC: Lazy<RawSpinlock, TalcLock<RawSpinlock, Claim>> = Lazy::new(|| {
