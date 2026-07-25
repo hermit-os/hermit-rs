@@ -11,6 +11,7 @@ members = [
     "examples/axum",
     "examples/demo",
     "examples/fork",
+    "examples/pipe",
     "examples/true",
     "examples/false",
     "examples/fuse_test",
