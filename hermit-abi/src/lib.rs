@@ -799,6 +799,19 @@ extern "C" {
 	#[link_name = "sys_dup"]
 	pub fn dup(fd: i32) -> i32;
 
+	/// create a unidirectional pipe
+	///
+	/// `pipe` creates a pipe and stores two file descriptors in the array
+	/// `pipefd`: `pipefd[0]` refers to the read end, `pipefd[1]` to the
+	/// write end. Data written to the write end is buffered by the kernel
+	/// until it is read from the read end. Both descriptors are inherited
+	/// across `fork`, so a pipe can be used to communicate between a parent
+	/// and a child process.
+	///
+	/// Returns `0` on success or a negative error number on failure.
+	#[link_name = "sys_pipe"]
+	pub fn pipe(pipefd: *mut i32) -> i32;
+
 	#[link_name = "sys_getpeername"]
 	pub fn getpeername(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
 
