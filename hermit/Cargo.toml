@@ -14,16 +14,18 @@ categories = ["os"]
 links = "hermit"
 
 [dependencies]
-hermit-abi = { version = "0.4", optional = true }
+hermit-abi = { version = "0.5", optional = true }
 generic_once_cell = { version = "0.1", optional = true }
 libm = { version = "0.2", optional = true }
 spinning_top = { version = "0.3", optional = true }
 take-static = { version = "0.1", optional = true }
-talc = { version = "4.4", default-features = false, features = ["lock_api"], optional = true }
+talc = { version = "5.0.3", default-features = false, optional = true  }
+align-address = { version = "0.4", optional = true }
 
 [features]
 default = []
 common-os = [
+	"dep:align-address",
 	"dep:hermit-abi",
 	"dep:generic_once_cell",
 	"dep:libm",
