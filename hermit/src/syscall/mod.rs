@@ -135,6 +135,8 @@ pub(crate) enum SyscallNo {
 	Exec = 56,
 	/// number of the system call `mmap`
 	Mmap = 57,
+	/// number of the system call `pipe`
+	Pipe = 58,
 }
 
 #[thread_local]
@@ -472,6 +474,13 @@ pub extern "C" fn sys_close(fd: i32) -> i32 {
 #[no_mangle]
 pub extern "C" fn sys_dup(fd: i32) -> i32 {
 	let result: i32 = syscall!(SyscallNo::Dup, fd).try_into().unwrap();
+	update_errno!(result);
+	result
+}
+
+#[no_mangle]
+pub extern "C" fn sys_pipe(pipefd: *mut i32) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Pipe, pipefd).try_into().unwrap();
 	update_errno!(result);
 	result
 }
