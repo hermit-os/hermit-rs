@@ -35,6 +35,25 @@ common-os = [
 ## Links against libc.a.
 libc = []
 
+#! ### Logging Features
+#!
+#! Enables the corresponding feature for the kernel's `log` crate.
+#!
+#! For details, see [log compile time filters](https://docs.rs/log/0.4.33/log/#compile-time-filters).
+
+log-max_level_off = []
+log-max_level_error = []
+log-max_level_warn = []
+log-max_level_info = []
+log-max_level_debug = []
+log-max_level_trace = []
+log-release_max_level_off = []
+log-release_max_level_error = []
+log-release_max_level_warn = []
+log-release_max_level_info = []
+log-release_max_level_debug = []
+log-release_max_level_trace = []
+
 #! ### Kernel Features
 #!
 #! For details, see the kernel [docs].

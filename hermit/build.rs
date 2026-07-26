@@ -222,6 +222,13 @@ fn forward_features(cargo: &mut Command) {
 	let cargo_cfg_feature = env::var("CARGO_CFG_FEATURE").unwrap();
 	let cargo_cfg_feature = cargo_cfg_feature
 		.split(',')
+		.map(|feature| {
+			if let Some(log_feature) = feature.strip_prefix("log-") {
+				["log/", log_feature].join("")
+			} else {
+				feature.to_owned()
+			}
+		})
 		.filter(|feature| *feature != "libc")
 		.collect::<Vec<_>>();
 	let cargo_cfg_feature = cargo_cfg_feature.join(",");
