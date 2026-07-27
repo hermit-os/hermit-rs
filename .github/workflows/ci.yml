@@ -72,7 +72,7 @@ jobs:
             packages: qemu-system-x86
             flags: --accel --sudo
           - arch: aarch64
-            packages: qemu-system-aarch64
+            packages: qemu-system-aarch64 ipxe-qemu
           - arch: riscv64
             packages: qemu-system-misc
     steps:
@@ -82,7 +82,7 @@ jobs:
       - name: Install Packages
         run: |
           sudo apt-get update
-          sudo apt-get install ${{ matrix.packages }}
+          sudo apt-get install --no-install-recommends ${{ matrix.packages }}
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
       - name: Dowload OpenSBI
