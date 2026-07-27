@@ -69,7 +69,7 @@ jobs:
         profile: [dev, release]
         include:
           - arch: x86_64
-            packages: qemu-system-x86
+            packages: qemu-system-x86 libcap-ng-dev libseccomp-dev
             flags: --accel --sudo
           - arch: aarch64
             packages: qemu-system-aarch64 ipxe-qemu
@@ -94,6 +94,10 @@ jobs:
       - uses: mkroening/rust-toolchain-toml@main
         with:
           toolchain-file: 'kernel/rust-toolchain.toml'
+      - run: rustup target add wasm32-wasip1
+        working-directory: .
+      - run: cargo +stable install --locked virtiofsd
+        if: matrix.arch == 'x86_64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu ${{ matrix.flags }}
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
@@ -101,3 +105,11 @@ jobs:
         if: matrix.arch != 'riscv64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
+      - run: |
+          cd ..
+          cargo build --target wasm32-wasip1 --profile release --package hello_world
+          mkdir kernel/shared
+          cp target/wasm32-wasip1/release/hello_world.wasm kernel/shared
+          cd kernel
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+        if: matrix.arch == 'x86_64'
