@@ -69,7 +69,7 @@ jobs:
         profile: [dev, release]
         include:
           - arch: x86_64
-            packages: qemu-system-x86-hwe
+            packages: qemu-system-x86-hwe libcap-ng-dev libseccomp-dev
             flags: --accel --sudo
           - arch: aarch64
             packages: qemu-system-arm-hwe
@@ -93,15 +93,29 @@ jobs:
         working-directory: .
       - run: cargo +stable install --locked virtiofsd
         if: matrix.arch == 'x86_64'
+<<<<<<< HEAD
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package rusty_demo qemu ${{ matrix.flags }}
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package miotcp --features hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+=======
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu ${{ matrix.flags }}
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+        if: matrix.arch != 'riscv64'
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package miotcp --features hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+        if: matrix.arch != 'riscv64'
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+        if: matrix.arch != 'riscv64'
+>>>>>>> 307132df (ci: test hermit-wasm package)
       - run: |
           cd ..
           cargo build --target wasm32-wasip1 --profile release --package hello_world
           mkdir kernel/shared
           cp target/wasm32-wasip1/release/hello_world.wasm kernel/shared
           cd kernel
+<<<<<<< HEAD
           cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+=======
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+>>>>>>> 307132df (ci: test hermit-wasm package)
         if: matrix.arch == 'x86_64'
