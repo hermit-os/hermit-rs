@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 
 #[cfg(target_os = "hermit")]
 use hermit as _;
@@ -52,8 +52,7 @@ fn echo(mut stream: VsockStream) {
 
 		let buf = &buf[..n];
 
-		let msg = std::str::from_utf8(buf).unwrap();
-		print!("{}", msg);
+		io::stdout().write_all(buf).unwrap();
 
 		stream.write_all(buf).unwrap();
 	}
