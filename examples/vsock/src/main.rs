@@ -25,27 +25,26 @@ mod vsock;
 
 pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
-#[cfg(not(feature = "client"))]
 fn main() {
+	if cfg!(feature = "client") {
+		use std::thread;
+		use std::time::Duration;
+
+		thread::sleep(Duration::from_secs(1));
+
+		let addr = vsock::VsockAddr::new(2, 9975);
+		let stream = VsockStream::connect(addr).expect("connection failed");
+
+		echo(stream);
+		return;
+	}
+
 	let listener = vsock::VsockListener::bind(9975).unwrap();
 
 	loop {
 		let (stream, _addr) = listener.accept().unwrap();
 		std::thread::spawn(|| echo(stream));
 	}
-}
-
-#[cfg(feature = "client")]
-fn main() {
-	use std::thread;
-	use std::time::Duration;
-
-	thread::sleep(Duration::from_secs(1));
-
-	let addr = vsock::VsockAddr::new(2, 9975);
-	let stream = VsockStream::connect(addr).expect("connection failed");
-
-	echo(stream);
 }
 
 fn echo(mut stream: VsockStream) {
