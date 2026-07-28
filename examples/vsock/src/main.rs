@@ -1,4 +1,3 @@
-#[allow(unused_imports)]
 use std::io::{Read, Write};
 
 #[cfg(target_os = "hermit")]
