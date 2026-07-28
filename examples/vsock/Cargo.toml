@@ -3,12 +3,9 @@ name = "vsock"
 version = "0.1.0"
 edition = "2021"
 
-[target.'cfg(target_os = "hermit")'.dependencies.hermit-abi]
-path = "../../hermit-abi"
-
-[target.'cfg(target_os = "hermit")'.dependencies.hermit]
-path = "../../hermit"
-default-features = false
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+hermit-abi = { path = "../../hermit-abi" }
 
 [target.'cfg(unix)'.dependencies]
 libc = { version = "0.2" }
