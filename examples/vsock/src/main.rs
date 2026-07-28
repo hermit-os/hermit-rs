@@ -26,20 +26,22 @@ mod vsock;
 pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
 fn main() {
+	let port = 9975;
+
 	if cfg!(feature = "client") {
 		use std::thread;
 		use std::time::Duration;
 
 		thread::sleep(Duration::from_secs(1));
 
-		let addr = vsock::VsockAddr::new(2, 9975);
+		let addr = vsock::VsockAddr::new(2, port);
 		let stream = VsockStream::connect(addr).expect("connection failed");
 
 		echo(stream);
 		return;
 	}
 
-	let listener = vsock::VsockListener::bind(9975).unwrap();
+	let listener = vsock::VsockListener::bind(port).unwrap();
 
 	loop {
 		let (stream, _addr) = listener.accept().unwrap();
