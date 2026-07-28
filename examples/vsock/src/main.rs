@@ -50,9 +50,11 @@ fn echo(mut stream: VsockStream) {
 			break;
 		}
 
-		let msg = std::str::from_utf8(&buf[..n]).unwrap();
+		let buf = &buf[..n];
+
+		let msg = std::str::from_utf8(buf).unwrap();
 		print!("{}", msg);
 
-		stream.write_all(&buf[..n]).unwrap();
+		stream.write_all(buf).unwrap();
 	}
 }
