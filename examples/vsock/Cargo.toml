@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [target.'cfg(target_os = "hermit")'.dependencies]
-hermit = { path = "../../hermit", default-features = false }
+hermit = { path = "../../hermit", default-features = false, features = ["vsock"] }
 hermit-abi = { path = "../../hermit-abi" }
 
 [target.'cfg(unix)'.dependencies]
 libc = { version = "0.2" }
 
 [features]
-default = ["hermit/pci", "hermit/pci-ids", "hermit/acpi", "hermit/vsock"]
+default = ["hermit/pci", "hermit/pci-ids", "hermit/acpi"]
 client = []
