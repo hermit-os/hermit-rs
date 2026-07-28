@@ -7,6 +7,8 @@ use crate::vsock::VsockStream;
 
 mod vsock;
 
+pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
+
 // demo program to test the vsock interface
 //
 // The program is used to demonstrate issue hermit-os/kernel#880
@@ -38,7 +40,7 @@ fn main() {
 }
 
 fn echo(mut stream: VsockStream) {
-	let mut buf = [0u8; 1000];
+	let mut buf = vec![0; DEFAULT_BUF_SIZE];
 
 	eprintln!("Echoing on new connection...");
 
