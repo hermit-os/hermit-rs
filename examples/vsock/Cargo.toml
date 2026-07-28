@@ -3,8 +3,6 @@ name = "vsock"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-
 [target.'cfg(target_os = "hermit")'.dependencies.hermit-abi]
 path = "../../hermit-abi"
 
