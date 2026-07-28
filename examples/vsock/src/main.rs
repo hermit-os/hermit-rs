@@ -34,13 +34,16 @@ fn main() {
 
 		thread::sleep(Duration::from_secs(1));
 
-		let addr = vsock::VsockAddr::new(2, port);
+		let cid = 2;
+		eprintln!("Connecting to {}:{}...", cid, port);
+		let addr = vsock::VsockAddr::new(cid, port);
 		let stream = VsockStream::connect(addr).expect("connection failed");
 
 		echo(stream);
 		return;
 	}
 
+	eprintln!("Listening for VSOCK connections on port {}...", port);
 	let listener = vsock::VsockListener::bind(port).unwrap();
 
 	loop {
