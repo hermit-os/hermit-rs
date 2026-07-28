@@ -20,7 +20,7 @@ fn main() {
 
 	loop {
 		let (stream, _addr) = listener.accept().unwrap();
-		echo(stream);
+		std::thread::spawn(|| echo(stream));
 	}
 }
 
