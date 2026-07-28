@@ -43,19 +43,14 @@ fn echo(mut stream: VsockStream) {
 	eprintln!("Echoing on new connection...");
 
 	loop {
-		match stream.read(&mut buf) {
-			Err(e) => {
-				println!("read err {e:?}");
-				break;
-			}
-			Ok(received) => {
-				if received == 0 {
-					break;
-				}
-				let msg = std::str::from_utf8(&buf[..received]).unwrap();
-				print!("{}", msg);
-				stream.write_all(&buf[..received]).unwrap();
-			}
+		let received = stream.read(&mut buf).unwrap();
+		if received == 0 {
+			break;
 		}
+
+		let msg = std::str::from_utf8(&buf[..received]).unwrap();
+		print!("{}", msg);
+
+		stream.write_all(&buf[..received]).unwrap();
 	}
 }
