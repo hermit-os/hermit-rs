@@ -17,9 +17,11 @@ pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 #[cfg(not(feature = "client"))]
 fn main() {
 	let listener = vsock::VsockListener::bind(9975).unwrap();
-	let (stream, _addr) = listener.accept().unwrap();
 
-	echo(stream);
+	loop {
+		let (stream, _addr) = listener.accept().unwrap();
+		echo(stream);
+	}
 }
 
 // demo program to connect with a vsock server
