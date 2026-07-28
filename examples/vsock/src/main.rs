@@ -3,6 +3,8 @@ use std::io::{Read, Write};
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
+use crate::vsock::VsockStream;
+
 mod vsock;
 
 // demo program to test the vsock interface
@@ -13,27 +15,9 @@ mod vsock;
 #[cfg(not(feature = "client"))]
 fn main() {
 	let listener = vsock::VsockListener::bind(9975).unwrap();
-	let (mut socket, _addr) = listener.accept().unwrap();
-	let mut buf = [0u8; 1000];
+	let (stream, _addr) = listener.accept().unwrap();
 
-	println!("Try to read from vsock stream...");
-
-	loop {
-		match socket.read(&mut buf) {
-			Err(e) => {
-				println!("read err {e:?}");
-				break;
-			}
-			Ok(received) => {
-				print!("{}", std::str::from_utf8(&buf[..received]).unwrap());
-				if received == 0 {
-					break;
-				}
-
-				socket.write_all(&buf[..received]).unwrap();
-			}
-		}
-	}
+	echo(stream);
 }
 
 // demo program to connect with a vsock server
@@ -48,22 +32,29 @@ fn main() {
 	thread::sleep(Duration::from_secs(1));
 
 	let addr = vsock::VsockAddr::new(2, 9975);
-	let mut socket = vsock::VsockStream::connect(addr).expect("connection failed");
+	let stream = VsockStream::connect(addr).expect("connection failed");
+
+	echo(stream);
+}
+
+fn echo(mut stream: VsockStream) {
 	let mut buf = [0u8; 1000];
 
+	eprintln!("Echoing on new connection...");
+
 	loop {
-		match socket.read(&mut buf) {
+		match stream.read(&mut buf) {
 			Err(e) => {
 				println!("read err {e:?}");
 				break;
 			}
 			Ok(received) => {
-				let msg = std::str::from_utf8(&buf[..received]).unwrap();
 				if received == 0 {
 					break;
 				}
+				let msg = std::str::from_utf8(&buf[..received]).unwrap();
 				print!("{}", msg);
-				socket.write_all(&buf[..received]).unwrap();
+				stream.write_all(&buf[..received]).unwrap();
 			}
 		}
 	}
