@@ -1,3 +1,19 @@
+//! A VSOCK echo application.
+//!
+//! This application echos all incoming data via VSOCK while printing the messages to stdout.
+//!
+//! When run with default features, it is run as a server. You can connect with:
+//!
+//! ```bash
+//! socat - VSOCK-CONNECT:3:9975
+//! ```
+//!
+//! When run with the `client` feature, it is run as a client. You can create a corresponding server with:
+//!
+//! ```bash
+//! socat - VSOCK-LISTEN:9975
+//! ```
+
 use std::io::{self, Read, Write};
 
 #[cfg(target_os = "hermit")]
@@ -9,11 +25,6 @@ mod vsock;
 
 pub const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 
-// demo program to test the vsock interface
-//
-// The program is used to demonstrate issue hermit-os/kernel#880
-// Use `socat - VSOCK-CONNECT:3:9975`
-// to communicate with the unikernel.
 #[cfg(not(feature = "client"))]
 fn main() {
 	let listener = vsock::VsockListener::bind(9975).unwrap();
@@ -24,10 +35,6 @@ fn main() {
 	}
 }
 
-// demo program to connect with a vsock server
-//
-// The program is used to demonstrate issue hermit-os/kernel#880
-// Use `socat - SOCKET-LISTEN:9975` to communicate with the unikernel.
 #[cfg(feature = "client")]
 fn main() {
 	use std::thread;
