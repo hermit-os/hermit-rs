@@ -16,7 +16,7 @@ netbench_dir="${0%/*}"
 root_dir="$netbench_dir"/../..
 
 mode=$2
-bin="netbench"
+bin="rust-tcp-io-perf"
 
 case "$mode" in
     tcp-server-bw) benchmark="bw"; protocol="tcp"; subcmd="server"; args="--bytes 1048576 --rounds 1000" ;;
