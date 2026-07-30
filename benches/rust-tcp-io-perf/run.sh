@@ -58,7 +58,6 @@ linux() {
 
     cargo run --manifest-path "$netbench_dir"/Cargo.toml \
         --release \
-        --target x86_64-unknown-linux-gnu \
         -- \
         $benchmark $protocol $subcmd --address 10.0.5.3 $args
 }
