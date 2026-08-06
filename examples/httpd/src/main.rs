@@ -1,3 +1,6 @@
+use std::thread;
+use std::time::Duration;
+
 #[cfg(target_os = "hermit")]
 use hermit as _;
 
@@ -19,6 +22,9 @@ fn main() {
 		handle_request(request);
 
 		if cfg!(feature = "ci") {
+			// Wait before shutting down to send response.
+			thread::sleep(Duration::from_secs(1));
+
 			break;
 		}
 	}
