@@ -54,6 +54,13 @@ log-release_max_level_info = []
 log-release_max_level_debug = []
 log-release_max_level_trace = []
 
+#! ### Smoltcp Features
+#!
+#! Enables the corresponding feature for the kernel's `smoltcp` crate.
+
+## Automatically reply on an ICMP echo request
+smoltcp-auto-icmp-echo-reply = []
+
 #! ### Kernel Features
 #!
 #! For details, see the kernel [docs].
