@@ -225,6 +225,8 @@ fn forward_features(cargo: &mut Command) {
 		.map(|feature| {
 			if let Some(log_feature) = feature.strip_prefix("log-") {
 				["log/", log_feature].join("")
+			} else if let Some(smoltcp_feature) = feature.strip_prefix("smoltcp-") {
+				["smoltcp/", smoltcp_feature].join("")
 			} else {
 				feature.to_owned()
 			}
