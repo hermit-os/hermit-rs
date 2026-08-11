@@ -69,6 +69,7 @@ smoltcp-auto-icmp-echo-reply = []
 
 mman = []
 newlib = []
+loader = []
 uhyve = []
 initramfs = []
 acpi = []
