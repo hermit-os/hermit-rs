@@ -16,7 +16,22 @@ netbench_dir="${0%/*}"
 root_dir="$netbench_dir"/../..
 
 mode=$2
-bin="netbench"
+bin="rust-tcp-io-perf"
+arch="$(uname -m)"
+
+# Fortunately the loader uses the same naming as uname -m does
+loader_arch="$arch"
+
+case "$arch" in
+    aarch64) rust_arch="aarch64"; qemu_arch="aarch64"; qemu_machine="virt" ;;
+    aarch64_be) rust_arch="aarch64_be"; qemu_arch="aarch64"; qemu_machine="virt" ;;
+    riscv64) rust_arch="riscv64gc"; qemu_arch="riscv64"; qemu_machine="virt" ;;
+    x86_64) rust_arch="x86_64"; qemu_arch="x86_64"; qemu_machine="pc" ;;
+    *)
+        echo "Unsupported architecture: $arch" >&2
+        exit 1
+        ;;
+esac
 
 case "$mode" in
     tcp-server-bw) benchmark="bw"; protocol="tcp"; subcmd="server"; args="--bytes 1048576 --rounds 1000" ;;
@@ -38,16 +53,26 @@ hermit() {
 
     cargo build --manifest-path "$netbench_dir"/Cargo.toml \
         -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
-        --target x86_64-unknown-hermit \
+        --target "$rust_arch-unknown-hermit" \
         --features hermit/virtio-net \
         --release
 
     echo "Launching $bin image on QEMU"
 
-    sudo qemu-system-x86_64 -cpu host \
+    # QEMU on aarch64 and riscv64 parses the file passed via -kernel and assumes
+    # that anything that is ELF is not a Linux kernel, which makes it not process
+    # the -initrd argument
+
+    loader="$root_dir"/target/"$rust_arch-unknown-hermit"/release/"$bin"
+    case "$arch" in
+        aarch64*|riscv64) initrd_arg="-device guest-loader,addr=0x48000000,initrd=$loader" ;;
+        x86_64) initrd_arg="-initrd $loader" ;;
+    esac
+
+    sudo "qemu-system-$qemu_arch" -M "$qemu_machine" -cpu host \
             -enable-kvm -display none -smp 1 -m 1G -serial stdio \
-            -kernel "$root_dir"/kernel/hermit-loader-x86_64 \
-            -initrd "$root_dir"/target/x86_64-unknown-hermit/release/$bin \
+            -kernel "$root_dir"/kernel/"hermit-loader-$loader_arch" \
+            $initrd_arg \
             -netdev tap,id=net0,script="$root_dir"/kernel/xtask/hermit-ifup,vhost=on \
             -device virtio-net-pci,netdev=net0,disable-legacy=on \
             -append "-- $benchmark $protocol $subcmd --address 10.0.5.1 $args"
@@ -58,7 +83,6 @@ linux() {
 
     cargo run --manifest-path "$netbench_dir"/Cargo.toml \
         --release \
-        --target x86_64-unknown-linux-gnu \
         -- \
         $benchmark $protocol $subcmd --address 10.0.5.3 $args
 }
