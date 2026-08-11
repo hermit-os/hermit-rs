@@ -1,10 +1,6 @@
 [package]
 name = "hermit"
 version = "0.13.2"
-authors = [
-	"Stefan Lankes <slankes@eonerc.rwth-aachen.de>",
-	"Martin Kröning <mkroening@posteo.net>",
-]
 edition = "2021"
 description = "The Hermit unikernel for Rust."
 repository = "https://github.com/hermit-os/hermit-rs"

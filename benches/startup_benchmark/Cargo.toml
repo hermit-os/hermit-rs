@@ -1,6 +1,5 @@
 [package]
 name = "startup_benchmark"
-authors = ["Carl Wachter"]
 edition = "2021"
 
 [dependencies]

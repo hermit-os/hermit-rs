@@ -1,6 +1,5 @@
 [package]
 name = "miotcp"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
 [dependencies]
