@@ -12,11 +12,15 @@ const TEST_DIR: &str = if cfg!(target_os = "hermit") {
 };
 
 fn main() {
-	let test_path = Path::new(TEST_DIR);
+	let test_path = Path::new(TEST_DIR).join("hello_world.txt");
 
-	let mut file = File::open(test_path.join("hello_world.txt")).unwrap();
+	eprintln!("Opening {}...", test_path.display());
+	let mut file = File::open(test_path).unwrap();
+
+	eprintln!("Reading to end...");
 	let mut buf = Vec::new();
-
 	file.read_to_end(&mut buf).unwrap();
 	assert_eq!(buf, b"Hello, world!\n");
+
+	eprintln!("Success!");
 }
