@@ -20,4 +20,4 @@ riscv = "0.16"
 syscalls = { version = "0.8", default-features = false }
 
 [features]
-default = ["hermit/acpi", "hermit/pci", "hermit/smp"]
+default = ["hermit/acpi", "hermit/loader", "hermit/pci", "hermit/smp"]
