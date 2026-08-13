@@ -2,7 +2,6 @@
 name = "hermit-wasm"
 version = "0.1.1"
 edition = "2024"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 repository = "https://github.com/hermit-os/hermit-rs/tree/main/examples/hermit-wasm"
 description = "Running WASM modules inside a lightweight virtual machine"
 readme = "README.md"

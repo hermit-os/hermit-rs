@@ -1,6 +1,5 @@
 [package]
 name = "rftrace-example"
-authors = ["Martin Kröning <mkroening@posteo.net>"]
 edition = "2021"
 
 [dependencies]

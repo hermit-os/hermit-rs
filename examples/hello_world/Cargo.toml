@@ -1,6 +1,5 @@
 [package]
 name = "hello_world"
-authors = ["Stefan Lankes <slankes@eonerc.rwth-aachen.de>"]
 edition = "2021"
 
 [target.'cfg(target_os = "hermit")'.dependencies]

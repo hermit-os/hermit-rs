@@ -1,10 +1,6 @@
 [package]
 
 name = "rust-tcp-io-perf"
-authors = [
-    "Lorenzo Martini <lmartini@student.ethz.ch>",
-    "Jonathan Klimt <jonathan.klimt@eonerc.rwth-aachen.de>"
-]
 edition = "2021"
 readme = "README.md"
 
