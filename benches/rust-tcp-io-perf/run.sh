@@ -69,9 +69,15 @@ hermit() {
         x86_64) initrd_arg="-initrd $kernel" ;;
     esac
 
+    case "$arch" in
+        aarch64*) loader_suffix=elf ;;
+        riscv64) loader_suffix=sbi ;;
+        x86_64) loader_suffix=multiboot ;;
+    esac
+
     sudo "qemu-system-$qemu_arch" -M "$qemu_machine" -cpu host \
             -enable-kvm -display none -smp 1 -m 1G -serial stdio \
-            -kernel "$root_dir"/kernel/"hermit-loader-$loader_arch" \
+            -kernel "$root_dir"/kernel/"hermit-loader-$loader_arch-$loader_suffix" \
             $initrd_arg \
             -netdev tap,id=net0,script="$root_dir"/kernel/xtask/hermit-ifup,vhost=on \
             -device virtio-net-pci,netdev=net0,disable-legacy=on \
