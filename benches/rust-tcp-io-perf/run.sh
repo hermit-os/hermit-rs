@@ -63,10 +63,10 @@ hermit() {
     # that anything that is ELF is not a Linux kernel, which makes it not process
     # the -initrd argument
 
-    loader="$root_dir"/target/"$rust_arch-unknown-hermit"/release/"$bin"
+    kernel="$root_dir"/target/"$rust_arch-unknown-hermit"/release/"$bin"
     case "$arch" in
-        aarch64*|riscv64) initrd_arg="-device guest-loader,addr=0x48000000,initrd=$loader" ;;
-        x86_64) initrd_arg="-initrd $loader" ;;
+        aarch64*|riscv64) initrd_arg="-device guest-loader,addr=0x48000000,initrd=$kernel" ;;
+        x86_64) initrd_arg="-initrd $kernel" ;;
     esac
 
     sudo "qemu-system-$qemu_arch" -M "$qemu_machine" -cpu host \
