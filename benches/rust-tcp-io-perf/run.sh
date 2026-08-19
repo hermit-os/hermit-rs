@@ -54,7 +54,7 @@ hermit() {
     cargo build --manifest-path "$netbench_dir"/Cargo.toml \
         -Zbuild-std=core,alloc,std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
         --target "$rust_arch-unknown-hermit" \
-        --features hermit/virtio-net \
+        --features hermit/loader,hermit/virtio-net \
         --release
 
     echo "Launching $bin image on QEMU"
