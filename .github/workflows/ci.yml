@@ -12,7 +12,7 @@ env:
 jobs:
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -33,7 +33,7 @@ jobs:
 
   format:
     name: Format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: mkroening/rust-toolchain-toml@main
@@ -43,7 +43,7 @@ jobs:
 
   check-docs:
     name: Check docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -59,7 +59,7 @@ jobs:
 
   run-hermit:
     name: Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: kernel
@@ -74,7 +74,7 @@ jobs:
           - arch: aarch64
             packages: qemu-system-arm
           - arch: riscv64
-            packages: qemu-system-misc
+            packages: qemu-system-riscv
     steps:
       - uses: actions/checkout@v7
         with:
