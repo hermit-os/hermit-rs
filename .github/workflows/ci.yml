@@ -12,7 +12,7 @@ env:
 jobs:
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -33,7 +33,7 @@ jobs:
 
   format:
     name: Format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: mkroening/rust-toolchain-toml@main
@@ -43,7 +43,7 @@ jobs:
 
   check-docs:
     name: Check docs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
         with:
@@ -59,7 +59,7 @@ jobs:
 
   run-hermit:
     name: Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: kernel
@@ -69,12 +69,12 @@ jobs:
         profile: [dev, release]
         include:
           - arch: x86_64
-            packages: qemu-system-x86 libcap-ng-dev libseccomp-dev
+            packages: qemu-system-x86-hwe
             flags: --accel --sudo
           - arch: aarch64
-            packages: qemu-system-aarch64 ipxe-qemu
+            packages: qemu-system-arm-hwe
           - arch: riscv64
-            packages: qemu-system-misc
+            packages: qemu-system-riscv-hwe
     steps:
       - uses: actions/checkout@v7
         with:
@@ -82,14 +82,9 @@ jobs:
       - name: Install Packages
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends ${{ matrix.packages }}
+          sudo apt-get install --no-install-recommends ipxe-qemu libcap-ng-dev libseccomp-dev ${{ matrix.packages }}
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
-      - name: Dowload OpenSBI
-        if: matrix.arch == 'riscv64'
-        run: |
-          gh release download v1.7 --repo riscv-software-src/opensbi --pattern 'opensbi-*-rv-bin.tar.xz'
-          tar -xvf opensbi-*-rv-bin.tar.xz opensbi-1.7-rv-bin/share/opensbi/lp64/generic/firmware/fw_jump.bin
       - uses: mkroening/rust-toolchain-toml@main
       - uses: mkroening/rust-toolchain-toml@main
         with:
@@ -98,12 +93,12 @@ jobs:
         working-directory: .
       - run: cargo +stable install --locked virtiofsd
         if: matrix.arch == 'x86_64'
-      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package rusty_demo qemu ${{ matrix.flags }}
-      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package rusty_demo qemu ${{ matrix.flags }}
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
-      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package miotcp --features hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package miotcp --features hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
-      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
+      - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
         if: matrix.arch != 'riscv64'
       - run: |
           cd ..
@@ -111,5 +106,5 @@ jobs:
           mkdir kernel/shared
           cp target/wasm32-wasip1/release/hello_world.wasm kernel/shared
           cd kernel
-          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
         if: matrix.arch == 'x86_64'
