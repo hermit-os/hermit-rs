@@ -72,7 +72,7 @@ jobs:
             packages: qemu-system-x86
             flags: --accel --sudo
           - arch: aarch64
-            packages: qemu-system-arm ipxe-qemu
+            packages: qemu-system-arm
           - arch: riscv64
             packages: qemu-system-misc
     steps:
@@ -82,7 +82,7 @@ jobs:
       - name: Install Packages
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends libcap-ng-dev libseccomp-dev ${{ matrix.packages }}
+          sudo apt-get install --no-install-recommends ipxe-qemu libcap-ng-dev libseccomp-dev ${{ matrix.packages }}
       - name: Download loader
         run: gh release download --repo hermit-os/loader --pattern hermit-loader-${{ matrix.arch }}
       - name: Dowload OpenSBI
