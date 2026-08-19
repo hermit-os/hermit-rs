@@ -69,12 +69,12 @@ jobs:
         profile: [dev, release]
         include:
           - arch: x86_64
-            packages: qemu-system-x86
+            packages: qemu-system-x86-hwe
             flags: --accel --sudo
           - arch: aarch64
-            packages: qemu-system-arm
+            packages: qemu-system-arm-hwe
           - arch: riscv64
-            packages: qemu-system-riscv
+            packages: qemu-system-riscv-hwe
     steps:
       - uses: actions/checkout@v7
         with:
