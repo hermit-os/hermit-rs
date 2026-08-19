@@ -72,7 +72,7 @@ jobs:
             packages: qemu-system-x86 libcap-ng-dev libseccomp-dev
             flags: --accel --sudo
           - arch: aarch64
-            packages: qemu-system-aarch64 ipxe-qemu
+            packages: qemu-system-arm ipxe-qemu
           - arch: riscv64
             packages: qemu-system-misc
     steps:
