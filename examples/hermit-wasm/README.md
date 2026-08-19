@@ -44,7 +44,7 @@ virtiofsd --socket-path=./vhostqemu --shared-dir ./target/wasm32-wasip1/release 
 
 Start _Hermit-WASM_ within the hypervisor Qemu as followed:
 ```sh
-qemu-system-aarch64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64 -initrd target/aarch64-unknown-hermit/release/hermit-wasm -append "-- /root/wasm-test.wasm" -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G -global virtio-mmio.force-legacy=off -chardev socket,id=char0,path=./vhostqemu -device vhost-user-fs-pci,queue-size=1024,packed=on,chardev=char0,tag=root -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/shm,share=on -numa node,memdev=mem
+qemu-system-aarch64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64-multiboot -initrd target/aarch64-unknown-hermit/release/hermit-wasm -append "-- /root/wasm-test.wasm" -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G -global virtio-mmio.force-legacy=off -chardev socket,id=char0,path=./vhostqemu -device vhost-user-fs-pci,queue-size=1024,packed=on,chardev=char0,tag=root -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/shm,share=on -numa node,memdev=mem
 ```
 
 As alternative, [uhyve](https://github.com/hermit-os/uhyve) can be used, which is a minimal hypervisor for Hermit and offers direct access to a local directory. Consequently, uhyve doesn't depend on _virtiofsd_. In the following example, a local file is mounted to _/root/wasm-test.wasm_.

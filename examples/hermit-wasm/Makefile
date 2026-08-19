@@ -25,6 +25,6 @@ run: target/x86_64-unknown-hermit/release/wasmi_demo
 		-smp 4 \
 		-m 1G \
 		-device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-		-kernel hermit-loader-x86_64 \
+		-kernel hermit-loader-x86_64-multiboot \
 		-initrd target/x86_64-unknown-hermit/release/wasmi-demo \
 		-netdev user,id=u1,hostfwd=tcp::3000-:3000 -device virtio-net-pci,netdev=u1,disable-legacy=on,packed=on,mq=on

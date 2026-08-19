@@ -34,15 +34,15 @@ jobs:
       run: cp target/x86_64-unknown-hermit/release/rusty_demo .
     - name: Download loader
       run: |
-        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64
-        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64-fc
+        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64-multiboot
+        gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64-linux
         gh release download --repo hermit-os/loader --pattern hermit-loader-x86_64.efi
     - name: Create dockerfile for rusty_demo
       run: |
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env:latest
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY rusty_demo hermit/rusty_demo
         CMD ["/hermit/rusty_demo"]
         END
@@ -87,8 +87,8 @@ jobs:
       run: |
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env:latest
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY httpd hermit/httpd
         CMD ["/hermit/httpd"]
         END
@@ -102,8 +102,8 @@ jobs:
       run: |
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env_alpine:latest
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY httpd hermit/httpd
         CMD ["/hermit/httpd"]
         END
@@ -136,8 +136,8 @@ jobs:
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env:latest
         COPY root root
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY webserver hermit/webserver
         CMD ["/hermit/webserver"]
         END
@@ -155,8 +155,8 @@ jobs:
       run: |
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env:latest
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY tls hermit/tls
         CMD ["/hermit/tls"]
         END
@@ -174,8 +174,8 @@ jobs:
       run: |
         cat << END > Dockerfile
         FROM ghcr.io/hermit-os/hermit_env:latest
-        COPY hermit-loader-x86_64 hermit/hermit-loader
-        COPY hermit-loader-x86_64-fc hermit/hermit-loader-fc
+        COPY hermit-loader-x86_64-multiboot hermit/hermit-loader-multiboot
+        COPY hermit-loader-x86_64-linux hermit/hermit-loader-linux
         COPY axum-example hermit/axum-example
         CMD ["/hermit/axum-example"]
         END
