@@ -792,6 +792,10 @@ extern "C" {
 	#[link_name = "sys_close"]
 	pub fn close(fd: i32) -> i32;
 
+	/// Flushes a file to the storage it lives on.
+	#[link_name = "sys_fsync"]
+	pub fn fsync(fd: i32) -> i32;
+
 	/// duplicate an existing file descriptor
 	#[link_name = "sys_dup"]
 	pub fn dup(fd: i32) -> i32;
