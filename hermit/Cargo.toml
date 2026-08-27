@@ -107,6 +107,7 @@ mmap = []
 nostd = []
 trace = []
 vsock = []
+snapshot = []
 
 [build-dependencies]
 cc = "1"
