@@ -792,7 +792,7 @@ extern "C" {
 	#[link_name = "sys_close"]
 	pub fn close(fd: i32) -> i32;
 
-	/// Flushes a file to the storage it lives on.
+	/// synchronize a file's in-core state with that on disk
 	#[link_name = "sys_fsync"]
 	pub fn fsync(fd: i32) -> i32;
 
