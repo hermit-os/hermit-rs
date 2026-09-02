@@ -63,6 +63,7 @@ smoltcp-auto-icmp-echo-reply = []
 #!
 #! [docs]: https://hermit-os.github.io/kernel
 
+masos = []
 mman = []
 newlib = []
 pvh = []
