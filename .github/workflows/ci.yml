@@ -95,11 +95,8 @@ jobs:
         if: matrix.arch == 'x86_64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package rusty_demo qemu ${{ matrix.flags }}
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package httpd --features ci,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
-        if: matrix.arch != 'riscv64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package miotcp --features hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
-        if: matrix.arch != 'riscv64'
       - run: cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package mioudp --features hermit/udp,hermit/dhcpv4,hermit/virtio-net qemu ${{ matrix.flags }} --devices virtio-net-pci
-        if: matrix.arch != 'riscv64'
       - run: |
           cd ..
           cargo build --target wasm32-wasip1 --profile release --package hello_world
