@@ -617,25 +617,6 @@ extern "C" {
 	#[link_name = "sys_dealloc"]
 	pub fn dealloc(ptr: *mut u8, size: usize, align: usize);
 
-	#[link_name = "sys_notify"]
-	pub fn notify(id: usize, count: i32) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_add_queue"]
-	pub fn add_queue(id: usize, timeout_ns: i64) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_wait"]
-	pub fn wait(id: usize) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_init_queue"]
-	pub fn init_queue(id: usize) -> i32;
-
-	#[doc(hidden)]
-	#[link_name = "sys_destroy_queue"]
-	pub fn destroy_queue(id: usize) -> i32;
-
 	/// initialize the network stack
 	#[link_name = "sys_network_init"]
 	pub fn network_init() -> i32;

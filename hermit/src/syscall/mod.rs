@@ -186,31 +186,6 @@ pub extern "C" fn sys_get_processor_count() -> usize {
 }
 
 #[no_mangle]
-pub extern "C" fn sys_notify(_id: usize, _count: i32) -> i32 {
-	-22
-}
-
-#[no_mangle]
-pub extern "C" fn sys_add_queue(_id: usize, _timeout_ns: i64) -> i32 {
-	-22
-}
-
-#[no_mangle]
-pub extern "C" fn sys_wait(_id: usize) -> i32 {
-	-22
-}
-
-#[no_mangle]
-pub extern "C" fn sys_init_queue(_id: usize) -> i32 {
-	-22
-}
-
-#[no_mangle]
-pub extern "C" fn sys_destroy_queue(_id: usize) -> i32 {
-	-22
-}
-
-#[no_mangle]
 pub extern "C" fn sys_block_current_task() {}
 
 #[no_mangle]
