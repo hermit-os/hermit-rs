@@ -36,7 +36,7 @@ pub extern "C" fn sys_malloc(size: usize, align: usize) -> *mut u8 {
 		if let Some(mut addr) = ALLOC.lock().allocate(layout) {
 			return addr.as_mut();
 		}
-		
+
 		let heap_end = HEAP_END.load(Ordering::Acquire);
 		let extend_size = size.align_up(MIN_SIZE);
 		let mut result: *mut u8 = heap_end;

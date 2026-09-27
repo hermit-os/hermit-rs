@@ -137,6 +137,8 @@ pub(crate) enum SyscallNo {
 	Mmap = 57,
 	/// number of the system call `pipe`
 	Pipe = 58,
+	/// synchronize a file's in-core state with that on disk
+	Fsync = 59,
 }
 
 #[thread_local]
@@ -264,6 +266,13 @@ pub extern "C" fn sys_open(name: *const i8, flags: i32, mode: i32) -> i32 {
 	let result: i32 = syscall!(SyscallNo::Open, name, flags, mode)
 		.try_into()
 		.unwrap();
+	update_errno!(result);
+	result
+}
+
+#[no_mangle]
+pub extern "C" fn sys_fsync(fd: i32) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Fsync, fd).try_into().unwrap();
 	update_errno!(result);
 	result
 }
