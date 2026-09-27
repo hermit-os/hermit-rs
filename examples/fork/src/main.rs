@@ -7,6 +7,8 @@ use hermit_abi::{exec, fork, getpid, waitpid, Pid};
 fn fork_bench(count: usize) -> Duration {
 	let mut pids = vec![Pid::default(); count]; // Pre-allocate with zeros
 	let app = c"/bin/true";
+	let argv = [app.as_ptr(), std::ptr::null()];
+	let envp = [std::ptr::null()];
 
 	let start = Instant::now();
 	for pid in pids.iter_mut().take(count) {
@@ -15,7 +17,7 @@ fn fork_bench(count: usize) -> Duration {
 		if *pid == 0 {
 			//std::process::exit(0);
 			unsafe {
-				let _ = exec(app.as_ptr());
+				let _ = exec(app.as_ptr(), argv.as_ptr(), envp.as_ptr());
 			}
 		}
 	}
@@ -37,8 +39,10 @@ fn main() {
 		println!("Hello from child process with id {}!", unsafe { getpid() });
 
 		let app = c"/bin/hello_world";
+		let argv = [app.as_ptr(), std::ptr::null()];
+		let envp = [std::ptr::null()];
 		unsafe {
-			let _ = exec(app.as_ptr());
+			let _ = exec(app.as_ptr(), argv.as_ptr(), envp.as_ptr());
 		}
 
 		println!("ERROR: Exec failed!!!");

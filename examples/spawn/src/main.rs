@@ -7,10 +7,12 @@ use hermit_abi::{spawn_process, waitpid, Pid};
 fn spawn_bench(count: usize) -> Duration {
 	let mut pids = vec![Pid::default(); count]; // Pre-allocate with zeros
 	let app = c"/bin/true";
+	let argv = [app.as_ptr(), std::ptr::null()];
+	let envp = [std::ptr::null()];
 
 	let start = Instant::now();
 	for pid in pids.iter_mut().take(count) {
-		*pid = unsafe { spawn_process(app.as_ptr()) };
+		*pid = unsafe { spawn_process(app.as_ptr(), argv.as_ptr(), envp.as_ptr()) };
 
 		if *pid <= 0 {
 			println!("Unable to spawn a process!");
@@ -30,7 +32,9 @@ fn main() {
 	println!("Try to spawn a process...");
 
 	let app = c"/bin/hello_world";
-	let pid = unsafe { spawn_process(app.as_ptr()) };
+	let argv = [app.as_ptr(), std::ptr::null()];
+	let envp = [c"FOO=BAR".as_ptr(), std::ptr::null()];
+	let pid = unsafe { spawn_process(app.as_ptr(), argv.as_ptr(), envp.as_ptr()) };
 	if pid > 0 {
 		println!("Spawn process {app:?} with id {pid}!");
 
