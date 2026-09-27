@@ -907,7 +907,11 @@ extern "C" {
 	/// is null (or empty), the new process gets `[path]` as its argument
 	/// vector.
 	#[link_name = "sys_spawn_process"]
-	pub fn spawn_process(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char) -> Pid;
+	pub fn spawn_process(
+		path: *const c_char,
+		argv: *const *const c_char,
+		envp: *const *const c_char,
+	) -> Pid;
 
 	/// Wait for the termination of process `pid`
 	#[link_name = "sys_waitpid"]
@@ -921,7 +925,8 @@ extern "C" {
 	/// `argv` is null (or empty), the new image gets `[path]` as its
 	/// argument vector.
 	#[link_name = "sys_exec"]
-	pub fn exec(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char) -> i32;
+	pub fn exec(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char)
+		-> i32;
 
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);

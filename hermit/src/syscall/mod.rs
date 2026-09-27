@@ -137,7 +137,7 @@ pub(crate) enum SyscallNo {
 	Mmap = 57,
 	/// number of the system call `pipe`
 	Pipe = 58,
-	/// synchronize a file's in-core state with that on disk
+	/// number of the system call `fsync`
 	Fsync = 59,
 }
 
@@ -682,8 +682,14 @@ pub unsafe extern "C" fn sys_fork() -> Pid {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_spawn_process(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char) -> Pid {
-	let result: i32 = syscall!(SyscallNo::SpawnProcess, path, argv, envp).try_into().unwrap();
+pub unsafe extern "C" fn sys_spawn_process(
+	path: *const c_char,
+	argv: *const *const c_char,
+	envp: *const *const c_char,
+) -> Pid {
+	let result: i32 = syscall!(SyscallNo::SpawnProcess, path, argv, envp)
+		.try_into()
+		.unwrap();
 
 	if result < 0 {
 		unsafe {
@@ -725,8 +731,14 @@ pub unsafe extern "C" fn sys_getdents64(fd: i32, dirp: *mut abi::dirent64, count
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_exec(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char) -> i32 {
-	let result: i32 = syscall!(SyscallNo::Exec, path, argv, envp).try_into().unwrap();
+pub unsafe extern "C" fn sys_exec(
+	path: *const c_char,
+	argv: *const *const c_char,
+	envp: *const *const c_char,
+) -> i32 {
+	let result: i32 = syscall!(SyscallNo::Exec, path, argv, envp)
+		.try_into()
+		.unwrap();
 
 	if result < 0 {
 		unsafe {

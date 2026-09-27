@@ -6,11 +6,11 @@ fn main() {
 
 	println!("Arguments:");
 	for argument in std::env::args() {
-    	println!("{argument}");
+		println!("{argument}");
 	}
 
 	println!("Environment variables:");
 	for (key, value) in std::env::vars() {
-    	println!("{key}: {value}");
+		println!("{key}: {value}");
 	}
 }
