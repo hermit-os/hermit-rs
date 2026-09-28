@@ -80,6 +80,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "align-address"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cee078b3ed87e2621e0389729e2f032cc0408a4548768ced01678c9451c62237"
+
+[[package]]
 name = "alloc_benchmarks"
 version = "0.0.0"
 dependencies = [
@@ -94,6 +100,12 @@ name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
+
+[[package]]
+name = "allocator-api2"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c880a97d28a3681c0267bd29cff89621202715b065127cd445fa0f0fe0aa2880"
 
 [[package]]
 name = "android_system_properties"
@@ -305,7 +317,7 @@ version = "3.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb"
 dependencies = [
- "allocator-api2",
+ "allocator-api2 0.2.21",
 ]
 
 [[package]]
@@ -903,6 +915,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "false"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -943,12 +962,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
+name = "fork"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.3",
+]
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fs_benchmark"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit_bench_output",
 ]
 
 [[package]]
@@ -1126,21 +1161,16 @@ dependencies = [
 name = "hermit"
 version = "0.13.2"
 dependencies = [
+ "align-address",
  "cc",
  "generic_once_cell",
- "hermit-abi 0.4.0",
+ "hermit-abi 0.5.2",
  "home",
  "libm",
  "spinning_top",
  "take-static",
  "talc",
 ]
-
-[[package]]
-name = "hermit-abi"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbf6a919d6cf397374f7dfeeea91d974c7c0a7221d0d0f4f20d859d329e53fcc"
 
 [[package]]
 name = "hermit-abi"
@@ -1179,6 +1209,16 @@ name = "hermit_bench_output"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e622f2484751a4f8887e3eab0a6358c1bd66e190c5c54805fdc215c3ea0a871"
+
+[[package]]
+name = "hesh"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "hermit",
+ "log",
+]
 
 [[package]]
 name = "hkdf"
@@ -1752,6 +1792,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b3cff922bd51709b605d9ead9aa71031d81447142d828eb4a6eba76fe619f9b"
 
 [[package]]
+name = "pipe"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.3",
+]
+
+[[package]]
 name = "pkcs1"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1986,7 +2034,7 @@ version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de2c52737737f8609e94f975dee22854a2d5c125772d4b1cf292120f4d45c186"
 dependencies = [
- "allocator-api2",
+ "allocator-api2 0.2.21",
  "bumpalo",
  "hashbrown 0.17.0",
  "log",
@@ -2435,6 +2483,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "spawn"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit-abi 0.5.3",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2536,10 +2592,11 @@ dependencies = [
 
 [[package]]
 name = "talc"
-version = "4.4.3"
+version = "5.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3ae828aa394de34c7de08f522d1b86bd1c182c668d27da69caadda00590f26d"
+checksum = "53f8ad14fa1c1b8635114abf9721076fe1e869572a5f26a52690f407292c80dc"
 dependencies = [
+ "allocator-api2 0.4.0",
  "lock_api",
 ]
 
@@ -2758,6 +2815,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 dependencies = [
  "once_cell",
+]
+
+[[package]]
+name = "true"
+version = "0.0.0"
+dependencies = [
+ "hermit",
 ]
 
 [[package]]
