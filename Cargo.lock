@@ -952,6 +952,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs_benchmark"
+version = "0.0.0"
+dependencies = [
+ "hermit",
+ "hermit_bench_output",
+]
+
+[[package]]
 name = "fuse_test"
 version = "0.0.0"
 dependencies = [
