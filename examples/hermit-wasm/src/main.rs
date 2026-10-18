@@ -8,7 +8,7 @@ use clap::Parser;
 use env_logger::Builder;
 #[cfg(target_os = "hermit")]
 use hermit as _;
-use hermit_wasm::run_preview1;
+use hermit_wasm::{is_component, preview1, preview2};
 use log::{LevelFilter, debug, info};
 use wasmtime::Result;
 
@@ -57,5 +57,11 @@ pub fn main() -> Result<()> {
 
 	f.read_to_end(&mut buffer)?;
 
-	run_preview1(buffer.as_slice(), &config, &CONFIG.module_and_args)
+	let code = if is_component(&buffer) {
+		preview2::run(&buffer, &config, &CONFIG.module_and_args)?
+	} else {
+		preview1::run(buffer.as_slice(), &config, &CONFIG.module_and_args)?
+	};
+
+	std::process::exit(code);
 }
