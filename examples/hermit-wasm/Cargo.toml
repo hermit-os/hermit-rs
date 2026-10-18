@@ -1,6 +1,6 @@
 [package]
 name = "hermit-wasm"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 repository = "https://github.com/hermit-os/hermit-rs/tree/main/examples/hermit-wasm"
 description = "Running WASM modules inside a lightweight virtual machine"
@@ -28,7 +28,8 @@ log = { version = "0.4" } #, features = ["kv_unstable"]}
 libc = "0.2"
 env_logger = { version = "0.11", default-features = false }
 wasip1 = "1.0.0"
-wasmtime = { version = "49", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation", "custom-virtual-memory", "gc", "gc-drc", 'gc-null',] } #"pooling-allocator", "incremental-cache", "component-model"] }
+wasmtime = { version = "49", default-features = false, features = ["std", "runtime", "cranelift", "threads", "parallel-compilation", "custom-virtual-memory", "gc", "gc-drc", 'gc-null', "component-model"] } #"pooling-allocator", "incremental-cache"] }
+wasmtime-wasi-io = { version = "49", default-features = false, features = ["std"] }
 zerocopy = { version = "0.8", default-features = false, features = ["alloc", "derive", "simd-nightly"] }
 
 [target.'cfg(target_os = "hermit")'.dependencies]

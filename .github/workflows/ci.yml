@@ -23,6 +23,7 @@ jobs:
       - run: |
           rustup component add clippy llvm-tools
           rustup target add wasm32-wasip1
+          rustup target add wasm32-wasip2
       - name: Clippy
         run: |
           cargo clippy --all-targets
@@ -54,6 +55,7 @@ jobs:
       - run: |
           rustup component add llvm-tools
           rustup target add wasm32-wasip1
+          rustup target add wasm32-wasip2
       - name: Check docs
         run: cargo doc --no-deps --document-private-items
 
@@ -89,7 +91,9 @@ jobs:
       - uses: mkroening/rust-toolchain-toml@main
         with:
           toolchain-file: 'kernel/rust-toolchain.toml'
-      - run: rustup target add wasm32-wasip1
+      - run: |
+          rustup target add wasm32-wasip1
+          rustup target add wasm32-wasip2
         working-directory: .
       - run: cargo +stable install --locked virtiofsd
         if: matrix.arch == 'x86_64'
@@ -100,8 +104,13 @@ jobs:
       - run: |
           cd ..
           cargo build --target wasm32-wasip1 --profile release --package hello_world
+          cargo build --target wasm32-wasip2 --profile release --package hello_world
           mkdir kernel/shared
           cp target/wasm32-wasip1/release/hello_world.wasm kernel/shared
+          cd kernel
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+          cd -
+          cp target/wasm32-wasip2/release/hello_world.wasm kernel/shared
           cd kernel
           cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
         if: matrix.arch == 'x86_64'
