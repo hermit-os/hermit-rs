@@ -16,7 +16,7 @@ use bitflags::bitflags;
 #[cfg(target_os = "hermit")]
 use hermit_abi as libc;
 use log::{debug, error};
-use wasi::*;
+use wasip1::*;
 use wasmtime::{AsContext, AsContextMut, Caller, Extern, Result};
 use zerocopy::{Immutable, IntoBytes, KnownLayout};
 
@@ -240,7 +240,7 @@ pub(crate) fn init<T: 'static>(
 							Duration::from_nanos(unsafe { event.assume_init().u.u.clock.timeout });
 						thread::sleep(duration);
 
-						const USERDATA: wasi::Userdata = 0x0123_45678;
+						const USERDATA: wasip1::Userdata = 0x0123_45678;
 						let result = Event {
 							userdata: USERDATA,
 							error: ERRNO_SUCCESS,
