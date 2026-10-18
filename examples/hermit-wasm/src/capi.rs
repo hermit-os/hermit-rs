@@ -58,24 +58,23 @@ pub type wasmtime_trap_handler_t =
 pub enum wasmtime_memory_image {}
 
 #[thread_local]
-static TLS: UnsafeCell<*mut u8> = UnsafeCell::new(core::ptr::null_mut());
+static TLS: UnsafeCell<[*mut u8; 2]> = UnsafeCell::new([core::ptr::null_mut(); 2]);
 
-/// Wasmtime requires a single pointer's space of TLS to be used at runtime,
-/// and this function returns the current value of the TLS variable.
+/// Wasmtime requires a small amount of TLS to be used at runtime,
+/// and this function returns the current value of the TLS slot `slot`.
 ///
-/// This value should default to `NULL`.
+/// Slot 0 is the default runtime TLS pointer and slot 1 is used by the
+/// component-model-async state. The values should default to `NULL`.
 #[unsafe(no_mangle)]
-pub extern "C" fn wasmtime_tls_get() -> *mut u8 {
-	unsafe { TLS.get().read() }
+pub extern "C" fn wasmtime_tls_get(slot: usize) -> *mut u8 {
+	unsafe { (*TLS.get())[slot] }
 }
 
-// Sets the current TLS value for Wasmtime to the provided value.
-///
-/// This value should be returned when later calling `wasmtime_tls_get`.
+/// Setter for the TLS space described in `wasmtime_tls_get`.
 #[unsafe(no_mangle)]
-pub extern "C" fn wasmtime_tls_set(ptr: *mut u8) {
+pub extern "C" fn wasmtime_tls_set(slot: usize, ptr: *mut u8) {
 	unsafe {
-		TLS.get().write(ptr);
+		(*TLS.get())[slot] = ptr;
 	}
 }
 
