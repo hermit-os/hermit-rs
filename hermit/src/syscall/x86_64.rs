@@ -56,13 +56,14 @@ macro_rules! syscall {
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall0(arg0: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -71,14 +72,15 @@ pub(crate) fn syscall0(arg0: u64) -> u64 {
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall1(arg0: u64, arg1: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			in("rdi") arg1,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -87,15 +89,16 @@ pub(crate) fn syscall1(arg0: u64, arg1: u64) -> u64 {
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall2(arg0: u64, arg1: u64, arg2: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			in("rdi") arg1,
 			in("rsi") arg2,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -104,16 +107,17 @@ pub(crate) fn syscall2(arg0: u64, arg1: u64, arg2: u64) -> u64 {
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall3(arg0: u64, arg1: u64, arg2: u64, arg3: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			in("rdi") arg1,
 			in("rsi") arg2,
 			in("rdx") arg3,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -122,9 +126,10 @@ pub(crate) fn syscall3(arg0: u64, arg1: u64, arg2: u64, arg3: u64) -> u64 {
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall4(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			in("rdi") arg1,
 			in("rsi") arg2,
@@ -132,7 +137,7 @@ pub(crate) fn syscall4(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64) ->
 			in("r10") arg4,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -141,10 +146,11 @@ pub(crate) fn syscall4(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64) ->
 #[allow(dead_code)]
 #[inline]
 pub(crate) fn syscall5(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64, arg5: u64) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
-			inlateout("rax") arg0 => ret,
+		asm!(
+			"syscall",
+			inlateout("rax") arg0 =>ret,
 			in("rdi") arg1,
 			in("rsi") arg2,
 			in("rdx") arg3,
@@ -152,7 +158,7 @@ pub(crate) fn syscall5(arg0: u64, arg1: u64, arg2: u64, arg3: u64, arg4: u64, ar
 			in("r8") arg5,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret
@@ -169,9 +175,10 @@ pub(crate) fn syscall6(
 	arg5: u64,
 	arg6: u64,
 ) -> u64 {
-	let ret: u64;
+	let mut ret: u64;
 	unsafe {
-		asm!("syscall",
+		asm!(
+			"syscall",
 			inlateout("rax") arg0 => ret,
 			in("rdi") arg1,
 			in("rsi") arg2,
@@ -181,7 +188,7 @@ pub(crate) fn syscall6(
 			in("r9") arg6,
 			lateout("rcx") _,
 			lateout("r11") _,
-			options(preserves_flags)
+			options(preserves_flags, nostack)
 		);
 	}
 	ret

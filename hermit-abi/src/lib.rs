@@ -17,6 +17,9 @@ pub use self::errno::*;
 /// A thread handle type
 pub type Tid = u32;
 
+/// A process handle type
+pub type Pid = i32;
+
 /// Maximum number of priorities
 pub const NO_PRIORITIES: usize = 31;
 
@@ -781,6 +784,19 @@ extern "C" {
 	#[link_name = "sys_dup"]
 	pub fn dup(fd: i32) -> i32;
 
+	/// create a unidirectional pipe
+	///
+	/// `pipe` creates a pipe and stores two file descriptors in the array
+	/// `pipefd`: `pipefd[0]` refers to the read end, `pipefd[1]` to the
+	/// write end. Data written to the write end is buffered by the kernel
+	/// until it is read from the read end. Both descriptors are inherited
+	/// across `fork`, so a pipe can be used to communicate between a parent
+	/// and a child process.
+	///
+	/// Returns `0` on success or a negative error number on failure.
+	#[link_name = "sys_pipe"]
+	pub fn pipe(pipefd: *mut i32) -> i32;
+
 	#[link_name = "sys_getpeername"]
 	pub fn getpeername(s: i32, name: *mut sockaddr, namelen: *mut socklen_t) -> i32;
 
@@ -878,6 +894,39 @@ extern "C" {
 		hints: *const addrinfo,
 		res: *mut *mut addrinfo,
 	) -> i32;
+
+	/// fork() causes creation of a new process.  The new process (child process) is
+	/// an exact copy of the calling process (parent process)
+	#[link_name = "sys_fork"]
+	pub fn fork() -> Pid;
+
+	/// Spawn a new process by loading the binary at `path`.
+	///
+	/// `argv` and `envp` are optional NULL-terminated arrays of C strings
+	/// that become the new process's arguments and environment. If `argv`
+	/// is null (or empty), the new process gets `[path]` as its argument
+	/// vector.
+	#[link_name = "sys_spawn_process"]
+	pub fn spawn_process(
+		path: *const c_char,
+		argv: *const *const c_char,
+		envp: *const *const c_char,
+	) -> Pid;
+
+	/// Wait for the termination of process `pid`
+	#[link_name = "sys_waitpid"]
+	pub fn waitpid(pid: Pid);
+
+	/// The function sys_exec function replace the current process image
+	/// with a new process image.
+	///
+	/// `argv` and `envp` are optional NULL-terminated arrays of C strings
+	/// that become the new process image's arguments and environment. If
+	/// `argv` is null (or empty), the new image gets `[path]` as its
+	/// argument vector.
+	#[link_name = "sys_exec"]
+	pub fn exec(path: *const c_char, argv: *const *const c_char, envp: *const *const c_char)
+		-> i32;
 
 	fn sys_get_priority() -> u8;
 	fn sys_set_priority(tid: Tid, prio: u8);
