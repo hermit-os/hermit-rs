@@ -102,7 +102,7 @@ impl KernelSrc {
 		let lock = File::create(target_dir.join("hermit-build.lock")).unwrap();
 		lock.lock().unwrap();
 
-		println!("cargo:warning=$ {cargo:?}");
+		eprintln!("$ {cargo:?}");
 		let status = cargo.status().expect("failed to start kernel build");
 		assert!(status.success());
 
