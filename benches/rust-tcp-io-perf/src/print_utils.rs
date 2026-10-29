@@ -43,7 +43,8 @@ impl StatCalcs for f64 {
 
 						diff * diff
 					})
-					.sum::<f64>() / count as f64;
+					.sum::<f64>()
+					/ count as f64;
 
 				Some(variance.sqrt())
 			}
@@ -70,7 +71,8 @@ impl StatCalcs for u64 {
 
 						diff * diff
 					})
-					.sum::<f64>() / count as f64;
+					.sum::<f64>()
+					/ count as f64;
 
 				Some(variance.sqrt())
 			}
