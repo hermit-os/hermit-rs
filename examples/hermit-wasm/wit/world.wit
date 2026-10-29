@@ -1,0 +1,26 @@
+package hermit:wasm;
+
+world command {
+  import wasi:cli/environment@0.2.12;
+  import wasi:cli/exit@0.2.12;
+  import wasi:io/error@0.2.12;
+  import wasi:io/poll@0.2.12;
+  import wasi:io/streams@0.2.12;
+  import wasi:cli/stdin@0.2.12;
+  import wasi:cli/stdout@0.2.12;
+  import wasi:cli/stderr@0.2.12;
+  import wasi:cli/terminal-input@0.2.12;
+  import wasi:cli/terminal-output@0.2.12;
+  import wasi:cli/terminal-stdin@0.2.12;
+  import wasi:cli/terminal-stdout@0.2.12;
+  import wasi:cli/terminal-stderr@0.2.12;
+  import wasi:clocks/monotonic-clock@0.2.12;
+  import wasi:clocks/wall-clock@0.2.12;
+  import wasi:filesystem/types@0.2.12;
+  import wasi:filesystem/preopens@0.2.12;
+  import wasi:random/random@0.2.12;
+  import wasi:random/insecure@0.2.12;
+  import wasi:random/insecure-seed@0.2.12;
+
+  export wasi:cli/run@0.2.12;
+}
