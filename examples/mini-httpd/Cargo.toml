@@ -1,0 +1,12 @@
+[package]
+name = "mini-httpd"
+version = "0.1.0"
+edition = "2024"
+description = "Single-threaded HTTP server"
+
+[target.'cfg(target_os = "hermit")'.dependencies]
+hermit = { path = "../../hermit", default-features = false }
+
+[features]
+default = ["hermit/acpi", "hermit/pci", "hermit/tcp"]
+ci = []
