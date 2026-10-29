@@ -305,8 +305,13 @@ impl types::HostDescriptor for WasiCtx {
 		unsupported()
 	}
 
-	fn sync_data(&mut self, _fd: Resource<Descriptor>) -> FsResult<()> {
-		unsupported()
+	fn sync_data(&mut self, fd: Resource<Descriptor>) -> FsResult<()> {
+		match self.table.get(&fd)? {
+			Descriptor::File { file, flags } if flags.contains(DescriptorFlags::WRITE) => {
+				Ok(file.lock().unwrap().sync_data()?)
+			}
+			Descriptor::File { .. } | Descriptor::Dir { .. } => Ok(()),
+		}
 	}
 
 	fn get_flags(&mut self, fd: Resource<Descriptor>) -> FsResult<DescriptorFlags> {
@@ -337,20 +342,30 @@ impl types::HostDescriptor for WasiCtx {
 
 	fn read(
 		&mut self,
-		_fd: Resource<Descriptor>,
-		_len: Filesize,
-		_offset: Filesize,
+		fd: Resource<Descriptor>,
+		len: Filesize,
+		offset: Filesize,
 	) -> FsResult<(Vec<u8>, bool)> {
-		unsupported()
+		let file = self.file(&fd, DescriptorFlags::READ)?;
+		let mut file = file.lock().unwrap();
+		file.seek(SeekFrom::Start(offset))?;
+		let mut data = vec![];
+		(&mut *file).take(len).read_to_end(&mut data)?;
+		let eof = (data.len() as Filesize) < len;
+		Ok((data, eof))
 	}
 
 	fn write(
 		&mut self,
-		_fd: Resource<Descriptor>,
-		_buf: Vec<u8>,
-		_offset: Filesize,
+		fd: Resource<Descriptor>,
+		buf: Vec<u8>,
+		offset: Filesize,
 	) -> FsResult<Filesize> {
-		unsupported()
+		let file = self.file(&fd, DescriptorFlags::WRITE)?;
+		let mut file = file.lock().unwrap();
+		file.seek(SeekFrom::Start(offset))?;
+		file.write_all(&buf)?;
+		Ok(buf.len() as Filesize)
 	}
 
 	fn read_directory(
@@ -360,8 +375,13 @@ impl types::HostDescriptor for WasiCtx {
 		unsupported()
 	}
 
-	fn sync(&mut self, _fd: Resource<Descriptor>) -> FsResult<()> {
-		unsupported()
+	fn sync(&mut self, fd: Resource<Descriptor>) -> FsResult<()> {
+		match self.table.get(&fd)? {
+			Descriptor::File { file, flags } if flags.contains(DescriptorFlags::WRITE) => {
+				Ok(file.lock().unwrap().sync_all()?)
+			}
+			Descriptor::File { .. } | Descriptor::Dir { .. } => Ok(()),
+		}
 	}
 
 	fn create_directory_at(&mut self, _fd: Resource<Descriptor>, _path: String) -> FsResult<()> {
