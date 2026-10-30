@@ -1239,6 +1239,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e622f2484751a4f8887e3eab0a6358c1bd66e190c5c54805fdc215c3ea0a871"
 
 [[package]]
+name = "hesh"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "hermit",
+ "log",
+]
+
+[[package]]
 name = "hkdf"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1573,6 +1583,13 @@ name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+
+[[package]]
+name = "mini-httpd"
+version = "0.1.0"
+dependencies = [
+ "hermit",
+]
 
 [[package]]
 name = "miniz_oxide"

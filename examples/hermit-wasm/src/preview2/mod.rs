@@ -15,6 +15,7 @@ mod clocks;
 mod filesystem;
 mod io;
 mod random;
+mod sockets;
 
 /// Error used to terminate a component with an exit code.
 #[derive(Debug)]
@@ -67,6 +68,16 @@ fn add_to_linker(linker: &mut Linker<WasiCtx>) -> Result<()> {
 	random::insecure::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 	random::insecure_seed::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 
+	#[cfg(feature = "tcp")]
+	{
+		use bindings::sockets;
+
+		sockets::network::add_to_linker::<_, HasSelf<_>>(linker, &Default::default(), |ctx| ctx)?;
+		sockets::instance_network::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+		sockets::tcp::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+		sockets::tcp_create_socket::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+	}
+
 	Ok(())
 }
 
@@ -93,6 +104,14 @@ const IMPLEMENTED: &[&str] = &[
 	"wasi:random/insecure-seed",
 ];
 
+/// Interfaces which are only supported with the `tcp` feature
+const IMPLEMENTED_TCP: &[&str] = &[
+	"wasi:sockets/network",
+	"wasi:sockets/instance-network",
+	"wasi:sockets/tcp",
+	"wasi:sockets/tcp-create-socket",
+];
+
 /// Defines all functions of not yet supported interfaces as traps.
 ///
 /// In contrast to `Linker::define_unknown_imports_as_traps`, resources
@@ -106,7 +125,9 @@ fn stub_unsupported_imports(
 	let component_type = component.component_type();
 	for (name, import) in component_type.imports(engine) {
 		let interface = name.split('@').next().unwrap_or(name);
-		if IMPLEMENTED.contains(&interface) {
+		if IMPLEMENTED.contains(&interface)
+			|| (cfg!(feature = "tcp") && IMPLEMENTED_TCP.contains(&interface))
+		{
 			continue;
 		}
 		let ComponentItem::ComponentInstance(instance) = import.ty else {
@@ -128,6 +149,9 @@ fn stub_unsupported_imports(
 						"input-stream" => ResourceType::host::<DynInputStream>(),
 						"output-stream" => ResourceType::host::<DynOutputStream>(),
 						"error" => ResourceType::host::<wasmtime::Error>(),
+						"descriptor" => ResourceType::host::<filesystem::Descriptor>(),
+						"network" => ResourceType::host::<sockets::Network>(),
+						"tcp-socket" => ResourceType::host::<sockets::TcpSocket>(),
 						_ => ResourceType::host::<()>(),
 					};
 					linker_instance.resource(export_name, ty, |_, _| Ok(()))?;
