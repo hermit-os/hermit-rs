@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::future::Future;
 use std::pin::pin;
 use std::sync::Arc;
@@ -6,6 +6,8 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::thread::{self, Thread};
 use std::time::Instant;
 
+#[cfg(target_os = "hermit")]
+use hermit_abi as libc;
 use wasmtime::component::{Resource, ResourceTable};
 use wasmtime_wasi_io::bindings::wasi::io::{poll as async_poll, streams as async_streams};
 use wasmtime_wasi_io::poll::DynPollable;
@@ -15,6 +17,7 @@ use crate::preview2::bindings::io::{poll, streams};
 
 thread_local! {
 	static NEXT_DEADLINE: Cell<Option<Instant>> = const { Cell::new(None) };
+	static PENDING_FDS: RefCell<Vec<libc::pollfd>> = const { RefCell::new(Vec::new()) };
 }
 
 struct ThreadWaker(Thread);
@@ -27,8 +30,8 @@ impl Wake for ThreadWaker {
 
 /// Runs `future` to completion on the current thread.
 ///
-/// Pending futures either register a deadline via [`Deadline`] or are
-/// woken through the waker.
+/// Pending futures either register a deadline via [`Deadline`], a file
+/// descriptor via [`FdReady`] or are woken through the waker.
 pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
 	let mut future = pin!(future);
 	let waker = Waker::from(Arc::new(ThreadWaker(thread::current())));
@@ -36,15 +39,51 @@ pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
 
 	loop {
 		NEXT_DEADLINE.set(None);
+		PENDING_FDS.with_borrow_mut(Vec::clear);
 		if let Poll::Ready(output) = future.as_mut().poll(&mut cx) {
 			return output;
 		}
-		match NEXT_DEADLINE.get() {
-			Some(deadline) => {
-				thread::park_timeout(deadline.saturating_duration_since(Instant::now()))
+
+		let timeout = NEXT_DEADLINE
+			.get()
+			.map(|deadline| deadline.saturating_duration_since(Instant::now()));
+		let mut fds = PENDING_FDS.take();
+		if fds.is_empty() {
+			match timeout {
+				Some(timeout) => thread::park_timeout(timeout),
+				None => thread::park(),
 			}
-			None => thread::park(),
+		} else {
+			let timeout = timeout.map_or(-1, |timeout| {
+				i32::try_from(timeout.as_millis().max(1)).unwrap_or(i32::MAX)
+			});
+			unsafe {
+				libc::poll(fds.as_mut_ptr(), fds.len() as _, timeout);
+			}
 		}
+	}
+}
+
+/// Future which becomes ready as soon as `fd` signals one of `events`.
+pub(crate) struct FdReady {
+	pub fd: i32,
+	pub events: i16,
+}
+
+impl Future for FdReady {
+	type Output = ();
+
+	fn poll(self: std::pin::Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<()> {
+		let mut pollfd = libc::pollfd {
+			fd: self.fd,
+			events: self.events,
+			revents: 0,
+		};
+		if unsafe { libc::poll(&mut pollfd, 1, 0) } != 0 {
+			return Poll::Ready(());
+		}
+		PENDING_FDS.with_borrow_mut(|fds| fds.push(pollfd));
+		Poll::Pending
 	}
 }
 

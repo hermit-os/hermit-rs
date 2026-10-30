@@ -21,6 +21,10 @@ world command {
   import wasi:random/random@0.2.12;
   import wasi:random/insecure@0.2.12;
   import wasi:random/insecure-seed@0.2.12;
+  import wasi:sockets/network@0.2.12;
+  import wasi:sockets/instance-network@0.2.12;
+  import wasi:sockets/tcp@0.2.12;
+  import wasi:sockets/tcp-create-socket@0.2.12;
 
   export wasi:cli/run@0.2.12;
 }

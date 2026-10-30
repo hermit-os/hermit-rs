@@ -6,6 +6,7 @@ mod generated {
 		trappable_error_type: {
 			"wasi:io/streams.stream-error" => wasmtime_wasi_io::streams::StreamError,
 			"wasi:filesystem/types.error-code" => crate::preview2::filesystem::FsError,
+			"wasi:sockets/network.error-code" => crate::preview2::sockets::SocketError,
 		},
 		with: {
 			"wasi:io/error": wasmtime_wasi_io::bindings::wasi::io::error,
@@ -16,6 +17,8 @@ mod generated {
 			"wasi:cli/terminal-output.terminal-output": crate::preview2::cli::TerminalOutput,
 			"wasi:filesystem/types.descriptor": crate::preview2::filesystem::Descriptor,
 			"wasi:filesystem/types.directory-entry-stream": crate::preview2::filesystem::DirectoryEntryStream,
+			"wasi:sockets/network.network": crate::preview2::sockets::Network,
+			"wasi:sockets/tcp.tcp-socket": crate::preview2::sockets::TcpSocket,
 		},
 	});
 }
