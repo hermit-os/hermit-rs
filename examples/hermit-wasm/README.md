@@ -36,7 +36,13 @@ Build demo application _wasm-test_ for the target _wasm32-wasip1_.
 cargo build --target wasm32-wasip1  --release -p wasm-test
 ```
 
-If Qemu is used as hypervisor, download the loader binary from its [releases page](https://github.com/hermit-os/loader/releases).
+If Qemu is used as hypervisor, download the loader binary from its [releases page](https://github.com/hermit-os/loader/releases)
+and build _Hermit-WASM_ with the virtio-fs driver and support for the loader:
+```sh
+cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --release -p hermit-wasm \
+	--features hermit/virtio-fs,hermit/loader
+```
+
 Use _virtiofsd_ to provide the target directory for _Hermit-WASM_.
 ```sh
 virtiofsd --socket-path=./vhostqemu --shared-dir ./target/wasm32-wasip1/release --announce-submounts --sandbox none --seccomp none --inode-file-handles=never
@@ -44,7 +50,15 @@ virtiofsd --socket-path=./vhostqemu --shared-dir ./target/wasm32-wasip1/release 
 
 Start _Hermit-WASM_ within the hypervisor Qemu as followed:
 ```sh
-qemu-system-aarch64 --enable-kvm -display none -serial stdio -kernel hermit-loader-x86_64-multiboot -initrd target/aarch64-unknown-hermit/release/hermit-wasm -append "-- /root/wasm-test.wasm" -cpu host -device isa-debug-exit,iobase=0xf4,iosize=0x04 -smp 1 -m 2G -global virtio-mmio.force-legacy=off -chardev socket,id=char0,path=./vhostqemu -device vhost-user-fs-pci,queue-size=1024,packed=on,chardev=char0,tag=root -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/shm,share=on -numa node,memdev=mem
+qemu-system-aarch64 --enable-kvm -machine virt,gic-version=3 -cpu host \
+	-smp 1 -m 1G -display none -serial stdio \
+	-kernel hermit-loader-aarch64 \
+	-device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/release/hermit-wasm \
+	-append "-- /root/wasm-test.wasm" \
+	-chardev socket,id=char0,path=./vhostqemu \
+	-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=root \
+	-object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on \
+	-numa node,memdev=mem
 ```
 
 As alternative, [uhyve](https://github.com/hermit-os/uhyve) can be used, which is a minimal hypervisor for Hermit and offers direct access to a local directory. Consequently, uhyve doesn't depend on _virtiofsd_. In the following example, a local file is mounted to _/root/wasm-test.wasm_.
@@ -67,11 +81,11 @@ Build the server as WebAssembly component and _Hermit-WASM_ with the required dr
 cargo build --target wasm32-wasip2 --release -p mini-httpd
 # build Hermit-WASM with virtio-fs, TCP support and a virtio-net driver
 cargo build -Zbuild-std=std,panic_abort --target aarch64-unknown-hermit --release -p hermit-wasm \
-	--features hermit/fs,hermit/tcp,hermit/dhcpv4,hermit/virtio-net,hermit/loader
+	--features hermit/virtio-fs,tcp,hermit/dhcpv4,hermit/virtio-net,hermit/loader
 ```
 
-The feature `fs` enables the virtio-fs driver, which is used to load the component.
-`tcp` enables the TCP stack of _Hermit_ and the support of `wasi:sockets/tcp`, while `dhcpv4` configures the network interface via DHCP.
+The feature `hermit/virtio-fs` enables the virtio-fs driver, which is used to load the component.
+`tcp` enables the TCP stack of _Hermit_ and the support of `wasi:sockets/tcp`, while `hermit/dhcpv4` configures the network interface via DHCP.
 `hermit/virtio-net` adds the network driver and `hermit/loader` is required to boot with the Hermit loader in Qemu.
 
 ### Starting the server
