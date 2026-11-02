@@ -13,12 +13,10 @@ categories = ["os", "wasm"]
 name = "hermit_wasm"
 
 [features]
-default = ["pci"]
-fs = ["hermit/virtio-fs"]
+default = []
+dns = ["hermit/dns"]
 tcp = ["hermit/tcp"]
 udp = ["hermit/udp"]
-pci = ["hermit/pci"]
-pci-ids = ["hermit/pci-ids"]
 
 [dependencies]
 clap = { version ="4.6", features = ["derive", "env"] }

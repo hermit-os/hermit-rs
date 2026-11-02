@@ -68,7 +68,8 @@ uhyve -c 1 -m 1GiB --file-isolation none --file-mapping target/wasm32-wasip1/rel
 
 ## Running a network service with WASI Preview 2
 
-_Hermit-WASM_ detects the binary format at startup and runs WebAssembly components (`wasm32-wasip2`) with its WASI Preview 2 implementation. It supports TCP sockets (`wasi:sockets/tcp`) if it is built with the feature `tcp`.
+_Hermit-WASM_ detects the binary format at startup and runs WebAssembly components (`wasm32-wasip2`) with its WASI Preview 2 implementation. It supports TCP sockets (`wasi:sockets/tcp`) if it is built with the feature `tcp` and UDP sockets (`wasi:sockets/udp`) with the feature `udp`.
+The feature `dns` enables the name resolution (`wasi:sockets/ip-name-lookup`), which uses the DNS servers passed via the kernel parameter `ip=`, e.g. `ip=10.0.5.3/24:10.0.5.1::::8.8.8.8` (or DHCP).
 
 The example [_mini-httpd_](../mini-httpd) is a minimal, single-threaded HTTP server, which is based on `std::net` and listens on port 9975.
 

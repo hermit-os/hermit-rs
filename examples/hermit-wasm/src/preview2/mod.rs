@@ -68,15 +68,32 @@ fn add_to_linker(linker: &mut Linker<WasiCtx>) -> Result<()> {
 	random::insecure::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 	random::insecure_seed::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 
-	#[cfg(feature = "tcp")]
+	#[cfg(any(feature = "tcp", feature = "udp", feature = "dns"))]
 	{
 		use bindings::sockets;
 
 		sockets::network::add_to_linker::<_, HasSelf<_>>(linker, &Default::default(), |ctx| ctx)?;
 		sockets::instance_network::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+	}
+
+	#[cfg(feature = "tcp")]
+	{
+		use bindings::sockets;
+
 		sockets::tcp::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 		sockets::tcp_create_socket::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 	}
+
+	#[cfg(feature = "udp")]
+	{
+		use bindings::sockets;
+
+		sockets::udp::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+		sockets::udp_create_socket::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
+	}
+
+	#[cfg(feature = "dns")]
+	bindings::sockets::ip_name_lookup::add_to_linker::<_, HasSelf<_>>(linker, |ctx| ctx)?;
 
 	Ok(())
 }
@@ -104,13 +121,26 @@ const IMPLEMENTED: &[&str] = &[
 	"wasi:random/insecure-seed",
 ];
 
+/// Interfaces which are only supported with the `tcp`, `udp` or `dns` feature
+const IMPLEMENTED_NETWORK: &[&str] = &["wasi:sockets/network", "wasi:sockets/instance-network"];
+
 /// Interfaces which are only supported with the `tcp` feature
-const IMPLEMENTED_TCP: &[&str] = &[
-	"wasi:sockets/network",
-	"wasi:sockets/instance-network",
-	"wasi:sockets/tcp",
-	"wasi:sockets/tcp-create-socket",
-];
+const IMPLEMENTED_TCP: &[&str] = &["wasi:sockets/tcp", "wasi:sockets/tcp-create-socket"];
+
+/// Interfaces which are only supported with the `udp` feature
+const IMPLEMENTED_UDP: &[&str] = &["wasi:sockets/udp", "wasi:sockets/udp-create-socket"];
+
+/// Interfaces which are only supported with the `dns` feature
+const IMPLEMENTED_DNS: &[&str] = &["wasi:sockets/ip-name-lookup"];
+
+fn is_implemented(interface: &str) -> bool {
+	IMPLEMENTED.contains(&interface)
+		|| (cfg!(any(feature = "tcp", feature = "udp", feature = "dns"))
+			&& IMPLEMENTED_NETWORK.contains(&interface))
+		|| (cfg!(feature = "tcp") && IMPLEMENTED_TCP.contains(&interface))
+		|| (cfg!(feature = "udp") && IMPLEMENTED_UDP.contains(&interface))
+		|| (cfg!(feature = "dns") && IMPLEMENTED_DNS.contains(&interface))
+}
 
 /// Defines all functions of not yet supported interfaces as traps.
 ///
@@ -125,9 +155,7 @@ fn stub_unsupported_imports(
 	let component_type = component.component_type();
 	for (name, import) in component_type.imports(engine) {
 		let interface = name.split('@').next().unwrap_or(name);
-		if IMPLEMENTED.contains(&interface)
-			|| (cfg!(feature = "tcp") && IMPLEMENTED_TCP.contains(&interface))
-		{
+		if is_implemented(interface) {
 			continue;
 		}
 		let ComponentItem::ComponentInstance(instance) = import.ty else {
@@ -151,7 +179,17 @@ fn stub_unsupported_imports(
 						"error" => ResourceType::host::<wasmtime::Error>(),
 						"descriptor" => ResourceType::host::<filesystem::Descriptor>(),
 						"network" => ResourceType::host::<sockets::Network>(),
-						"tcp-socket" => ResourceType::host::<sockets::TcpSocket>(),
+						"tcp-socket" => ResourceType::host::<sockets::tcp::TcpSocket>(),
+						"udp-socket" => ResourceType::host::<sockets::udp::UdpSocket>(),
+						"incoming-datagram-stream" => {
+							ResourceType::host::<sockets::udp::IncomingDatagramStream>()
+						}
+						"outgoing-datagram-stream" => {
+							ResourceType::host::<sockets::udp::OutgoingDatagramStream>()
+						}
+						"resolve-address-stream" => {
+							ResourceType::host::<sockets::ip_name_lookup::ResolveAddressStream>()
+						}
 						_ => ResourceType::host::<()>(),
 					};
 					linker_instance.resource(export_name, ty, |_, _| Ok(()))?;
