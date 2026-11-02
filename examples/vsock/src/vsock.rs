@@ -4,7 +4,7 @@
 /// which are analogous to the `std::net::TcpListener` and `std::net::TcpStream`
 /// types.
 ///
-/// The implementation is derived from https://github.com/rust-vsock/vsock-rs
+/// The implementation is derived from <https://github.com/rust-vsock/vsock-rs>
 /// and adapted for HermitOS.
 use std::io::{self, Read, Result, Write};
 use std::mem::size_of;
