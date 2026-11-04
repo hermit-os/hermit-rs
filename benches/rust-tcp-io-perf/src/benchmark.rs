@@ -47,14 +47,9 @@ pub fn log_bw_statistics(protocol: Protocol, durations: &[f64]) {
 		Protocol::Udp => "UDP server",
 	};
 
-	let statistics = BoxplotValues::<f64>::from(durations);
-	log_benchmark_data(label, "Mbit/s", statistics.mean);
-	println!("{statistics:#.2?}");
-	println!(
-		"{} outliers ({:.1}%)",
-		statistics.nr_outliers,
-		100.0 * statistics.nr_outliers as f64 / durations.len() as f64
-	);
+	let harmonic_mean =
+		durations.len() as f64 / durations.iter().map(|mbits| 1.0 / mbits).sum::<f64>();
+	log_benchmark_data(label, "Mbit/s", harmonic_mean);
 }
 
 pub fn log_latency_statistics(protocol: Protocol, result: &LatencyResult) {
