@@ -193,9 +193,11 @@ fn cargo() -> Command {
 
 	// Remove rust-toolchain-specific environment variables from kernel cargo
 	cargo.env_remove("LD_LIBRARY_PATH");
+	let keep_env_vars = ["RUSTC_BOOTSTRAP", "CARGO_HOME", "RUSTUP_HOME"];
 	env::vars()
 		.filter(|(key, _value)| {
-			key.starts_with("CARGO") || key.starts_with("RUST") && key != "RUSTC_BOOTSTRAP"
+			(key.starts_with("CARGO") || key.starts_with("RUST"))
+				&& !keep_env_vars.contains(&key.as_str())
 		})
 		.for_each(|(key, _value)| {
 			cargo.env_remove(&key);
