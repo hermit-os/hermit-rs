@@ -196,7 +196,8 @@ fn cargo() -> Command {
 	let keep_env_vars = ["RUSTC_BOOTSTRAP", "CARGO_HOME", "RUSTUP_HOME"];
 	env::vars()
 		.filter(|(key, _value)| {
-			(key.starts_with("CARGO") || key.starts_with("RUST")) && !keep_env_vars.contains(&key.as_str())
+			(key.starts_with("CARGO") || key.starts_with("RUST"))
+				&& !keep_env_vars.contains(&key.as_str())
 		})
 		.for_each(|(key, _value)| {
 			cargo.env_remove(&key);
