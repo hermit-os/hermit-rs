@@ -108,9 +108,9 @@ jobs:
           mkdir kernel/shared
           cp target/wasm32-wasip1/release/hello_world.wasm kernel/shared
           cd kernel
-          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features hermit/virtio-fs,hermit/pci qemu ${{ matrix.flags }} --devices virtio-fs-pci
           cd -
           cp target/wasm32-wasip2/release/hello_world.wasm kernel/shared
           cd kernel
-          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features fs qemu ${{ matrix.flags }} --devices virtio-fs-pci
+          cargo xtask ci rs --arch ${{ matrix.arch }} --profile ${{ matrix.profile }} --features hermit/loader --package hermit-wasm --features hermit/virtio-fs,hermit/pci qemu ${{ matrix.flags }} --devices virtio-fs-pci
         if: matrix.arch == 'x86_64'
