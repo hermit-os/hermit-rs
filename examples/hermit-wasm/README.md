@@ -61,10 +61,41 @@ qemu-system-aarch64 --enable-kvm -machine virt,gic-version=3 -cpu host \
 	-numa node,memdev=mem
 ```
 
-As alternative, [uhyve](https://github.com/hermit-os/uhyve) can be used, which is a minimal hypervisor for Hermit and offers direct access to a local directory. Consequently, uhyve doesn't depend on _virtiofsd_. In the following example, a local file is mounted to _/root/wasm-test.wasm_.
+## Ahead-of-time compilation
+
+By default, _Hermit-WASM_ compiles a module at startup.
+To avoid this, the module can be compiled ahead of time on the host with the [Wasmtime CLI](https://github.com/bytecodealliance/wasmtime).
+The version of the CLI has to match the version of the `wasmtime` crate used by _Hermit-WASM_ (see `Cargo.lock`):
 ```sh
-uhyve -c 1 -m 1GiB --file-isolation none --file-mapping target/wasm32-wasip1/release/wasm-test.wasm:/root/wasm-test.wasm target/aarch64-unknown-hermit/release/hermit-wasm -- -- /root/wasm-test.wasm
+cargo install wasmtime-cli --version 50.0.1 --locked
+wasmtime compile --target aarch64-unknown-hermit \
+	-C collector=drc \
+	-O signals-based-traps=n,memory-guard-size=0 \
+	-W concurrency-support=n,threads=n \
+	target/wasm32-wasip1/release/wasm-test.wasm -o target/wasm32-wasip1/release/wasm-test.cwasm
 ```
+
+The options adapt the result to the configuration of Wasmtime within _Hermit-WASM_:
+`--target` selects the architecture and _Hermit_ as operating system,
+`-C collector=drc` selects the garbage collector of _Hermit-WASM_,
+and _Hermit_ does not support signal-based traps and guard pages as well as threads and the concurrency support of the component model.
+Otherwise, _Hermit-WASM_ rejects the file at startup.
+
+_Hermit-WASM_ detects precompiled files and runs them without compiling them again.
+As _virtiofsd_ shares the directory `target/wasm32-wasip1/release` (see [Usage](#usage)), the precompiled file is available at `/root` and only the command line of Qemu changes:
+```sh
+qemu-system-aarch64 --enable-kvm -machine virt,gic-version=3 -cpu host \
+	-smp 1 -m 1G -display none -serial stdio \
+	-kernel hermit-loader-aarch64 \
+	-device guest-loader,addr=0x48000000,initrd=target/aarch64-unknown-hermit/release/hermit-wasm \
+	-append "-- /root/wasm-test.cwasm" \
+	-chardev socket,id=char0,path=./vhostqemu \
+	-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=root \
+	-object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on \
+	-numa node,memdev=mem
+```
+
+Precompiled files contain native code, which is not validated before execution. Therefore, only run files from trusted sources.
 
 ## Running a network service with WASI Preview 2
 

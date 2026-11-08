@@ -2,7 +2,6 @@ use std::ffi::OsString;
 use std::fmt;
 use std::time::Instant;
 
-use log::debug;
 use wasmtime::component::types::ComponentItem;
 use wasmtime::component::{Component, HasSelf, Linker, ResourceTable, ResourceType};
 use wasmtime::{Engine, Result, Store, bail};
@@ -205,19 +204,10 @@ fn stub_unsupported_imports(
 /// Runs a component implementing the `wasi:cli/command` world.
 ///
 /// Returns the exit code of the component.
-pub fn run(component_bytes: &[u8], config: &wasmtime::Config, args: &[OsString]) -> Result<i32> {
-	let engine = Engine::new(config)?;
-
-	let now = Instant::now();
-	let component = Component::new(&engine, component_bytes)?;
-	debug!(
-		"Time to create component: {} msec",
-		now.elapsed().as_millis()
-	);
-
-	let mut linker = Linker::new(&engine);
+pub fn run(engine: &Engine, component: &Component, args: &[OsString]) -> Result<i32> {
+	let mut linker = Linker::new(engine);
 	add_to_linker(&mut linker)?;
-	stub_unsupported_imports(&mut linker, &engine, &component)?;
+	stub_unsupported_imports(&mut linker, engine, component)?;
 
 	let ctx = WasiCtx {
 		args: args
@@ -228,9 +218,9 @@ pub fn run(component_bytes: &[u8], config: &wasmtime::Config, args: &[OsString])
 		start: Instant::now(),
 		table: ResourceTable::new(),
 	};
-	let mut store = Store::new(&engine, ctx);
+	let mut store = Store::new(engine, ctx);
 
-	let command = bindings::Command::instantiate(&mut store, &component, &linker)?;
+	let command = bindings::Command::instantiate(&mut store, component, &linker)?;
 	match command.wasi_cli_run().call_run(&mut store) {
 		Ok(Ok(())) => Ok(0),
 		Ok(Err(())) => Ok(1),
