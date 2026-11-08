@@ -1,5 +1,4 @@
 use std::ffi::OsString;
-use std::time::Instant;
 
 use log::debug;
 use wasmtime::error::Context;
@@ -8,25 +7,13 @@ use wasmtime::*;
 mod bindings;
 
 pub fn run(
-	module_bytes: &[u8],
-	config: &wasmtime::Config,
+	engine: &Engine,
+	module: &Module,
 	#[allow(unused_variables)] module_and_args: &'static [OsString],
 ) -> Result<i32> {
-	let engine = Engine::new(config)?;
-	debug!("Wasmtime engine is configured as followed: {config:?}");
-
-	// TODO: dirty workaround to get the WebAssembly module into
-	// the VM. Find a way to inject the `.wasm` file into the VM
-	// using another way
-	debug!("Create Module");
-	let now = Instant::now();
-	let module = Module::new(&engine, module_bytes)?;
-	let elapsed = now.elapsed();
-	debug!("Time to create module: {} msec", elapsed.as_millis());
-
 	debug!("Create Linker");
 	#[allow(unused_mut)]
-	let mut linker = Linker::new(&engine);
+	let mut linker = Linker::new(engine);
 
 	{
 		let mut imports = module.imports();
@@ -38,8 +25,8 @@ pub fn run(
 	// All wasm objects operate within the context of a "store". Each
 	// `Store` has a type parameter to store host-specific data, which in
 	// this case we're using `4` for.
-	let mut store = Store::new(&engine, 4);
-	let instance = linker.instantiate(&mut store, &module)?;
+	let mut store = Store::new(engine, 4);
+	let instance = linker.instantiate(&mut store, module)?;
 
 	debug!("Try to find symbol _start");
 	let func = instance.get_func(&mut store, "_start").unwrap();

@@ -18,7 +18,11 @@ mod generated {
 			"wasi:filesystem/types.descriptor": crate::preview2::filesystem::Descriptor,
 			"wasi:filesystem/types.directory-entry-stream": crate::preview2::filesystem::DirectoryEntryStream,
 			"wasi:sockets/network.network": crate::preview2::sockets::Network,
-			"wasi:sockets/tcp.tcp-socket": crate::preview2::sockets::TcpSocket,
+			"wasi:sockets/tcp.tcp-socket": crate::preview2::sockets::tcp::TcpSocket,
+			"wasi:sockets/udp.udp-socket": crate::preview2::sockets::udp::UdpSocket,
+			"wasi:sockets/udp.incoming-datagram-stream": crate::preview2::sockets::udp::IncomingDatagramStream,
+			"wasi:sockets/udp.outgoing-datagram-stream": crate::preview2::sockets::udp::OutgoingDatagramStream,
+			"wasi:sockets/ip-name-lookup.resolve-address-stream": crate::preview2::sockets::ip_name_lookup::ResolveAddressStream,
 		},
 	});
 }
