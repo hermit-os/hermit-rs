@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{ErrorKind, Write};
 use std::path::Path;
 
 #[cfg(target_os = "hermit")]
@@ -53,8 +54,50 @@ fn main() {
 	}
 
 	assert!(path_to_new_dir.exists());
+	test_subdir(&path_to_new_dir);
 	fs::remove_dir(&path_to_new_dir).unwrap();
 	assert!(!path_to_new_dir.exists());
 
 	println!("Done.");
+}
+
+/// Creates and removes entries below a subdirectory, because the names
+/// are resolved relative to the parent directory.
+fn test_subdir(dir: &Path) {
+	let sub_dir = dir.join("sub_dir");
+	let file = sub_dir.join("file.txt");
+
+	fs::create_dir(&sub_dir).unwrap();
+	assert!(sub_dir.is_dir());
+
+	let mut f = fs::File::create(&file).unwrap();
+	f.write_all(b"Hello from a nested file").unwrap();
+	drop(f);
+	assert_eq!(
+		fs::read_to_string(&file).unwrap(),
+		"Hello from a nested file"
+	);
+
+	let names: Vec<_> = fs::read_dir(&sub_dir)
+		.unwrap()
+		.map(|entry| entry.unwrap().file_name())
+		.collect();
+	assert_eq!(names, ["file.txt"]);
+
+	assert!(fs::remove_dir(&sub_dir).is_err());
+	assert!(file.is_file());
+
+	fs::remove_file(&file).unwrap();
+	assert_eq!(fs::metadata(&file).unwrap_err().kind(), ErrorKind::NotFound);
+	assert_eq!(
+		fs::remove_file(&file).unwrap_err().kind(),
+		ErrorKind::NotFound
+	);
+
+	fs::remove_dir(&sub_dir).unwrap();
+	assert!(!sub_dir.exists());
+	assert_eq!(
+		fs::remove_dir(&sub_dir).unwrap_err().kind(),
+		ErrorKind::NotFound
+	);
 }
