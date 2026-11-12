@@ -84,7 +84,10 @@ fn test_subdir(dir: &Path) {
 		.collect();
 	assert_eq!(names, ["file.txt"]);
 
-	assert!(fs::remove_dir(&sub_dir).is_err());
+	assert_eq!(
+		fs::remove_dir(&sub_dir).unwrap_err().kind(),
+		ErrorKind::DirectoryNotEmpty
+	);
 	assert!(file.is_file());
 
 	fs::remove_file(&file).unwrap();
