@@ -8,7 +8,7 @@ use crate::print_utils::ProgressPrinter;
 use crate::{connection, threading, Protocol};
 
 fn bytes_to_mbits(bytes: usize, duration: std::time::Duration) -> f64 {
-	bytes as f64 * 8.0 / (1024.0 * 1024.0 * duration.as_secs_f64())
+	bytes as f64 * 8.0 / (1e6 * duration.as_secs_f64())
 }
 
 fn send_rounds<F>(rounds: usize, bytes: usize, progress_print: bool, mut send_round: F)
