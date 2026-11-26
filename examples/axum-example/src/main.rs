@@ -14,9 +14,18 @@ async fn main() -> io::Result<()> {
 
 	let app = Router::new()
 		.route("/", get(root))
+		.route("/blk", get(blk))
 		.route("/bytes", get(bytes));
 
+	#[cfg(not(target_family = "wasm"))]
 	let listener = net::TcpListener::bind("0.0.0.0:9975").await?;
+	// tokio does not support binding sockets on WASI.
+	#[cfg(target_family = "wasm")]
+	let listener = {
+		let listener = std::net::TcpListener::bind("0.0.0.0:9975")?;
+		listener.set_nonblocking(true)?;
+		net::TcpListener::from_std(listener)?
+	};
 	axum::serve(listener, app).await?;
 
 	Ok(())
@@ -24,6 +33,13 @@ async fn main() -> io::Result<()> {
 
 async fn root() -> &'static str {
 	"Hello, world!\n"
+}
+
+async fn blk() -> String {
+	// Spawning a blocking task failed on WASI, so we only run this test on non-WASI targets.
+	tokio::task::spawn_blocking(|| "blocking ok\n".to_string())
+		.await
+		.unwrap()
 }
 
 #[derive(Deserialize)]
