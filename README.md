@@ -1,3 +1,8 @@
+> [!IMPORTANT]  
+> We've merged this repostitory into [the Kernel repository](https://github.com/hermit-os/kernel) and continue the development there! This repostitory is thus archived.
+
+---
+
 <img width="256" align="right" src="https://github.com/hermit-os/.github/blob/main/logo/hermit-logo.svg" />
 
 # Hermit for Rust
